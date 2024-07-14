@@ -14,6 +14,3 @@
 	path = Plugins/RuntimeAudioImporter
 	url = https://github.com/gtreshchev/RuntimeAudioImporter
 	branch = 3147450
-[submodule "Plugins/EasyFileDialog"]
-	path = Plugins/EasyFileDialog
-	url = https://github.com/unrealsumon/EasyFileDialog
