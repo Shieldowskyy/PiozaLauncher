@@ -106,11 +106,6 @@
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/e7e6df6d6e9c46f0ae35163eab67ff9a"
 		},
 		{
-			"Name": "DTCmd",
-			"Enabled": false,
-			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/f45396da9bef439f8049d6654f2d6f0b"
-		},
-		{
 			"Name": "RuntimeArchiver",
 			"Enabled": true,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/2f22e9adc1dc4254a277aabb2320f3f9"
@@ -393,11 +388,6 @@
 			]
 		},
 		{
-			"Name": "ChunkCore",
-			"Enabled": false,
-			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/4f50c7c443b44318b44c11dbd1ccfefd"
-		},
-		{
 			"Name": "AnimationModifierLibrary",
 			"Enabled": false
 		},
@@ -512,10 +502,6 @@
 		},
 		{
 			"Name": "GooglePAD",
-			"Enabled": false
-		},
-		{
-			"Name": "ZipUtility",
 			"Enabled": false
 		}
 	],
