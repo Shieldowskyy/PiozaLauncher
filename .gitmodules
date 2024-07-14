@@ -1,16 +1,16 @@
 [submodule "Plugins/sentry-unreal"]
 	path = Plugins/sentry-unreal
-	url = https://github.com/getsentry/sentry-unreal
+	url = https://github.com/getsentry/sentry-unreal.git
 	branch = 5b52202
 [submodule "Plugins/RuntimeArchiver"]
 	path = Plugins/RuntimeArchiver
-	url = https://github.com/gtreshchev/RuntimeArchiver
+	url = https://github.com/gtreshchev/RuntimeArchiver.git
 	branch = 31bee07
 [submodule "Plugins/RuntimeFilesDownloader"]
 	path = Plugins/RuntimeFilesDownloader
-	url = https://github.com/gtreshchev/RuntimeFilesDownloader
+	url = https://github.com/gtreshchev/RuntimeFilesDownloader.git
 	branch = 6dd2c9a
 [submodule "Plugins/RuntimeAudioImporter"]
 	path = Plugins/RuntimeAudioImporter
-	url = https://github.com/gtreshchev/RuntimeAudioImporter
+	url = https://github.com/gtreshchev/RuntimeAudioImporter.git
 	branch = 3147450
