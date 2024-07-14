@@ -1,0 +1,12 @@
+[submodule "Plugins/RuntimeArchiver"]
+	path = Plugins/RuntimeArchiver
+	url = https://github.com/gtreshchev/RuntimeArchiver.git
+	branch = 31bee07
+[submodule "Plugins/RuntimeFilesDownloader"]
+	path = Plugins/RuntimeFilesDownloader
+	url = https://github.com/gtreshchev/RuntimeFilesDownloader.git
+	branch = 6dd2c9a
+[submodule "Plugins/RuntimeAudioImporter"]
+	path = Plugins/RuntimeAudioImporter
+	url = https://github.com/gtreshchev/RuntimeAudioImporter.git
+	branch = 3147450
