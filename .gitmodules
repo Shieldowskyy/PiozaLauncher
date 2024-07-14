@@ -1,0 +1,19 @@
+[submodule "Plugins/sentry-unreal"]
+	path = Plugins/sentry-unreal
+	url = https://github.com/getsentry/sentry-unreal
+	branch = 5b52202
+[submodule "Plugins/RuntimeArchiver"]
+	path = Plugins/RuntimeArchiver
+	url = https://github.com/gtreshchev/RuntimeArchiver
+	branch = 31bee07
+[submodule "Plugins/RuntimeFilesDownloader"]
+	path = Plugins/RuntimeFilesDownloader
+	url = https://github.com/gtreshchev/RuntimeFilesDownloader
+	branch = 6dd2c9a
+[submodule "Plugins/RuntimeAudioImporter"]
+	path = Plugins/RuntimeAudioImporter
+	url = https://github.com/gtreshchev/RuntimeAudioImporter
+	branch = 3147450
+[submodule "Plugins/EasyFileDialog"]
+	path = Plugins/EasyFileDialog
+	url = https://github.com/unrealsumon/EasyFileDialog
