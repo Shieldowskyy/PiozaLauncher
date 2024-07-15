@@ -1,7 +1,14 @@
 # PiozaGameLauncher
 [![Unreal Engine](https://img.shields.io/badge/Unreal%20Engine-%23313131.svg?logo=unrealengine&logoColor=white)](#)
+[![Crowdin](https://badges.crowdin.net/piozagamelauncher/localized.svg)](https://crowdin.com/project/piozagamelauncher)
 
 An open source game launcher for Dasho Games titles and more!
+
+# Download
+In Releases tab you will find installer and zipped build that you can install where you want.\
+NOTE: Zipped build is not portable and will save config in localappdata directory.\
+
+ Currently only Windows builds are available but there are some plans to port it to Linux and run our games via Proton!
 
 # Opening project in Unreal Engine
 PiozaGameLauncher is built on Unreal Engine. It was easier for me to write something in Unreal Blueprints for simpler prototyping, but i have plans to rewrite some elements in C++ in future.
