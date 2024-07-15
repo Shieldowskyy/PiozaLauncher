@@ -1,5 +1,6 @@
 # PiozaGameLauncher
 [![Unreal Engine](https://img.shields.io/badge/Unreal%20Engine-%23313131.svg?logo=unrealengine&logoColor=white)](#)
+[![Crowdin](https://badges.crowdin.net/piozagamelauncher/localized.svg)](https://crowdin.com/project/piozagamelauncher)
 
 An open source game launcher for Dasho Games titles and more!
 
