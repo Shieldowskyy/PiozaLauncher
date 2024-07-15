@@ -503,6 +503,10 @@
 		{
 			"Name": "GooglePAD",
 			"Enabled": false
+		},
+		{
+			"Name": "VictoryBPLibrary",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
