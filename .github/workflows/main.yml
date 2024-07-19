@@ -1,9 +1,14 @@
 name: Cook, Stage & Package UE Project  # Choose a descriptive name for your workflow
 
-on: # Define when this workflow should trigger (e.g., on push to main)
-  push:
-    branches:
-      - main
+## automation:
+#on: # Define when this workflow should trigger (e.g., on push to main)
+#   manual
+#  push:
+#    branches:
+#      - main
+
+on: 
+  workflow_dispatch
 
 jobs:
   build-ue-project:
