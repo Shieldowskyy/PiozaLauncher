@@ -1,50 +1,36 @@
-            - name: UE5-Build-Project
-  # You may pin to the exact commit or the version.
-  # uses: OrchidIsle/UE5-Build-Project@b81f6cd3b7129cc41acf1d101a16faacbc691937
-  uses: OrchidIsle/UE5-Build-Project@0.3.0
-  with:
-    # Path to RunUAT.bat
-    RUNUAT_PATH: RunUAT.bat
-    # Path to the .uproject file
-    UPROJECT_PATH: PiozaGameLauncher.uproject
-    # Configuration to use
-    BUILD_CONFIG: # default is Development
-    # Platform to build for
-    PLATFORM: Windows
-    # Whether to clean
-    CLEAN: # optional, default is false
-    # Whether to cook
-    COOK: # optional, default is true
-    # Whether to stage
-    STAGE: # optional, default is true
-    # Whether to package
-    PACKAGE: true # optional, default is false
-    # Whether to pak files
-    PAK: true # optional, default is false
-    # Whether to include the server
-    SERVER: # optional, default is false
-    # Whether to archive
-    ARCHIVE: # optional, default is false
-    # Archive Path
-    ARCHIVE_PATH: # optional
-    # Whether to execute commands without video output
-    NULLRHI: # optional, default is false
-    # Whether to compile the editor as well
-    EDITOR: false # optional, default is true
-    # Encrypt INI Files
-    ENCRYPT_INI: # optional, default is false
-    # Create Release Version (Enter new release version number)
-    RELEASE: auto-0.0 # optional, default is false
-    # Generate a patch based on a release version (enter based on release version number)
-    PATCH: # optional, default is false
-    # Maps to build and package (comma separated list of maps, leave empty for all maps)
-    MAPS: launchermap # optional, default is true
-    # Delete PDB (debug) files
-    DELETE_PDB: true # optional, default is false
-    # Enable anticheat
-    ANTICHEAT_ENABLED: false # optional, default is false
-    # Base64 encoded private key for anticheat
-    ANTICHEAT_PRIVATE_KEY: # optional
-    # Base64 encoded public certificate for anticheat
-    ANTICHEAT_PUBLIC_CERT: # optional
-          
+name: Cook, Stage & Package UE Project  # Choose a descriptive name for your workflow
+
+on: # Define when this workflow should trigger (e.g., on push to main)
+  push:
+    branches:
+      - main
+
+jobs:
+  build-ue-project:
+    runs-on: windows-latest  # Use a Windows runner for UE projects
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Cook, Stage & Package UE Project
+      uses: OrchidIsle/UE5-Build-Project@latest
+      with:
+        RUNUAT_PATH: 'C:/Unreal Engine/UE5.3_Source/Engine/Build/BatchFiles/RunUAT.bat'
+        UPROJECT_PATH: PiozaGameLauncher.uproject
+        BUILD_CONFIG: Development
+        PLATFORM: Win64
+        CLEAN: true
+        COOK: true
+        STAGE: true
+        PACKAGE: false
+        PAK: false
+        SERVER: false
+        ARCHIVE: false
+        ARCHIVE_PATH: 'Archives/PiozaGL/'
+        NULLRHI: true
+        EDITOR: true
+        ENCRYPT_INI: true
+        RELEASE: '1.0.0'
+        PATCH: '0.9.0'
+        MAPS: 'Map1,Map2'
+        DELETE_PDB: true
