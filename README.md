@@ -3,6 +3,8 @@
 [![Crowdin](https://badges.crowdin.net/piozagamelauncher/localized.svg)](https://crowdin.com/project/piozagamelauncher)
 
 An open source game launcher for Dasho Games titles and more!
+![image](https://github.com/user-attachments/assets/62e4bcba-83f8-4dc9-b255-306b37c0cb16)
+
 
 # Download
 In Releases tab you will find installer and zipped build that you can install where you want.\
