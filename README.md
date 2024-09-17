@@ -3,12 +3,14 @@
 [![Crowdin](https://badges.crowdin.net/piozagamelauncher/localized.svg)](https://crowdin.com/project/piozagamelauncher)
 
 An open source game launcher for Dasho Games titles and more!
+![image](https://github.com/user-attachments/assets/62e4bcba-83f8-4dc9-b255-306b37c0cb16)
+
 
 # Download
 In Releases tab you will find installer and zipped build that you can install where you want.\
 NOTE: Zipped build is not portable and will save config in localappdata directory.\
 
- Currently only Windows builds are available but there are some plans to port it to Linux and run our games via Proton!
+Launcher works well under proton: **ShieldRunner** and **FlipFlop** tested on Fedora 40 via Bottles and also Lutris!
 
 # Opening project in Unreal Engine
 PiozaGameLauncher is built on Unreal Engine. It was easier for me to write something in Unreal Blueprints for simpler prototyping, but i have plans to rewrite some elements in C++ in future.
