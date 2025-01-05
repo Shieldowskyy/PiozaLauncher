@@ -514,6 +514,10 @@
 		{
 			"Name": "SQLiteSupport",
 			"Enabled": true
+		},
+		{
+			"Name": "WebBrowserWidget",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
