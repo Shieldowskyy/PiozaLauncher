@@ -510,6 +510,10 @@
 		{
 			"Name": "CustomMeshComponent",
 			"Enabled": false
+		},
+		{
+			"Name": "SQLiteSupport",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
