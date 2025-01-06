@@ -15,7 +15,7 @@ Launcher works well under proton: **ShieldRunner** and **FlipFlop** tested on Fe
 # Opening project in Unreal Engine
 PiozaGameLauncher is built on Unreal Engine. It was easier for me to write something in Unreal Blueprints for simpler prototyping, but i have plans to rewrite some elements in C++ in future.
 ## Engine
-To run this project, you have to install Unreal Engine 5.3 on your machine! Also you might need Visual Studio with configured Unreal Engine components to compile all plugins and C++ code!
+To run this project, you have to install Unreal Engine 5.5 on your machine! Also you might need Visual Studio with configured Unreal Engine components to compile all plugins and C++ code!
 ## Plugins
 To open project you need to install these plugins:\
 [EasyFileDialog](https://github.com/unrealsumon/EasyFileDialog) from Github or Marketplace\
