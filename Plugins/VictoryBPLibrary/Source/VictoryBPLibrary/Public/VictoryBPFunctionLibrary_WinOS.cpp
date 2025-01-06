@@ -6,6 +6,7 @@
 #include "Widgets/SWindow.h"
 #include "GenericPlatform/GenericWindow.h"
 #include "GameFramework/PlayerController.h"
+#include "Engine/GameViewportClient.h"
 
 #if PLATFORM_WINDOWS
 #include "Runtime/Core/Public/Windows/AllowWindowsPlatformTypes.h"
