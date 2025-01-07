@@ -24,7 +24,7 @@
 - Adding notes in the launcher menu for specific games  
 - Support for changelogs based on HTML files
 # Download
-In Releases tab you will find installer and zipped build that you can install where you want.\
+In [Releases](https://github.com/Shieldowskyy/PiozaGameLauncher/releases) tab you will find installer and zipped build that you can install where you want.\
 NOTE: Zipped build is not portable and will save config in localappdata directory.
 
 Launcher works well under proton: **ShieldRunner** and **FlipFlop** tested on Fedora 40 via Bottles and also Lutris!
