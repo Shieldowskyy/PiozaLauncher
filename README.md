@@ -1,14 +1,31 @@
 # PiozaGameLauncher
 [![Unreal Engine](https://img.shields.io/badge/Unreal%20Engine-%23313131.svg?logo=unrealengine&logoColor=white)](#)
 [![Crowdin](https://badges.crowdin.net/piozagamelauncher/localized.svg)](https://crowdin.com/project/piozagamelauncher)
-
-An open source game launcher for Dasho Games titles and more!
 ![image](https://github.com/user-attachments/assets/62e4bcba-83f8-4dc9-b255-306b37c0cb16)
 
 
+
+**PiozaGameLauncher** is an open-source launcher project created entirely in Unreal Engine 5 using blueprints. This makes it highly customizable for beginner programmers and indie game developers who want an easy and reliable way to distribute their games to players. It comes with several features, such as:
+
+- Downloading, installing, and updating games  
+- Moving files to other drives/folders  
+- Displaying game descriptions, minimum requirements, screenshots, and videos  
+- Playing sound effects when clicking on a game  
+- Easily changing repositories via the console  
+- Extending functionality with custom console libraries and more  
+
+### Planned Features:
+- Creating backups of downloaded games  
+- Easy localization of game metadata  
+- Merging repositories  
+- Linux system support  
+- Verifying game files using checksums  
+- Tracking playtime  
+- Adding notes in the launcher menu for specific games  
+- Support for changelogs based on HTML files
 # Download
 In Releases tab you will find installer and zipped build that you can install where you want.\
-NOTE: Zipped build is not portable and will save config in localappdata directory.\
+NOTE: Zipped build is not portable and will save config in localappdata directory.
 
 Launcher works well under proton: **ShieldRunner** and **FlipFlop** tested on Fedora 40 via Bottles and also Lutris!
 
