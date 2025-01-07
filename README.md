@@ -12,10 +12,10 @@
 - Displaying game descriptions, minimum requirements, screenshots, and videos  
 - Playing sound effects when clicking on a game  
 - Easily changing repositories via the console  
-- Extending functionality with custom console libraries and more  
+- Extending functionality with custom console libraries and more
+- Creating backups of downloaded games  
 
 ### Planned Features:
-- Creating backups of downloaded games  
 - Easy localization of game metadata  
 - Merging repositories  
 - Linux system support  
