@@ -8,6 +8,6 @@ if "%~1"=="" exit /b
 set PROGRAM_PATH=%~1
 
 :: Remove the shortcut from the Start Menu
-powershell -Command "Remove-Item -Path ([System.IO.Path]::Combine($env:APPDATA, 'Microsoft\Windows\Start Menu\Programs\%~n1.lnk')) -Force"
+powershell -NoProfile -Command "Remove-Item -Path ([System.IO.Path]::Combine($env:APPDATA, 'Microsoft\Windows\Start Menu\Programs\%~n1.lnk')) -Force"
 
 exit /b
