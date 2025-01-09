@@ -23,6 +23,8 @@
 - Tracking playtime  
 - Adding notes in the launcher menu for specific games  
 - Support for changelogs based on HTML files
+- Making shortcut in start menu and on desktop
+- Actions queue
 # Download
 In [Releases](https://github.com/Shieldowskyy/PiozaGameLauncher/releases) tab you will find installer and zipped build that you can install where you want.\
 NOTE: Zipped build is not portable and will save config in localappdata directory.
