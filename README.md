@@ -1,7 +1,7 @@
 # PiozaGameLauncher
 [![Unreal Engine](https://img.shields.io/badge/Unreal%20Engine-%23313131.svg?logo=unrealengine&logoColor=white)](#)
 [![Crowdin](https://badges.crowdin.net/piozagamelauncher/localized.svg)](https://crowdin.com/project/piozagamelauncher)
-![image](https://github.com/user-attachments/assets/62e4bcba-83f8-4dc9-b255-306b37c0cb16)
+![image](https://github.com/user-attachments/assets/cfaa8d9f-5eab-43e9-a4b7-9b2d582fb933)
 
 
 
@@ -11,18 +11,20 @@
 - Moving files to other drives/folders  
 - Displaying game descriptions, minimum requirements, screenshots, and videos  
 - Playing sound effects when clicking on a game  
-- Easily changing repositories via the console  
+- Easily changing [repositories](https://github.com/Shieldowskyy/PiozaGameLauncher/wiki/PiozaRepo-(and-manifest)) via the console  
 - Extending functionality with custom console libraries and more
 - Creating backups of downloaded games  
 
 ### Planned Features:
 - Easy localization of game metadata  
-- Merging repositories  
+- Merging [repositories ](https://github.com/Shieldowskyy/PiozaGameLauncher/wiki/PiozaRepo-(and-manifest)) 
 - Linux system support  
 - Verifying game files using checksums  
 - Tracking playtime  
 - Adding notes in the launcher menu for specific games  
 - Support for changelogs based on HTML files
+- Making shortcut in start menu and on desktop
+- Actions queue
 # Download
 In [Releases](https://github.com/Shieldowskyy/PiozaGameLauncher/releases) tab you will find installer and zipped build that you can install where you want.\
 NOTE: Zipped build is not portable and will save config in localappdata directory.
