@@ -1,7 +1,7 @@
 # PiozaGameLauncher
 [![Unreal Engine](https://img.shields.io/badge/Unreal%20Engine-%23313131.svg?logo=unrealengine&logoColor=white)](#)
 [![Crowdin](https://badges.crowdin.net/piozagamelauncher/localized.svg)](https://crowdin.com/project/piozagamelauncher)
-![image](https://github.com/user-attachments/assets/62e4bcba-83f8-4dc9-b255-306b37c0cb16)
+![image](https://github.com/user-attachments/assets/cfaa8d9f-5eab-43e9-a4b7-9b2d582fb933)
 
 
 
