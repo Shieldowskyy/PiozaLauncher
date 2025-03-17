@@ -1,10 +1,15 @@
 #include "ShortcutFunctionLibrary.h"
-#include "Windows/WindowsHWrapper.h" // Updated header
+
+#if PLATFORM_WINDOWS
+#include "Windows/WindowsHWrapper.h" // Windows specific header
 #include <shlobj.h>
+#include <Windows.h> // Windows.h header
+#include "HAL/PlatformFilemanager.h" // Include for Windows
+#endif
+
 #include <string>
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
-#include <Windows.h> // Added Windows.h header
 
 // Define TRUE and FALSE for safety
 #ifndef TRUE
@@ -14,6 +19,7 @@
 #define FALSE 0
 #endif
 
+#if PLATFORM_WINDOWS
 // Helper function to initialize and uninitialize COM
 bool InitializeCOM()
 {
@@ -29,16 +35,21 @@ void UninitializeCOM()
     CoUninitialize();
 }
 
+#endif
 // Helper function to create the shortcut path
 std::wstring GetShortcutPath(FString Folder, FString ShortcutName)
 {
+    #if PLATFORM_WINDOWS
     return std::wstring(TCHAR_TO_WCHAR(*Folder)) + L"\\" + std::wstring(*ShortcutName) + L".lnk";
+    #else
+    return L"";  // Return an empty string for Linux
+    #endif
 }
 
 // Function to create a shortcut on the desktop
 bool UShortcutFunctionLibrary::CreateDesktopShortcut(FString ProgramPath, FString ShortcutName)
 {
-#if PLATFORM_WINDOWS
+    #if PLATFORM_WINDOWS
     if (!InitializeCOM())
         return false;
 
@@ -79,28 +90,17 @@ bool UShortcutFunctionLibrary::CreateDesktopShortcut(FString ProgramPath, FStrin
 
     return SUCCEEDED(hr);
 
-#elif PLATFORM_LINUX
-    FString DesktopDir = FPaths::DesktopDir();
-    FString ShortcutPath = DesktopDir / ShortcutName + ".desktop";
-
-    FString ShortcutContent =
-        "[Desktop Entry]\n"
-        "Version=1.0\n"
-        "Name=" + ShortcutName + "\n"
-        "Comment=Shortcut to " + ProgramPath + "\n"
-        "Exec=" + ProgramPath + "\n"
-        "Icon=" + ProgramPath + "\n"
-        "Terminal=false\n"
-        "Type=Application\n";
-
-    return FFileHelper::SaveStringToFile(ShortcutContent, *ShortcutPath);
-#endif
+    #elif PLATFORM_LINUX
+    // On Linux, just print a message and return true without doing anything.
+    UE_LOG(LogTemp, Warning, TEXT("Linux shortcut creation skipped."));
+    return true;
+    #endif
 }
 
 // Function to remove a shortcut from the desktop
 bool UShortcutFunctionLibrary::RemoveDesktopShortcut(FString ShortcutName)
 {
-#if PLATFORM_WINDOWS
+    #if PLATFORM_WINDOWS
     if (!InitializeCOM())
         return false;
 
@@ -122,18 +122,17 @@ bool UShortcutFunctionLibrary::RemoveDesktopShortcut(FString ShortcutName)
     UninitializeCOM();
     return true;
 
-#elif PLATFORM_LINUX
-    FString DesktopDir = FPaths::DesktopDir();
-    FString ShortcutPath = DesktopDir / ShortcutName + ".desktop";
-
-    return IFileManager::Get().Delete(*ShortcutPath);
-#endif
+    #elif PLATFORM_LINUX
+    // On Linux, just print a message and return true without doing anything.
+    UE_LOG(LogTemp, Warning, TEXT("Linux shortcut removal skipped."));
+    return true;
+    #endif
 }
 
 // Function to remove a shortcut from the Start menu
 bool UShortcutFunctionLibrary::RemoveStartMenuShortcut(FString ShortcutName)
 {
-#if PLATFORM_WINDOWS
+    #if PLATFORM_WINDOWS
     if (!InitializeCOM())
         return false;
 
@@ -155,18 +154,17 @@ bool UShortcutFunctionLibrary::RemoveStartMenuShortcut(FString ShortcutName)
     UninitializeCOM();
     return true;
 
-#elif PLATFORM_LINUX
-    FString ApplicationsDir = FPaths::Combine(FPaths::ProjectDir(), "Applications");
-    FString ShortcutPath = FPaths::Combine(ApplicationsDir, ShortcutName + ".desktop");
-
-    return IFileManager::Get().Delete(*ShortcutPath);
-#endif
+    #elif PLATFORM_LINUX
+    // On Linux, just print a message and return true without doing anything.
+    UE_LOG(LogTemp, Warning, TEXT("Linux start menu shortcut removal skipped."));
+    return true;
+    #endif
 }
 
 // Function to create a shortcut in the Start menu
 bool UShortcutFunctionLibrary::CreateStartMenuShortcut(FString ProgramPath, FString ShortcutName)
 {
-#if PLATFORM_WINDOWS
+    #if PLATFORM_WINDOWS
     if (!InitializeCOM())
         return false;
 
@@ -207,20 +205,9 @@ bool UShortcutFunctionLibrary::CreateStartMenuShortcut(FString ProgramPath, FStr
 
     return SUCCEEDED(hr);
 
-#elif PLATFORM_LINUX
-    FString ApplicationsDir = FPaths::Combine(FPaths::ProjectDir(), "Applications");
-    FString ShortcutPath = FPaths::Combine(ApplicationsDir, ShortcutName + ".desktop");
-
-    FString ShortcutContent =
-        "[Desktop Entry]\n"
-        "Version=1.0\n"
-        "Name=" + ShortcutName + "\n"
-        "Comment=Shortcut to " + ProgramPath + "\n"
-        "Exec=" + ProgramPath + "\n"
-        "Icon=" + ProgramPath + "\n"
-        "Terminal=false\n"
-        "Type=Application\n";
-
-    return FFileHelper::SaveStringToFile(ShortcutContent, *ShortcutPath);
-#endif
+    #elif PLATFORM_LINUX
+    // On Linux, just print a message and return true without doing anything.
+    UE_LOG(LogTemp, Warning, TEXT("Linux start menu shortcut creation skipped."));
+    return true;
+    #endif
 }

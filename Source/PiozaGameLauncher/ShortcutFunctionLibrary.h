@@ -3,7 +3,10 @@
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "Misc/Paths.h"
+
+#if PLATFORM_WINDOWS
 #include "HAL/PlatformFilemanager.h"
+#endif
 
 #include "ShortcutFunctionLibrary.generated.h"
 

@@ -6,13 +6,19 @@
 #include "shlobj.h" 
 #endif
 
-#include <Runtime\Core\Public\HAL\FileManager.h>
-#include <Runtime\Core\Public\Misc\Paths.h>
+
+#include "Misc/Paths.h"
 #if PLATFORM_WINDOWS
+#include "HAL\FileManager.h"
 #include <Runtime\Core\Public\Windows\COMPointer.h>
 #endif
 #if PLATFORM_LINUX
+#include "HAL/PlatformFileManager.h"
+#define GError GTK_GError
+#define GThreadPool UE5_GThreadPool
 #include <gtk/gtk.h>
+#undef GError
+#undef GThreadPool
 #endif
 
 #define MAX_FILETYPES_STR 4096

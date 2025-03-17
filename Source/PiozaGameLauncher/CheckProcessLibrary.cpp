@@ -1,18 +1,18 @@
 #include "CheckProcessLibrary.h"
 
 #if PLATFORM_WINDOWS
-    #include "Windows/WindowsHWrapper.h"
-    #include "Windows/AllowWindowsPlatformTypes.h"
-    #include "Windows/WindowsPlatformProcess.h" // Required for working with processes
-    #include <tlhelp32.h> // Provides functions for working with processes (e.g. EnumProcesses)
+#include "Windows/WindowsHWrapper.h"
+#include "Windows/AllowWindowsPlatformTypes.h"
+#include "Windows/WindowsPlatformProcess.h" // Required for working with processes
+#include <tlhelp32.h> // Provides functions for working with processes (e.g. EnumProcesses)
 #elif PLATFORM_LINUX
-    #include <dirent.h>   // For Linux process enumeration
-    #include <cstring>    // For string comparison
+#include <dirent.h>   // For Linux process enumeration
+#include <cstring>    // For string comparison
 #endif
 
 bool UCheckProcessLibrary::IsProcessRunning(const FString& ProcessName)
 {
-#if PLATFORM_WINDOWS
+    #if PLATFORM_WINDOWS
     // Windows-specific code
     std::wstring ProcessNameW(*ProcessName);
 
@@ -41,9 +41,9 @@ bool UCheckProcessLibrary::IsProcessRunning(const FString& ProcessName)
     CloseHandle(hProcessSnap);
     return false;
 
-#elif PLATFORM_LINUX
+    #elif PLATFORM_LINUX
     // Linux-specific code
-    const char* processNameC = TCHAR_TO_UTF8(*ProcessName);
+    std::string processNameC = TCHAR_TO_UTF8(*ProcessName);  // Use std::string to store the result
 
     // Open the /proc directory to get process IDs
     DIR* dir = opendir("/proc");
@@ -74,7 +74,7 @@ bool UCheckProcessLibrary::IsProcessRunning(const FString& ProcessName)
                 if (fgets(buffer, sizeof(buffer), file))
                 {
                     // Compare the process name
-                    if (strstr(buffer, processNameC) != nullptr)
+                    if (strstr(buffer, processNameC.c_str()) != nullptr)  // Use processNameC as std::string
                     {
                         found = true;
                         fclose(file);
@@ -88,7 +88,7 @@ bool UCheckProcessLibrary::IsProcessRunning(const FString& ProcessName)
 
     closedir(dir);
     return found;
-#else
+    #else
     return false;
-#endif
+    #endif
 }
