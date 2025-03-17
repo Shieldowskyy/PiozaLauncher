@@ -258,10 +258,6 @@
 			"Enabled": false
 		},
 		{
-			"Name": "RiderSourceCodeAccess",
-			"Enabled": false
-		},
-		{
 			"Name": "AnimationData",
 			"Enabled": false
 		},
@@ -493,7 +489,7 @@
 		},
 		{
 			"Name": "VictoryBPLibrary",
-			"Enabled": true
+			"Enabled": false
 		},
 		{
 			"Name": "MediaPlayerEditor",
