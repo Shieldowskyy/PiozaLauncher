@@ -2,24 +2,13 @@
 
 
 #include "EFDCore.h"
-#if PLATFORM_WINDOWS
+
 #include "shlobj.h" 
-#endif
 
-
-#include "Misc/Paths.h"
-#if PLATFORM_WINDOWS
-#include "HAL\FileManager.h"
+#include <Runtime\Core\Public\HAL\FileManager.h>
+#include <Runtime\Core\Public\Misc\Paths.h>
 #include <Runtime\Core\Public\Windows\COMPointer.h>
-#endif
-#if PLATFORM_LINUX
-#include "HAL/PlatformFileManager.h"
-#define GError GTK_GError
-#define GThreadPool UE5_GThreadPool
-#include <gtk/gtk.h>
-#undef GError
-#undef GThreadPool
-#endif
+
 
 #define MAX_FILETYPES_STR 4096
 #define MAX_FILENAME_STR 65536 // This buffer has to be big enough to contain the names of all the selected files as well as the null characters between them and the null character at the end
@@ -212,56 +201,18 @@ bool EFDCore::FileDialogShared(bool bSave, const void* ParentWindowHandle, const
 
 	return bSuccess;
 #endif
+#pragma endregion
 
+#pragma region LINUX
 #if PLATFORM_LINUX
-	bool bSuccess = false;
-	OutFilenames.Empty();
-
-	gtk_init(0, nullptr);
-
-	GtkWidget* Dialog = gtk_file_chooser_dialog_new(
-		TCHAR_TO_UTF8(*DialogTitle),
-		nullptr,
-		bSave ? GTK_FILE_CHOOSER_ACTION_SAVE : GTK_FILE_CHOOSER_ACTION_OPEN,
-		"_Cancel", GTK_RESPONSE_CANCEL,
-		bSave ? "_Save" : "_Open", GTK_RESPONSE_ACCEPT,
-		nullptr);
-
-	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(Dialog), TCHAR_TO_UTF8(*DefaultPath));
-
-	if (!bSave)
-	{
-		gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(Dialog), Flags & EEasyFileDialogFlags::Multiple);
-	}
-
-	if (gtk_dialog_run(GTK_DIALOG(Dialog)) == GTK_RESPONSE_ACCEPT)
-	{
-		GSList* FileList = gtk_file_chooser_get_filenames(GTK_FILE_CHOOSER(Dialog));
-		for (GSList* Iter = FileList; Iter; Iter = Iter->next)
-		{
-			OutFilenames.Add(FString(UTF8_TO_TCHAR((char*)Iter->data)));
-			g_free(Iter->data);
-		}
-		g_slist_free(FileList);
-		bSuccess = true;
-	}
-
-	gtk_widget_destroy(Dialog);
-	while (gtk_events_pending())
-	{
-		gtk_main_iteration();
-	}
-
-	return bSuccess;
+	return false;
 #endif
-    
+#pragma endregion
 	return false;
 }
 
-
 bool EFDCore:: OpenFolderDialogInner(const void* ParentWindowHandle, const FString& DialogTitle, const FString& DefaultPath, FString& OutFolderName)
 {
-#if PLATFORM_WINDOWS
 	//FScopedSystemModalMode SystemModalScope;
 
 	bool bSuccess = false;
@@ -310,44 +261,6 @@ bool EFDCore:: OpenFolderDialogInner(const void* ParentWindowHandle, const FStri
 			}
 		}
 	}
-	return bSuccess;
-#endif
-	
-#if PLATFORM_LINUX
-	bool bSuccess = false;
-	OutFolderName.Empty();
-
-	gtk_init(0, nullptr);
-
-	GtkWidget* Dialog = gtk_file_chooser_dialog_new(
-		TCHAR_TO_UTF8(*DialogTitle),
-		nullptr,
-		GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
-		"_Cancel", GTK_RESPONSE_CANCEL,
-		"_Select", GTK_RESPONSE_ACCEPT,
-		nullptr);
-
-	gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(Dialog), TCHAR_TO_UTF8(*DefaultPath));
-
-	if (gtk_dialog_run(GTK_DIALOG(Dialog)) == GTK_RESPONSE_ACCEPT)
-	{
-		char* FolderPath = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(Dialog));
-		if (FolderPath)
-		{
-			OutFolderName = FString(UTF8_TO_TCHAR(FolderPath));
-			g_free(FolderPath);
-			bSuccess = true;
-		}
-	}
-
-	gtk_widget_destroy(Dialog);
-	while (gtk_events_pending())
-	{
-		gtk_main_iteration();
-	}
 
 	return bSuccess;
-#endif
-    
-	return false;
 }
