@@ -6,7 +6,7 @@ int64 UPiozaDiskSpace::GetFreeDiskSpaceInBytes(const FString& DrivePath)
     if (!FPaths::DirectoryExists(DrivePath))
     {
         UE_LOG(LogTemp, Warning, TEXT("Invalid drive path: %s"), *DrivePath);
-        return -1; // Sygnalizuje b³¹d
+        return -1; // Indicates an error
     }
 
     uint64 TotalNumberOfFreeBytes = 0;
@@ -14,13 +14,13 @@ int64 UPiozaDiskSpace::GetFreeDiskSpaceInBytes(const FString& DrivePath)
 
     if (FPlatformMisc::GetDiskTotalAndFreeSpace(DrivePath, TotalNumberOfFreeBytes, TotalNumberOfBytes))
     {
-        // Konwersja na megabajty
-        return TotalNumberOfFreeBytes;// / 1024; // to jest Ÿle XD
+        // Returning the free space in bytes
+        return TotalNumberOfFreeBytes; // This is correct
     }
     else
     {
         UE_LOG(LogTemp, Warning, TEXT("Failed to get disk space for: %s"), *DrivePath);
-        return -1; // Sygnalizuje b³¹d
+        return -1; // Indicates an error
     }
 }
 
@@ -29,7 +29,7 @@ int64 UPiozaDiskSpace::GetFreeDiskSpaceInMB(const FString& DrivePath)
     if (!FPaths::DirectoryExists(DrivePath))
     {
         UE_LOG(LogTemp, Warning, TEXT("Invalid drive path: %s"), *DrivePath);
-        return -1; // Sygnalizuje b³¹d
+        return -1; // Indicates an error
     }
 
     uint64 NumberOfFreeBytes = 0;
@@ -37,12 +37,12 @@ int64 UPiozaDiskSpace::GetFreeDiskSpaceInMB(const FString& DrivePath)
 
     if (FPlatformMisc::GetDiskTotalAndFreeSpace(DrivePath, TotalNumberOfBytes, NumberOfFreeBytes))
     {
-        // Konwersja na megabajty
-        return NumberOfFreeBytes / 1048576; // to jest Ÿle XD
+        // Convert to megabytes (1 MB = 1048576 bytes)
+        return NumberOfFreeBytes / 1048576; // Correct conversion
     }
     else
     {
         UE_LOG(LogTemp, Warning, TEXT("Failed to get disk space for: %s"), *DrivePath);
-        return -1; // Sygnalizuje b³¹d
+        return -1; // Indicates an error
     }
 }
