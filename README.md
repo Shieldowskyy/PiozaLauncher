@@ -1,11 +1,11 @@
-# PiozaGameLauncher
+# Pioza Launcher (formerly PiozaGameLauncher)
 [![Unreal Engine](https://img.shields.io/badge/Unreal%20Engine-%23313131.svg?logo=unrealengine&logoColor=white)](#)
 [![Crowdin](https://badges.crowdin.net/piozagamelauncher/localized.svg)](https://crowdin.com/project/piozagamelauncher)
 ![image](https://github.com/user-attachments/assets/cfaa8d9f-5eab-43e9-a4b7-9b2d582fb933)
 
 
 
-**PiozaGameLauncher** is an open-source launcher project created entirely in Unreal Engine 5 using blueprints. This makes it highly customizable for beginner programmers and indie game developers who want an easy and reliable way to distribute their games to players. It comes with several features, such as:
+**Pioza Launcher** is an open-source launcher project created entirely in Unreal Engine 5 using blueprints. This makes it highly customizable for beginner programmers and indie game developers who want an easy and reliable way to distribute their games to players. It comes with several features, such as:
 
 - Downloading, installing, and updating games  
 - Moving files to other drives/folders  
@@ -32,7 +32,7 @@ NOTE: Zipped build is not portable and will save config in localappdata director
 Launcher works well under proton: **ShieldRunner** and **FlipFlop** tested on Fedora 40 via Bottles and also Lutris!
 
 # Opening project in Unreal Engine
-PiozaGameLauncher is built on Unreal Engine. It was easier for me to write something in Unreal Blueprints for simpler prototyping, but i have plans to rewrite some elements in C++ in future.
+Pioza Launcher is built on Unreal Engine. It was easier for me to write something in Unreal Blueprints for simpler prototyping, but i have plans to rewrite some elements in C++ in future.
 ## Engine
 To run this project, you have to install Unreal Engine 5.5 on your machine! Also you might need Visual Studio with configured Unreal Engine components to compile all plugins and C++ code!
 ## Plugins
