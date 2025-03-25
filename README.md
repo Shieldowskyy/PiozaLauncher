@@ -29,7 +29,7 @@
 In [Releases](https://github.com/Shieldowskyy/PiozaGameLauncher/releases) tab you will find installer and zipped build that you can install where you want.\
 NOTE: Zipped build is not portable and will save config in localappdata directory.
 
-Launcher works well under proton: **ShieldRunner** and **FlipFlop** tested on Fedora 40 via Bottles and also Lutris!
+Launcher works well under proton: **PixelRunner** and **FlipFlop** tested on Fedora 40 via Bottles and also Lutris!
 
 # Opening project in Unreal Engine
 Pioza Launcher is built on Unreal Engine. It was easier for me to write something in Unreal Blueprints for simpler prototyping, but i have plans to rewrite some elements in C++ in future.
