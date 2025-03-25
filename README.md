@@ -14,6 +14,7 @@
 - Easily changing [repositories](https://github.com/Shieldowskyy/PiozaGameLauncher/wiki/PiozaRepo-(and-manifest)) via the console  
 - Extending functionality with custom console libraries and more
 - Creating backups of downloaded games  
+- Making shortcut in start menu and on desktop
 
 ### Planned Features:
 - Easy localization of game metadata  
@@ -23,7 +24,6 @@
 - Tracking playtime  
 - Adding notes in the launcher menu for specific games  
 - Support for changelogs based on HTML files
-- Making shortcut in start menu and on desktop
 - Actions queue
 # Download
 In [Releases](https://github.com/Shieldowskyy/PiozaGameLauncher/releases) tab you will find installer and zipped build that you can install where you want.\
