@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "DSHDebugConsole",
+	"Description": "A simple debug console widget.",
+	"Category": "Other",
+	"CreatedBy": "DashoGames (Shieldziak)",
+	"CreatedByURL": "https://github.com/Shieldowskyy/PiozaLauncher",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "DSHDebugConsole",
+			"Type": "Runtime",
+			"LoadingPhase": "PreLoadingScreen"
+		}
+	]
+}
