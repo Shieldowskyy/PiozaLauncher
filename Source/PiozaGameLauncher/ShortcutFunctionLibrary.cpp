@@ -5,6 +5,10 @@
 #include <shlobj.h>
 #include <Windows.h> // Windows.h header
 #include "HAL/PlatformFilemanager.h" // Include for Windows
+#elif PLATFORM_LINUX
+#include <unistd.h>
+#include <pwd.h>
+#include <sys/stat.h>
 #endif
 
 #include <string>
@@ -34,17 +38,60 @@ void UninitializeCOM()
 {
     CoUninitialize();
 }
-
 #endif
-// Helper function to create the shortcut path
+
+// Helper function to get the shortcut path
+#if PLATFORM_WINDOWS
 std::wstring GetShortcutPath(FString Folder, FString ShortcutName)
 {
-    #if PLATFORM_WINDOWS
-    return std::wstring(TCHAR_TO_WCHAR(*Folder)) + L"\\" + std::wstring(*ShortcutName) + L".lnk";
-    #else
-    return L"";  // Return an empty string for Linux
-    #endif
+    return std::wstring(TCHAR_TO_WCHAR(*Folder)) + L"\\" + std::wstring(TCHAR_TO_WCHAR(*ShortcutName)) + L".lnk";
 }
+#elif PLATFORM_LINUX
+FString GetShortcutPath(FString Folder, FString ShortcutName)
+{
+    return Folder / (ShortcutName + TEXT(".desktop"));
+}
+#endif
+
+#if PLATFORM_LINUX
+// Helper function to get the user's home directory
+FString GetHomeDirectory()
+{
+    struct passwd* pw = getpwuid(getuid());
+    return pw ? FString(UTF8_TO_TCHAR(pw->pw_dir)) : TEXT("~");
+}
+
+// Helper function to create a .desktop file
+bool CreateDesktopFile(FString FilePath, FString ProgramPath, FString ShortcutName)
+{
+    FString DesktopFileContent = FString::Printf(
+        TEXT("[Desktop Entry]\n")
+        TEXT("Version=1.0\n")
+        TEXT("Type=Application\n")
+        TEXT("Name=%s\n")
+        TEXT("Exec=\"%s\"\n")
+        TEXT("Terminal=false\n")
+        TEXT("Categories=Application;\n"),
+        *ShortcutName,
+        *ProgramPath
+    );
+
+    if (!FFileHelper::SaveStringToFile(DesktopFileContent, *FilePath))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to create .desktop file at %s"), *FilePath);
+        return false;
+    }
+
+    // Set executable permissions for the .desktop file
+    FString Command = FString::Printf(TEXT("chmod +x \"%s\""), *FilePath);
+    if (system(TCHAR_TO_UTF8(*Command)) != 0)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to set executable permissions for %s"), *FilePath);
+    }
+
+    return true;
+}
+#endif
 
 // Function to create a shortcut on the desktop
 bool UShortcutFunctionLibrary::CreateDesktopShortcut(FString ProgramPath, FString ShortcutName)
@@ -91,8 +138,15 @@ bool UShortcutFunctionLibrary::CreateDesktopShortcut(FString ProgramPath, FStrin
     return SUCCEEDED(hr);
 
     #elif PLATFORM_LINUX
-    // On Linux, just print a message and return true without doing anything.
-    UE_LOG(LogTemp, Warning, TEXT("Linux shortcut creation skipped."));
+    FString DesktopPath = GetHomeDirectory() / TEXT("Desktop");
+    FString ShortcutPath = GetShortcutPath(DesktopPath, ShortcutName);
+
+    if (!CreateDesktopFile(ShortcutPath, ProgramPath, ShortcutName))
+    {
+        return false;
+    }
+
+    UE_LOG(LogTemp, Log, TEXT("Created desktop shortcut at %s"), *ShortcutPath);
     return true;
     #endif
 }
@@ -123,40 +177,16 @@ bool UShortcutFunctionLibrary::RemoveDesktopShortcut(FString ShortcutName)
     return true;
 
     #elif PLATFORM_LINUX
-    // On Linux, just print a message and return true without doing anything.
-    UE_LOG(LogTemp, Warning, TEXT("Linux shortcut removal skipped."));
-    return true;
-    #endif
-}
+    FString DesktopPath = GetHomeDirectory() / TEXT("Desktop");
+    FString ShortcutPath = GetShortcutPath(DesktopPath, ShortcutName);
 
-// Function to remove a shortcut from the Start menu
-bool UShortcutFunctionLibrary::RemoveStartMenuShortcut(FString ShortcutName)
-{
-    #if PLATFORM_WINDOWS
-    if (!InitializeCOM())
-        return false;
-
-    TCHAR szPath[MAX_PATH];
-    if (FAILED(SHGetSpecialFolderPath(NULL, szPath, CSIDL_PROGRAMS, FALSE)))
+    if (!IPlatformFile::GetPlatformPhysical().DeleteFile(*ShortcutPath))
     {
-        UninitializeCOM();
+        UE_LOG(LogTemp, Warning, TEXT("Failed to remove desktop shortcut at %s"), *ShortcutPath);
         return false;
     }
 
-    std::wstring shortcutPath = GetShortcutPath(FString(szPath), ShortcutName);
-
-    if (DeleteFileW(shortcutPath.c_str()) == 0)
-    {
-        UninitializeCOM();
-        return false;
-    }
-
-    UninitializeCOM();
-    return true;
-
-    #elif PLATFORM_LINUX
-    // On Linux, just print a message and return true without doing anything.
-    UE_LOG(LogTemp, Warning, TEXT("Linux start menu shortcut removal skipped."));
+    UE_LOG(LogTemp, Log, TEXT("Removed desktop shortcut at %s"), *ShortcutPath);
     return true;
     #endif
 }
@@ -206,8 +236,55 @@ bool UShortcutFunctionLibrary::CreateStartMenuShortcut(FString ProgramPath, FStr
     return SUCCEEDED(hr);
 
     #elif PLATFORM_LINUX
-    // On Linux, just print a message and return true without doing anything.
-    UE_LOG(LogTemp, Warning, TEXT("Linux start menu shortcut creation skipped."));
+    FString ApplicationsPath = GetHomeDirectory() / TEXT(".local/share/applications");
+    FString ShortcutPath = GetShortcutPath(ApplicationsPath, ShortcutName);
+
+    if (!CreateDesktopFile(ShortcutPath, ProgramPath, ShortcutName))
+    {
+        return false;
+    }
+
+    UE_LOG(LogTemp, Log, TEXT("Created start menu shortcut at %s"), *ShortcutPath);
+    return true;
+    #endif
+}
+
+// Function to remove a shortcut from the Start menu
+bool UShortcutFunctionLibrary::RemoveStartMenuShortcut(FString ShortcutName)
+{
+    #if PLATFORM_WINDOWS
+    if (!InitializeCOM())
+        return false;
+
+    TCHAR szPath[MAX_PATH];
+    if (FAILED(SHGetSpecialFolderPath(NULL, szPath, CSIDL_PROGRAMS, FALSE)))
+    {
+        UninitializeCOM();
+        return false;
+    }
+
+    std::wstring shortcutPath = GetShortcutPath(FString(szPath), ShortcutName);
+
+    if (DeleteFileW(shortcutPath.c_str()) == 0)
+    {
+        UninitializeCOM();
+        return false;
+    }
+
+    UninitializeCOM();
+    return true;
+
+    #elif PLATFORM_LINUX
+    FString ApplicationsPath = GetHomeDirectory() / TEXT(".local/share/applications");
+    FString ShortcutPath = GetShortcutPath(ApplicationsPath, ShortcutName);
+
+    if (!IPlatformFile::GetPlatformPhysical().DeleteFile(*ShortcutPath))
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Failed to remove start menu shortcut at %s"), *ShortcutPath);
+        return false;
+    }
+
+    UE_LOG(LogTemp, Log, TEXT("Removed start menu shortcut at %s"), *ShortcutPath);
     return true;
     #endif
 }
