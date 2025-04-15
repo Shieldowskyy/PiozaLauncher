@@ -38,7 +38,7 @@ void UninitializeCOM()
 {
     CoUninitialize();
 }
-#endif
+#endif   
 
 // Helper function to get the shortcut path
 #if PLATFORM_WINDOWS
