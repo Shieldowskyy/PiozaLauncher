@@ -323,7 +323,7 @@ bool EFDCore::OpenFolderDialogInner(const void* ParentWindowHandle, const FStrin
 
     if (bSuccess && ReturnCode == 0 && !Result.IsEmpty())
     {
-        OutFolderName = Result;
+        OutFolderName = Result.TrimEnd();
         FPaths::NormalizeDirectoryName(OutFolderName);
         return true;
     }
