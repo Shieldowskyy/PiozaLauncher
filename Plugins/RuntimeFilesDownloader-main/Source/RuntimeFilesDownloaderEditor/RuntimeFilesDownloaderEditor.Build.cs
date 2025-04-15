@@ -28,7 +28,6 @@ public class RuntimeFilesDownloaderEditor : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"AndroidRuntimeSettings"
 			}
 		);
 	}
