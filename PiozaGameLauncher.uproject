@@ -298,10 +298,6 @@
 			"Enabled": false
 		},
 		{
-			"Name": "LinuxDeviceProfileSelector",
-			"Enabled": false
-		},
-		{
 			"Name": "WindowsDeviceProfileSelector",
 			"Enabled": false
 		},
@@ -651,6 +647,7 @@
 		}
 	],
 	"TargetPlatforms": [
-		"Windows"
+		"Windows",
+		"Linux"
 	]
 }
