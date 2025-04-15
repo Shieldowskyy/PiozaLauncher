@@ -504,10 +504,6 @@
 			"Enabled": false
 		},
 		{
-			"Name": "WebBrowserWidget",
-			"Enabled": true
-		},
-		{
 			"Name": "NNEDenoiser",
 			"Enabled": false,
 			"SupportedTargetPlatforms": [

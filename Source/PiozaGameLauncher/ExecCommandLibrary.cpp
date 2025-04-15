@@ -25,7 +25,7 @@ FString UExecCommandLibrary::ExecuteSystemCommand(
     FString Params = ArgumentsString;
 #elif PLATFORM_LINUX
     FString Executable = TEXT("/bin/bash");
-    FString Params = TEXT("-c '") + FullCommand + TEXT("'");
+    FString Params = TEXT("-c \"") + FullCommand + TEXT("\"");
 #endif
 
     void* ReadPipe = nullptr;
