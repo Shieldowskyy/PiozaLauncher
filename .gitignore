@@ -80,3 +80,7 @@ Config/DefaultCrypto.ini
 sentry.properties
 /.idea
 /Plugins/Marketplace
+/.vscode
+*.code-workspace
+Makefile
+.ignore
