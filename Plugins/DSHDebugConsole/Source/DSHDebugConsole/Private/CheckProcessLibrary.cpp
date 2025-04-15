@@ -3,16 +3,15 @@
 #if PLATFORM_WINDOWS
 #include "Windows/WindowsHWrapper.h"
 #include "Windows/AllowWindowsPlatformTypes.h"
-#include "Windows/WindowsPlatformProcess.h" // Required for working with processes
-#include <tlhelp32.h> // Provides functions for working with processes (e.g. EnumProcesses)
+#include "Windows/WindowsPlatformProcess.h"
+#include <tlhelp32.h>
 #elif PLATFORM_LINUX
-#include <dirent.h>   // For Linux process enumeration
-#include <cstring>    // For string comparison
+#include "HAL/PlatformProcess.h" // For FPlatformProcess
 #endif
 
 bool UCheckProcessLibrary::IsProcessRunning(const FString& ProcessName)
 {
-    #if PLATFORM_WINDOWS
+#if PLATFORM_WINDOWS
     // Windows-specific code
     std::wstring ProcessNameW(*ProcessName);
 
@@ -41,54 +40,25 @@ bool UCheckProcessLibrary::IsProcessRunning(const FString& ProcessName)
     CloseHandle(hProcessSnap);
     return false;
 
-    #elif PLATFORM_LINUX
-    // Linux-specific code
-    std::string processNameC = TCHAR_TO_UTF8(*ProcessName);  // Use std::string to store the result
+#elif PLATFORM_LINUX
+    // Convert FString to a format suitable for command execution
+    FString Command = FString::Printf(TEXT("/bin/sh -c \"pidof %s\""), *ProcessName);
+    FString Result;
+    int32 ReturnCode;
 
-    // Open the /proc directory to get process IDs
-    DIR* dir = opendir("/proc");
-    if (dir == nullptr)
-    {
-        return false; // Failed to open /proc directory
-    }
+    // Execute the command using FPlatformProcess::ExecProcess
+    bool bSuccess = FPlatformProcess::ExecProcess(
+        TEXT("/bin/sh"),          // Executable
+        *Command,                 // Parameters
+        &ReturnCode,              // Out return code
+        &Result,                  // Out result
+        nullptr                   // Optional working directory
+    );
 
-    struct dirent* entry;
-    bool found = false;
+    // If the command executed successfully and pidof returned 0, the process is running
+    return bSuccess && ReturnCode == 0;
 
-    // Iterate over all entries in /proc (each entry is a process ID)
-    while ((entry = readdir(dir)) != nullptr)
-    {
-        // Check if the entry name is a number (process ID)
-        if (isdigit(entry->d_name[0]))
-        {
-            // Build the path to the command line for this process
-            char cmdPath[256];
-            snprintf(cmdPath, sizeof(cmdPath), "/proc/%s/cmdline", entry->d_name);
-
-            // Open the cmdline file for this process
-            FILE* file = fopen(cmdPath, "r");
-            if (file)
-            {
-                char buffer[256];
-                // Read the process name from the cmdline
-                if (fgets(buffer, sizeof(buffer), file))
-                {
-                    // Compare the process name
-                    if (strstr(buffer, processNameC.c_str()) != nullptr)  // Use processNameC as std::string
-                    {
-                        found = true;
-                        fclose(file);
-                        break;
-                    }
-                }
-                fclose(file);
-            }
-        }
-    }
-
-    closedir(dir);
-    return found;
-    #else
+#else
     return false;
-    #endif
+#endif
 }
