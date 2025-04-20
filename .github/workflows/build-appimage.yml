@@ -47,7 +47,7 @@ jobs:
         run: |
           ./appimagetool-x86_64.AppImage --appimage-extract
           chmod +x squashfs-root/AppRun
-          ./squashfs-root/AppRun Build/Linux/AppImage/PiozaLauncher.AppDir
+          ARCH=x86_64 ./squashfs-root/AppRun Build/Linux/AppImage/PiozaLauncher.AppDir
           mv Pioza_Launcher-x86_64.AppImage "PiozaLauncher-v$VERSION_NO_V-x86_64.AppImage"
 
       - name: Upload AppImage artifact
