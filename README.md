@@ -17,6 +17,7 @@
 - Making shortcut in start menu and on desktop
 - Playtime tracking
 - Linux system support
+- Offline Mode
 
 ### Planned Features:
 - Easy localization of game metadata  
