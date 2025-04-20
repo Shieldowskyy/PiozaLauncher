@@ -43,9 +43,11 @@ jobs:
         run: |
           find . -type f -name "*.so" -exec sh -c 'strip --strip-unneeded "$1" 2>/dev/null || true' sh {} \;
 
-      - name: Build AppImage
+      - name: Extract and use appimagetool without FUSE
         run: |
-          ./appimagetool-x86_64.AppImage Build/Linux/AppImage/PiozaLauncher.AppDir
+          ./appimagetool-x86_64.AppImage --appimage-extract
+          chmod +x squashfs-root/AppRun
+          ./squashfs-root/AppRun Build/Linux/AppImage/PiozaLauncher.AppDir
           mv Pioza_Launcher-x86_64.AppImage "PiozaLauncher-v$VERSION_NO_V-x86_64.AppImage"
 
       - name: Upload AppImage artifact
