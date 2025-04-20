@@ -16,28 +16,47 @@ FString UExecCommandLibrary::ExecuteSystemCommand(
     ProcessID = -1;
     uint32 RealProcessID = 0;
 
-    // Combine arguments into a single string
-    FString ArgumentsString = FString::Join(Arguments, TEXT(" "));
+    // Helper lambda to escape arguments
+    auto EscapeArgument = [](const FString& Arg) -> FString {
+        #if PLATFORM_WINDOWS
+        return TEXT("\"") + Arg.ReplaceCharWithEscapedChar() + TEXT("\"");
+        #else
+        FString Escaped = Arg;
+        Escaped.ReplaceInline(TEXT("\\"), TEXT("\\\\")); // Backslashes
+        Escaped.ReplaceInline(TEXT("\""), TEXT("\\\"")); // Double quotes
+        Escaped.ReplaceInline(TEXT("$"), TEXT("\\$"));   // Dollar signs
+        Escaped.ReplaceInline(TEXT("`"), TEXT("\\`"));   // Backticks
+        Escaped.ReplaceInline(TEXT("!"), TEXT("\\!"));   // Bangs
+        return TEXT("\"") + Escaped + TEXT("\"");
+        #endif
+    };
+
+    // Escape each argument
+    TArray<FString> EscapedArguments;
+    for (const FString& Arg : Arguments)
+    {
+        EscapedArguments.Add(EscapeArgument(Arg));
+    }
+
+    FString ArgumentsString = FString::Join(EscapedArguments, TEXT(" "));
     FString FullCommand = Command + TEXT(" ") + ArgumentsString;
 
-#if PLATFORM_WINDOWS
+    #if PLATFORM_WINDOWS
     FString Executable = Command;
     FString Params = ArgumentsString;
-#elif PLATFORM_LINUX
-    FString Executable = TEXT("/bin/bash");
-    FString Params = TEXT("-c \"") + FullCommand + TEXT("\"");
-#endif
+    #elif PLATFORM_LINUX
+    FString Executable = Command;
+    FString Params = ArgumentsString;
+    #endif
 
     void* ReadPipe = nullptr;
     void* WritePipe = nullptr;
     FPlatformProcess::CreatePipe(ReadPipe, WritePipe);
 
-    // Process creation flags
     bool bLaunchDetached = bDetached;
     bool bLaunchHidden = bHidden;
     bool bLaunchAsAdmin = false;
 
-    // Create the process with the given settings
     FProcHandle ProcessHandle = FPlatformProcess::CreateProc(
         *Executable,
         *Params,
@@ -47,9 +66,9 @@ FString UExecCommandLibrary::ExecuteSystemCommand(
         &RealProcessID,
         Priority,
         !OptionalWorkingDirectory.IsEmpty() ? *OptionalWorkingDirectory : nullptr,
-        WritePipe
+                                                             WritePipe
     );
-    
+
     if (ProcessHandle.IsValid())
     {
         bSuccess = true;
@@ -59,7 +78,7 @@ FString UExecCommandLibrary::ExecuteSystemCommand(
         {
             FPlatformProcess::WaitForProc(ProcessHandle);
         }
-        
+
         FPlatformProcess::CloseProc(ProcessHandle);
         ProcessID = static_cast<int32>(RealProcessID);
     }
