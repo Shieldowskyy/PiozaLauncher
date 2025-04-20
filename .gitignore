@@ -88,3 +88,4 @@ Makefile
 .ignore
 /Build/Linux/ChunkLayerInfo
 /Build/Linux/FileOpenOrder
+*.AppImage
