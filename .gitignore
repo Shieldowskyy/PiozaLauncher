@@ -59,7 +59,9 @@ Build/*
 !Build/*/
 Build/*/**
 !Build/*/PakBlacklist*.txt
-
+!Build/Linux/**
+!Build/Linux/AppImage/*
+Build/Linux/AppImage/PiozaLauncher.AppDir/Linux
 # Don't ignore icon files in Build
 !Build/**/*.ico
 
@@ -84,3 +86,5 @@ sentry.properties
 *.code-workspace
 Makefile
 .ignore
+/Build/Linux/ChunkLayerInfo
+/Build/Linux/FileOpenOrder
