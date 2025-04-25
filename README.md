@@ -16,11 +16,12 @@
 - Creating backups of downloaded games  
 - Making shortcut in start menu and on desktop
 - Playtime tracking
+- Linux system support
+- Offline Mode
 
 ### Planned Features:
 - Easy localization of game metadata  
 - Merging [repositories ](https://github.com/Shieldowskyy/PiozaGameLauncher/wiki/PiozaRepo-(and-manifest)) 
-- Linux system support  
 - Verifying game files using checksums  
 - Adding notes in the launcher menu for specific games  
 - Support for changelogs based on HTML files

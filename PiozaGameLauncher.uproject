@@ -298,10 +298,6 @@
 			"Enabled": false
 		},
 		{
-			"Name": "LinuxDeviceProfileSelector",
-			"Enabled": false
-		},
-		{
 			"Name": "WindowsDeviceProfileSelector",
 			"Enabled": false
 		},
@@ -508,10 +504,6 @@
 			"Enabled": false
 		},
 		{
-			"Name": "WebBrowserWidget",
-			"Enabled": true
-		},
-		{
 			"Name": "NNEDenoiser",
 			"Enabled": false,
 			"SupportedTargetPlatforms": [
@@ -648,9 +640,14 @@
 		{
 			"Name": "PiozaNativeFunctions",
 			"Enabled": false
+		},
+		{
+			"Name": "WebBrowserWidget",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
-		"Windows"
+		"Windows",
+		"Linux"
 	]
 }

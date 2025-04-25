@@ -59,7 +59,9 @@ Build/*
 !Build/*/
 Build/*/**
 !Build/*/PakBlacklist*.txt
-
+!Build/Linux/**
+!Build/Linux/AppImage/*
+Build/Linux/AppImage/PiozaLauncher.AppDir/Linux
 # Don't ignore icon files in Build
 !Build/**/*.ico
 
@@ -79,3 +81,11 @@ Config/DefaultCrypto.ini
 /Buildy
 sentry.properties
 /.idea
+/Plugins/Marketplace
+/.vscode
+*.code-workspace
+Makefile
+.ignore
+/Build/Linux/ChunkLayerInfo
+/Build/Linux/FileOpenOrder
+*.AppImage

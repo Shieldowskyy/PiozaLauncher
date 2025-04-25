@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Pioza Launcher
+Exec=AppRun
+Icon=pioza_icon
+Type=Application
+Categories=Game;
+Comment=Launcher for Pioza games
