@@ -25,7 +25,7 @@ if [ ! -f "$APPIMAGETOOL" ]; then
 fi
 
 # Set Appimage Folder
-APPDIR="PiozaLauncher.AppDir"
+APPDIR="PiozaGL.AppDir"
 
 echo "Stripping debug symbols from binaries..."
 find . -type f -name "*.so" -exec sh -c 'strip --strip-unneeded "$1" 2>/dev/null || true' sh {} \;
@@ -35,7 +35,7 @@ echo "Generating Appimage for version $VERSION..."
 ./"$APPIMAGETOOL" "$APPDIR"
 
 # Change Appimage name to verisoned one.
-mv Pioza_Launcher-x86_64.AppImage "PiozaLauncher-v$VERSION_NO_V-x86_64.AppImage"
+mv Pioza_GL-x86_64.AppImage "PiozaGL-v$VERSION_NO_V-x86_64.AppImage"
 
 # Finalization
-echo "Appimage was created as: PiozaLauncher-v$VERSION_NO_V-x86_64.AppImage"
+echo "Appimage was created as: PiozaGL-v$VERSION_NO_V-x86_64.AppImage"
