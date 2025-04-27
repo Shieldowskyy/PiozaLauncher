@@ -64,6 +64,9 @@ Build/*/**
 Build/Linux/AppImage/PiozaLauncher.AppDir/Linux
 # Don't ignore icon files in Build
 !Build/**/*.ico
+!Build/Windows/**
+Build/Windows/Release/Windows
+Build/Windows/Release/InnoSetup/*.exe
 
 # Built data for maps
 *_BuiltData.uasset
@@ -89,3 +92,8 @@ Makefile
 /Build/Linux/ChunkLayerInfo
 /Build/Linux/FileOpenOrder
 *.AppImage
+*.log
+Build/Windows/ChunkLayerInfo/pakchunklayers.txt
+/Build/Windows/Installer/InnoSetup/Output
+*.exe
+*.zip
