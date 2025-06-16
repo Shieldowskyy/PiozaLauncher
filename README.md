@@ -47,3 +47,12 @@ and\
 
 You can also install Sentry Unreal plugin to report all crashes to me. It will be helpful for investigating further problems!\
 [Sentry](https://github.com/getsentry/sentry-unreal/releases)
+
+# External Components
+
+This project uses the `DSHConsole` component included as a Git submodule, which is licensed under the Apache License 2.0.
+
+- DSHConsole repository: https://github.com/Shieldowskyy/DSHConsole
+- License: Apache License 2.0
+
+The rest of this project is licensed under the Affero General Public License version 3 (AGPLv3).
