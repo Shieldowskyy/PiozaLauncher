@@ -7,35 +7,45 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-# Version param
 VERSION=$1
-
-# Remove additional "v" prefix if it exists
 VERSION_NO_V="${VERSION//v/}"
-
-# appimagetool path
 APPIMAGETOOL="./appimagetool-x86_64.AppImage"
+APPDIR="PiozaLauncher.AppDir"
 
-# Check if appimagetool is avaliable locally.
+# Download appimagetool if missing
 if [ ! -f "$APPIMAGETOOL" ]; then
   echo "appimagetool not found locally. Downloading..."
-  # Download if not.
   curl -L https://github.com/AppImage/AppImageKit/releases/download/12/appimagetool-x86_64.AppImage -o "$APPIMAGETOOL"
   chmod +x "$APPIMAGETOOL"
 fi
 
-# Set Appimage Folder
-APPDIR="PiozaGL.AppDir"
-
 echo "Stripping debug symbols from binaries..."
-find . -type f -name "*.so" -exec sh -c 'strip --strip-unneeded "$1" 2>/dev/null || true' sh {} \;
+find "$APPDIR" -type f -name "*.so" -exec sh -c 'strip --strip-unneeded "$1" 2>/dev/null || true' sh {} \;
+find "$APPDIR" -type f -perm -111 -exec sh -c 'file "$1" | grep -q "ELF" && strip --strip-unneeded "$1" 2>/dev/null || true' sh {} \;
 
-# Generating AppImage
-echo "Generating Appimage for version $VERSION..."
+# Install UPX if missing
+if ! command -v upx &> /dev/null; then
+  echo "UPX not found. Attempting to install..."
+
+  if command -v apt-get &> /dev/null; then
+    sudo apt-get update && sudo apt-get install -y upx-ucl
+  elif command -v dnf &> /dev/null; then
+    sudo dnf install -y upx
+  elif command -v pacman &> /dev/null; then
+    sudo pacman -Sy --noconfirm upx
+  elif command -v zypper &> /dev/null; then
+    sudo zypper install -y upx
+  else
+    echo "Unsupported package manager. Please install 'upx' manually."
+    exit 1
+  fi
+fi
+
+echo "Compressing ELF binaries with UPX..."
+find "$APPDIR" -type f \( -name "*.so" -o -perm -111 \) -exec sh -c 'file "$1" | grep -q "ELF" && upx --best "$1" 2>/dev/null || true' sh {} \;
+
+echo "Generating AppImage for version $VERSION..."
 ./"$APPIMAGETOOL" "$APPDIR"
 
-# Change Appimage name to verisoned one.
 mv Pioza_GL-x86_64.AppImage "PiozaGL-v$VERSION_NO_V-x86_64.AppImage"
-
-# Finalization
-echo "Appimage was created as: PiozaGL-v$VERSION_NO_V-x86_64.AppImage"
+echo "AppImage was created as: PiozaGL-v$VERSION_NO_V-x86_64.AppImage"
