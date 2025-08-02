@@ -13,5 +13,5 @@ class PIOZAGAMELAUNCHER_API UJsonToDataTableHelper : public UBlueprintFunctionLi
 public:
 
     UFUNCTION(BlueprintCallable, Category = "JSON|DataTable", meta = (DisplayName = "Parse Complex JSON to DataTable"))
-    static UDataTable* CreateComplexDataTableFromJson(const FString& JsonString, UScriptStruct* StructDefinition);
+    static UDataTable* CreateComplexDataTableFromJson(const FString& JsonString, UScriptStruct* StructDefinition, bool& bSuccess);
 };

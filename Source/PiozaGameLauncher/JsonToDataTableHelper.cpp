@@ -7,6 +7,39 @@
 
 static bool FillProperty(void* Ptr, FProperty* Prop, TSharedPtr<FJsonValue> JsonValue);
 
+static bool TryGetFieldCaseInsensitive(const TSharedPtr<FJsonObject>& JsonObject, const FString& FieldName, TSharedPtr<FJsonValue>& OutValue)
+{
+    for (const auto& Pair : JsonObject->Values)
+    {
+        if (Pair.Key.Equals(FieldName, ESearchCase::IgnoreCase))
+        {
+            OutValue = Pair.Value;
+            return true;
+        }
+    }
+    return false;
+}
+
+static FString GetJsonFieldName(FProperty* Prop)
+{
+    FString JsonFieldName;
+
+#if WITH_EDITOR
+    JsonFieldName = Prop->GetMetaData(TEXT("JsonField"));
+    if (JsonFieldName.IsEmpty())
+    {
+        JsonFieldName = Prop->GetMetaData(TEXT("DisplayName"));
+    }
+#endif
+
+    if (JsonFieldName.IsEmpty())
+    {
+        JsonFieldName = Prop->GetName();
+    }
+
+    return JsonFieldName;
+}
+
 static bool FillStructRecursive(void* OutStruct, UStruct* StructType, TSharedPtr<FJsonObject> JsonObject)
 {
     if (!OutStruct || !StructType || !JsonObject.IsValid())
@@ -16,14 +49,12 @@ static bool FillStructRecursive(void* OutStruct, UStruct* StructType, TSharedPtr
     {
         FProperty* Prop = *It;
 
-        FString JsonFieldName = Prop->GetMetaData(TEXT("DisplayName"));
-        if (JsonFieldName.IsEmpty())
-            JsonFieldName = Prop->GetName();
+        FString JsonFieldName = GetJsonFieldName(Prop);
 
-        if (!JsonObject->HasField(JsonFieldName))
+        TSharedPtr<FJsonValue> JsonValue;
+        if (!TryGetFieldCaseInsensitive(JsonObject, JsonFieldName, JsonValue))
             continue;
 
-        TSharedPtr<FJsonValue> JsonValue = JsonObject->TryGetField(JsonFieldName);
         void* PropAddr = Prop->ContainerPtrToValuePtr<void>(OutStruct);
 
         if (FStrProperty* StrProp = CastField<FStrProperty>(Prop))
@@ -144,8 +175,10 @@ static bool FillProperty(void* Ptr, FProperty* Prop, TSharedPtr<FJsonValue> Json
     return true;
 }
 
-UDataTable* UJsonToDataTableHelper::CreateComplexDataTableFromJson(const FString& JsonString, UScriptStruct* StructDefinition)
+UDataTable* UJsonToDataTableHelper::CreateComplexDataTableFromJson(const FString& JsonString, UScriptStruct* StructDefinition, bool& bSuccess)
 {
+    bSuccess = false;
+
     if (!StructDefinition)
     {
         UE_LOG(LogTemp, Error, TEXT("StructDefinition is null"));
@@ -163,6 +196,8 @@ UDataTable* UJsonToDataTableHelper::CreateComplexDataTableFromJson(const FString
     UDataTable* NewTable = NewObject<UDataTable>(UDataTable::StaticClass());
     NewTable->RowStruct = StructDefinition;
 
+    bool bAllRowsParsedOk = true;
+
     for (int i = 0; i < JsonArray.Num(); i++)
     {
         TSharedPtr<FJsonObject> RowObject = JsonArray[i]->AsObject();
@@ -175,6 +210,7 @@ UDataTable* UJsonToDataTableHelper::CreateComplexDataTableFromJson(const FString
         if (!FillStructRecursive(RowData, StructDefinition, RowObject))
         {
             UE_LOG(LogTemp, Warning, TEXT("Failed to fill row %d"), i);
+            bAllRowsParsedOk = false;
             StructDefinition->DestroyStruct(RowData);
             FMemory::Free(RowData);
             continue;
@@ -184,6 +220,13 @@ UDataTable* UJsonToDataTableHelper::CreateComplexDataTableFromJson(const FString
         NewTable->AddRow(FName(*RowName), *(FTableRowBase*)RowData);
         StructDefinition->DestroyStruct(RowData);
         FMemory::Free(RowData);
+    }
+
+    bSuccess = bAllRowsParsedOk;
+
+    if (!bSuccess)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Some rows failed to parse correctly."));
     }
 
     return NewTable;
