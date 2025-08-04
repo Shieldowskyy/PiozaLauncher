@@ -38,9 +38,7 @@ Pioza Launcher is built on Unreal Engine. It was easier for me to write somethin
 To run this project, you have to install Unreal Engine 5.5 on your machine! Also you might need Visual Studio with configured Unreal Engine components to compile all plugins and C++ code!
 ## Plugins
 To open project you need to install these plugins:\
-[EasyFileDialog](https://github.com/unrealsumon/EasyFileDialog) from Github or Marketplace\
-and\
-[File Helper Blueprint Library](https://www.unrealengine.com/marketplace/en-US/product/file-helper-bp-library) from Marketplace
+[EasyFileDialog](https://github.com/unrealsumon/EasyFileDialog) from Github or Marketplace
 ### Optional
 > [!NOTE]
 > While you might already be able to run the project without these plugin, I recommend installing it so that project can start without any problems.
