@@ -96,11 +96,6 @@
 			"Enabled": false
 		},
 		{
-			"Name": "FileHelper",
-			"Enabled": true,
-			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/bec5be3d587f4ff49a61d45d0e81e4c0"
-		},
-		{
 			"Name": "RuntimeFilesDownloader",
 			"Enabled": true,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/e7e6df6d6e9c46f0ae35163eab67ff9a"
@@ -636,10 +631,6 @@
 			"Name": "Fetch",
 			"Enabled": false,
 			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/e8098c9d0b414ad4924296c8a4495668"
-		},
-		{
-			"Name": "PiozaNativeFunctions",
-			"Enabled": false
 		},
 		{
 			"Name": "WebBrowserWidget",
