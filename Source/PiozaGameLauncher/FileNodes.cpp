@@ -46,10 +46,10 @@ bool UFileNodes::SaveText(const FString& FilePath, const FString& Text, bool bAp
 bool UFileNodes::ListDirectory(const FString& DirPath, const FString& Pattern, bool bShowFiles, bool bShowDirectories, bool bRecursive, TArray<FString>& OutNodes)
 {
 	IFileManager& FileManager = IFileManager::Get();
-	FString FinalPattern = FPaths::Combine(DirPath, Pattern.IsEmpty() ? TEXT("*") : Pattern);
+	FString FinalPattern = Pattern.IsEmpty() ? TEXT("*") : Pattern;
 
 	TArray<FString> Results;
-	FileManager.FindFilesRecursive(Results, *DirPath, *Pattern, bRecursive, bShowFiles, bShowDirectories);
+	FileManager.FindFilesRecursive(Results, *DirPath, *FinalPattern, bRecursive, bShowFiles, bShowDirectories);
 
 	if (Results.Num() == 0)
 		return false;
