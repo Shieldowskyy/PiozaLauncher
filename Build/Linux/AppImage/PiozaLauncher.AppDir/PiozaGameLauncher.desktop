@@ -1,7 +1,8 @@
 [Desktop Entry]
 Name=Pioza Launcher
-Exec=AppRun
+Exec=AppRun %u
 Icon=pioza_icon
 Type=Application
 Categories=Game;
 Comment=Launcher for Pioza games
+MimeType=x-scheme-handler/pioza;
