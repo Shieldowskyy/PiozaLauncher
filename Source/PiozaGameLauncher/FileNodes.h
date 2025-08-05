@@ -28,4 +28,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "FileNodes")
 	static bool ListDirectory(const FString& DirPath, const FString& Pattern, bool bShowFiles, bool bShowDirectories, bool bRecursive, TArray<FString>& OutNodes);
+
+	UFUNCTION(BlueprintCallable, Category = "FileNodes")
+	static bool BrowseDirectory(const FString& DirectoryPath);
 };

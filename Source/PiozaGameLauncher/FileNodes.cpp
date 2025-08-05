@@ -1,8 +1,11 @@
 #include "FileNodes.h"
 #include "Misc/FileHelper.h"
-#include "HAL/PlatformFileManager.h"
-#include "GenericPlatform/GenericPlatformFile.h"
+#include "Misc/OutputDeviceDebug.h"
 #include "Misc/Paths.h"
+#include "HAL/PlatformFileManager.h"
+#include "HAL/PlatformProcess.h"
+#include "GenericPlatform/GenericPlatformFile.h"
+
 
 bool UFileNodes::ReadText(const FString& FilePath, FString& OutText)
 {
@@ -57,3 +60,42 @@ bool UFileNodes::ListDirectory(const FString& DirPath, const FString& Pattern, b
 	OutNodes = Results;
 	return true;
 }
+
+bool UFileNodes::BrowseDirectory(const FString& DirectoryPath)
+{
+	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+
+	// Convert to absolute and normalize
+	FString NormalizedPath = FPaths::ConvertRelativePathToFull(DirectoryPath);
+	FPaths::NormalizeDirectoryName(NormalizedPath); // Removed ending slashes
+
+	// Check if the directory exists
+	if (!PlatformFile.DirectoryExists(*NormalizedPath))
+	{
+		UE_LOG(LogTemp, Error, TEXT("BrowseDirectory: Path is not a valid directory: %s"), *NormalizedPath);
+		return false;
+	}
+
+#if PLATFORM_WINDOWS
+	// Replace slashes with backslashes for Windows
+	NormalizedPath.ReplaceInline(TEXT("/"), TEXT("\\"), ESearchCase::IgnoreCase);
+
+	// Don't add a trailing backslash, and don't wrap in quotes
+	FString Command = TEXT("explorer.exe");
+	FString Params = NormalizedPath;
+
+#elif PLATFORM_LINUX
+	FString Command = TEXT("xdg-open");
+	FString Params = FString::Printf(TEXT("\"%s\""), *NormalizedPath);
+#else
+	UE_LOG(LogTemp, Error, TEXT("BrowseDirectory: Unsupported platform"));
+	return false;
+#endif
+
+	// Launch the process
+	FPlatformProcess::CreateProc(*Command, *Params, true, false, false, nullptr, 0, nullptr, nullptr);
+
+	return true;
+}
+
+
