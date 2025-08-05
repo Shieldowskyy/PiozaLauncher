@@ -47,5 +47,5 @@ find "$APPDIR" -type f \( -name "*.so" -o -perm -111 \) -exec sh -c 'file "$1" |
 echo "Generating AppImage for version $VERSION..."
 ./"$APPIMAGETOOL" "$APPDIR"
 
-mv Pioza_GL-x86_64.AppImage "PiozaGL-v$VERSION_NO_V-x86_64.AppImage"
+mv Pioza_Launcher-x86_64.AppImage "PiozaGL-v$VERSION_NO_V-x86_64.AppImage"
 echo "AppImage was created as: PiozaGL-v$VERSION_NO_V-x86_64.AppImage"
