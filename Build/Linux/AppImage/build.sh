@@ -42,10 +42,10 @@ if ! command -v upx &> /dev/null; then
 fi
 
 echo "Compressing ELF binaries with UPX..."
-find "$APPDIR" -type f \( -name "*.so" -o -perm -111 \) -exec sh -c 'file "$1" | grep -q "ELF" && upx --best "$1" 2>/dev/null || true' sh {} \;
+find "$APPDIR" -type f \( -name "*.so" -o -perm -111 \) -exec sh -c 'file "$1" | grep -q "ELF" && upx "$1" 2>/dev/null || true' sh {} \;
 
 echo "Generating AppImage for version $VERSION..."
 ./"$APPIMAGETOOL" "$APPDIR"
 
-mv Pioza_GL-x86_64.AppImage "PiozaGL-v$VERSION_NO_V-x86_64.AppImage"
+mv Pioza_Launcher-x86_64.AppImage "PiozaGL-v$VERSION_NO_V-x86_64.AppImage"
 echo "AppImage was created as: PiozaGL-v$VERSION_NO_V-x86_64.AppImage"

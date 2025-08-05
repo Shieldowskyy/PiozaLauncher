@@ -1,5 +1,50 @@
+// ExecCommandLibrary.cpp
 #include "ExecCommandLibrary.h"
 #include "HAL/PlatformProcess.h"
+
+TMap<int32, FProcHandle> UExecCommandLibrary::ActiveProcesses;
+
+static FString EscapeAndQuoteArgument(const FString& Arg)
+{
+    if (Arg.IsEmpty())
+        return TEXT("\"\"");
+
+    bool bNeedsQuotes = false;
+    for (TCHAR C : Arg)
+    {
+        if (FChar::IsWhitespace(C) || C == '"' || C == '\\')
+        {
+            bNeedsQuotes = true;
+            break;
+        }
+    }
+
+    if (!bNeedsQuotes)
+        return Arg;
+
+    FString Escaped = TEXT("\"");
+    for (TCHAR C : Arg)
+    {
+        if (C == '"')
+            Escaped += TEXT("\\\"");
+        else if (C == '\\')
+            Escaped += TEXT("\\\\");
+        else
+            Escaped += C;
+    }
+    Escaped += TEXT("\"");
+    return Escaped;
+}
+
+static FString BuildArgumentString(const TArray<FString>& Args)
+{
+    TArray<FString> EscapedArgs;
+    for (const FString& Arg : Args)
+    {
+        EscapedArgs.Add(EscapeAndQuoteArgument(Arg));
+    }
+    return FString::Join(EscapedArgs, TEXT(" "));
+}
 
 FString UExecCommandLibrary::ExecuteSystemCommand(
     const FString& Command,
@@ -16,79 +61,103 @@ FString UExecCommandLibrary::ExecuteSystemCommand(
     ProcessID = -1;
     uint32 RealProcessID = 0;
 
-    // Helper lambda to escape arguments
-    auto EscapeArgument = [](const FString& Arg) -> FString {
-        #if PLATFORM_WINDOWS
-        return TEXT("\"") + Arg.ReplaceCharWithEscapedChar() + TEXT("\"");
-        #else
-        FString Escaped = Arg;
-        Escaped.ReplaceInline(TEXT("\\"), TEXT("\\\\")); // Backslashes
-        Escaped.ReplaceInline(TEXT("\""), TEXT("\\\"")); // Double quotes
-        Escaped.ReplaceInline(TEXT("$"), TEXT("\\$"));   // Dollar signs
-        Escaped.ReplaceInline(TEXT("`"), TEXT("\\`"));   // Backticks
-        Escaped.ReplaceInline(TEXT("!"), TEXT("\\!"));   // Bangs
-        return TEXT("\"") + Escaped + TEXT("\"");
-        #endif
-    };
-
-    // Escape each argument
-    TArray<FString> EscapedArguments;
-    for (const FString& Arg : Arguments)
-    {
-        EscapedArguments.Add(EscapeArgument(Arg));
-    }
-
-    FString ArgumentsString = FString::Join(EscapedArguments, TEXT(" "));
-    FString FullCommand = Command + TEXT(" ") + ArgumentsString;
-
-    #if PLATFORM_WINDOWS
-    FString Executable = Command;
-    FString Params = ArgumentsString;
-    #elif PLATFORM_LINUX
-    FString Executable = Command;
-    FString Params = ArgumentsString;
-    #endif
-
+    // Create pipes for output
     void* ReadPipe = nullptr;
     void* WritePipe = nullptr;
-    FPlatformProcess::CreatePipe(ReadPipe, WritePipe);
+    if (!FPlatformProcess::CreatePipe(ReadPipe, WritePipe))
+    {
+        bSuccess = false;
+        return TEXT("Failed to create pipes.");
+    }
 
-    bool bLaunchDetached = bDetached;
-    bool bLaunchHidden = bHidden;
-    bool bLaunchAsAdmin = false;
+    const TCHAR* WorkingDir = OptionalWorkingDirectory.IsEmpty() ? nullptr : *OptionalWorkingDirectory;
+    FString ArgsString = BuildArgumentString(Arguments);
+
+    UE_LOG(LogTemp, Log, TEXT("Executing: %s %s"), *Command, *ArgsString);
 
     FProcHandle ProcessHandle = FPlatformProcess::CreateProc(
-        *Executable,
-        *Params,
-        bLaunchDetached,
-        bLaunchHidden,
-        bLaunchAsAdmin,
+        *Command,
+        *ArgsString,
+        bDetached,
+        bHidden,
+        false,
         &RealProcessID,
         Priority,
-        !OptionalWorkingDirectory.IsEmpty() ? *OptionalWorkingDirectory : nullptr,
-                                                             WritePipe
+        WorkingDir,
+        WritePipe,
+        nullptr
     );
 
-    if (ProcessHandle.IsValid())
+    if (!ProcessHandle.IsValid())
     {
-        bSuccess = true;
-        Output = FPlatformProcess::ReadPipe(ReadPipe);
+        bSuccess = false;
+        FPlatformProcess::ClosePipe(ReadPipe, WritePipe);
+        UE_LOG(LogTemp, Error, TEXT("Failed to start process: %s %s"), *Command, *ArgsString);
+        return TEXT("Failed to start process.");
+    }
 
-        if (!bDetached)
-        {
-            FPlatformProcess::WaitForProc(ProcessHandle);
-        }
+    bSuccess = true;
+    ProcessID = static_cast<int32>(RealProcessID);
 
-        FPlatformProcess::CloseProc(ProcessHandle);
-        ProcessID = static_cast<int32>(RealProcessID);
+    if (bDetached)
+    {
+        ActiveProcesses.Add(ProcessID, ProcessHandle);
+        UE_LOG(LogTemp, Log, TEXT("Process started detached. PID: %d"), ProcessID);
     }
     else
     {
-        bSuccess = false;
-        Output = TEXT("Failed to start process.");
-        ProcessID = -1;
+        UE_LOG(LogTemp, Log, TEXT("Process started. PID: %d. Capturing output..."), ProcessID);
+
+        while (FPlatformProcess::IsProcRunning(ProcessHandle))
+        {
+            FString Chunk = FPlatformProcess::ReadPipe(ReadPipe);
+            if (!Chunk.IsEmpty())
+            {
+                UE_LOG(LogTemp, Log, TEXT("%s"), *Chunk);
+                Output += Chunk;
+            }
+            FPlatformProcess::Sleep(0.01f);
+        }
+
+        // Final read after process finishes
+        FString FinalChunk = FPlatformProcess::ReadPipe(ReadPipe);
+        if (!FinalChunk.IsEmpty())
+        {
+            UE_LOG(LogTemp, Log, TEXT("%s"), *FinalChunk);
+            Output += FinalChunk;
+        }
+
+        FPlatformProcess::CloseProc(ProcessHandle);
+        UE_LOG(LogTemp, Log, TEXT("Process finished. PID: %d"), ProcessID);
     }
 
     FPlatformProcess::ClosePipe(ReadPipe, WritePipe);
     return Output;
+}
+
+bool UExecCommandLibrary::IsProcessStillRunning(int32 ProcessID)
+{
+    if (FProcHandle* HandlePtr = ActiveProcesses.Find(ProcessID))
+    {
+        if (HandlePtr->IsValid())
+        {
+            return FPlatformProcess::IsProcRunning(*HandlePtr);
+        }
+    }
+    return false;
+}
+
+bool UExecCommandLibrary::TerminateProcess(int32 ProcessID)
+{
+    if (FProcHandle* HandlePtr = ActiveProcesses.Find(ProcessID))
+    {
+        if (HandlePtr->IsValid())
+        {
+            FPlatformProcess::TerminateProc(*HandlePtr);
+            FPlatformProcess::CloseProc(*HandlePtr);
+            ActiveProcesses.Remove(ProcessID);
+            return true;
+        }
+    }
+    return false;
 }
