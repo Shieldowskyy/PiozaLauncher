@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Pioza Launcher"
-#define MyAppVersion "0.7.0"
+#define MyAppVersion "0.7.1"
 #define MyAppPublisher "DashoGames"
 #define MyAppURL "https://github.com/Shieldowskyy/PiozaLauncher"
 #define MyAppExeName "PiozaGameLauncher.exe"
