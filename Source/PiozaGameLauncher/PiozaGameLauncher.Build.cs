@@ -17,6 +17,7 @@ public class PiozaGameLauncher : ModuleRules
             "InputCore",
             "Slate",
             "SlateCore",
+            "ApplicationCore",
             "Json",
             "JsonUtilities",
             "StructUtils"
