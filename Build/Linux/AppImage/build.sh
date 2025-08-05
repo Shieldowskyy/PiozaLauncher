@@ -42,7 +42,7 @@ if ! command -v upx &> /dev/null; then
 fi
 
 echo "Compressing ELF binaries with UPX..."
-find "$APPDIR" -type f \( -name "*.so" -o -perm -111 \) -exec sh -c 'file "$1" | grep -q "ELF" && upx --best "$1" 2>/dev/null || true' sh {} \;
+find "$APPDIR" -type f \( -name "*.so" -o -perm -111 \) -exec sh -c 'file "$1" | grep -q "ELF" && upx "$1" 2>/dev/null || true' sh {} \;
 
 echo "Generating AppImage for version $VERSION..."
 ./"$APPIMAGETOOL" "$APPDIR"
