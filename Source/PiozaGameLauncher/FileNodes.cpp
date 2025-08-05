@@ -52,7 +52,24 @@ bool UFileNodes::ListDirectory(const FString& DirPath, const FString& Pattern, b
 	FString FinalPattern = Pattern.IsEmpty() ? TEXT("*") : Pattern;
 
 	TArray<FString> Results;
-	FileManager.FindFilesRecursive(Results, *DirPath, *FinalPattern, bRecursive, bShowFiles, bShowDirectories);
+
+	if (bRecursive)
+	{
+		FileManager.FindFilesRecursive(Results, *DirPath, *FinalPattern, true, bShowFiles, bShowDirectories);
+	}
+	else
+	{
+		// FindFiles nie obsługuje filtrowania na katalogi, trzeba dodatkowo sprawdzić
+		FileManager.FindFiles(Results, *DirPath, *FinalPattern);
+
+		// Jeśli chcesz też katalogi i bShowDirectories jest true, musisz zrobić osobne FindFiles na katalogi
+		if (bShowDirectories)
+		{
+			TArray<FString> DirResults;
+			FileManager.FindFiles(DirResults, *(DirPath / TEXT("*")), false, true);
+			Results.Append(DirResults);
+		}
+	}
 
 	if (Results.Num() == 0)
 		return false;

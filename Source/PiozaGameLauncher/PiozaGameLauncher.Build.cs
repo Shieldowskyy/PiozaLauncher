@@ -18,7 +18,8 @@ public class PiozaGameLauncher : ModuleRules
             "Slate",
             "SlateCore",
             "Json",
-            "JsonUtilities"
+            "JsonUtilities",
+            "StructUtils"
         });
 
         // Uncomment if you are using Slate UI
