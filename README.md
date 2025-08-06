@@ -27,11 +27,28 @@
 - Support for changelogs based on HTML files
 - Actions queue
 # Download
-In [Releases](https://github.com/Shieldowskyy/PiozaGameLauncher/releases) tab you will find installer and zipped build that you can install where you want.\
-NOTE: Zipped build is not portable and will save config in localappdata directory.
 
-Launcher works well under proton: **PixelRunner** and **FlipFlop** tested on Fedora 40 via Bottles and also Lutris!
+You can find the installer and zipped build in the [Releases](https://github.com/Shieldowskyy/PiozaGameLauncher/releases) tab.  
+**Note:** The zipped build is **not portable** — it will save its configuration in the `LocalAppData` directory.
 
+- **Windows:** Available both as an installer (`.exe`) and a zipped build.
+- **Linux:** Available only as an AppImage file.
+
+## Linux
+
+### Support
+
+Linux support was introduced in **v0.6.8** and has been considered stable since **v0.7.1**.  
+The launcher supports both **native Linux games** and **Windows games via Wine**.
+
+### Dependencies
+
+The Linux version of Pioza Launcher requires a few system dependencies:
+
+- `zenity` – used for the file picker dialogs
+- `wine` – required for running Windows games
+
+Install these using your distribution’s package manager.
 # Opening project in Unreal Engine
 Pioza Launcher is built on Unreal Engine. It was easier for me to write something in Unreal Blueprints for simpler prototyping, but i have plans to rewrite some elements in C++ in future.
 ## Engine
