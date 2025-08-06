@@ -33,11 +33,47 @@ int64 UFileNodes::GetFileSize(const FString& FilePath)
 	return -1;
 }
 
-bool UFileNodes::SaveText(const FString& FilePath, const FString& Text, bool bAppend, bool bForceOverwrite, FString& OutError)
+bool UFileNodes::SaveText(const FString& FilePath, const FString& Text, bool bAppend, bool bForceOverwrite, ETextEncodingFormat Encoding, FString& OutError)
 {
 	const uint32 WriteFlags = (bAppend ? FILEWRITE_Append : FILEWRITE_None) | (bForceOverwrite ? FILEWRITE_AllowRead : FILEWRITE_None);
 
-	if (!FFileHelper::SaveStringToFile(Text, *FilePath, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), WriteFlags))
+	// Handle UTF-8 without BOM manually
+	if (Encoding == ETextEncodingFormat::UTF8WithoutBOM)
+	{
+		FTCHARToUTF8 UTF8Converter(*Text);
+		TArray<uint8> UTF8Data;
+		UTF8Data.Append(reinterpret_cast<const uint8*>(UTF8Converter.Get()), UTF8Converter.Length());
+
+		if (!FFileHelper::SaveArrayToFile(UTF8Data, *FilePath, &IFileManager::Get(), WriteFlags))
+		{
+			OutError = FString::Printf(TEXT("Failed to write UTF-8 (no BOM) file: %s"), *FilePath);
+			return false;
+		}
+
+		return true;
+	}
+
+	// Use default FFileHelper path for other encodings
+	FFileHelper::EEncodingOptions ChosenEncoding;
+
+	switch (Encoding)
+	{
+		case ETextEncodingFormat::ANSI:
+			ChosenEncoding = FFileHelper::EEncodingOptions::ForceAnsi;
+			break;
+		case ETextEncodingFormat::UTF8:
+			ChosenEncoding = FFileHelper::EEncodingOptions::ForceUTF8;
+			break;
+		case ETextEncodingFormat::UTF16:
+			ChosenEncoding = FFileHelper::EEncodingOptions::ForceUnicode;
+			break;
+		case ETextEncodingFormat::AutoDetect:
+		default:
+			ChosenEncoding = FFileHelper::EEncodingOptions::AutoDetect;
+			break;
+	}
+
+	if (!FFileHelper::SaveStringToFile(Text, *FilePath, ChosenEncoding, &IFileManager::Get(), WriteFlags))
 	{
 		OutError = FString::Printf(TEXT("Failed to write to file: %s"), *FilePath);
 		return false;
@@ -45,6 +81,7 @@ bool UFileNodes::SaveText(const FString& FilePath, const FString& Text, bool bAp
 
 	return true;
 }
+
 
 bool UFileNodes::ListDirectory(const FString& DirPath, const FString& Pattern, bool bShowFiles, bool bShowDirectories, bool bRecursive, TArray<FString>& OutNodes)
 {
