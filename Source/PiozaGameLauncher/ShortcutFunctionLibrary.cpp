@@ -49,18 +49,22 @@ FString GetShortcutPath(FString Folder, FString ShortcutName)
     return Folder / (ShortcutName + TEXT(".desktop"));
 }
 
-bool CreateDesktopFile(FString FilePath, FString ExecCommand, FString ShortcutName)
+bool CreateDesktopFile(FString FilePath, FString ExecCommand, FString ShortcutName, FString IconPath)
 {
+    FString ResolvedIconPath = IconPath.IsEmpty() ? TEXT("application-default-icon") : IconPath;
+
     FString DesktopFileContent = FString::Printf(
         TEXT("[Desktop Entry]\n")
         TEXT("Version=1.0\n")
         TEXT("Type=Application\n")
         TEXT("Name=%s\n")
         TEXT("Exec=%s\n")
+        TEXT("Icon=%s\n")
         TEXT("Terminal=false\n")
         TEXT("Categories=Application;\n"),
-        *ShortcutName,
-        *ExecCommand
+                                                 *ShortcutName,
+                                                 *ExecCommand,
+                                                 *ResolvedIconPath
     );
 
     if (!FFileHelper::SaveStringToFile(DesktopFileContent, *FilePath))
@@ -74,16 +78,15 @@ bool CreateDesktopFile(FString FilePath, FString ExecCommand, FString ShortcutNa
 
     return true;
 }
+
 #endif
 
-// TWORZENIE SKRÓTU NA PULPICIE
-bool UShortcutFunctionLibrary::CreateDesktopShortcut(FString ProgramPath, FString ShortcutName, FString LaunchArgs)
+bool UShortcutFunctionLibrary::CreateDesktopShortcut(FString ProgramPath, FString ShortcutName, FString LaunchArgs, FString IconPath)
 {
-#if PLATFORM_WINDOWS
+    #if PLATFORM_WINDOWS
     if (!InitializeCOM())
         return false;
 
-    // Naprawiamy œcie¿ki typu C:/Program Files/...
     ProgramPath.ReplaceInline(TEXT("/"), TEXT("\\"), ESearchCase::IgnoreCase);
 
     TCHAR szPath[MAX_PATH];
@@ -128,7 +131,7 @@ bool UShortcutFunctionLibrary::CreateDesktopShortcut(FString ProgramPath, FStrin
 
     return SUCCEEDED(hr);
 
-#elif PLATFORM_LINUX
+    #elif PLATFORM_LINUX
     FString DesktopPath = GetHomeDirectory() / TEXT("Desktop");
     FString ShortcutPath = GetShortcutPath(DesktopPath, ShortcutName);
 
@@ -138,14 +141,13 @@ bool UShortcutFunctionLibrary::CreateDesktopShortcut(FString ProgramPath, FStrin
         FullCommand += TEXT(" ") + LaunchArgs;
     }
 
-    return CreateDesktopFile(ShortcutPath, FullCommand, ShortcutName);
-#endif
+    return CreateDesktopFile(ShortcutPath, FullCommand, ShortcutName, IconPath);
+    #endif
 }
 
-// USUWANIE SKRÓTU Z PULPITU
 bool UShortcutFunctionLibrary::RemoveDesktopShortcut(FString ShortcutName)
 {
-#if PLATFORM_WINDOWS
+    #if PLATFORM_WINDOWS
     if (!InitializeCOM())
         return false;
 
@@ -163,18 +165,17 @@ bool UShortcutFunctionLibrary::RemoveDesktopShortcut(FString ShortcutName)
     UninitializeCOM();
     return bResult;
 
-#elif PLATFORM_LINUX
+    #elif PLATFORM_LINUX
     FString DesktopPath = GetHomeDirectory() / TEXT("Desktop");
     FString ShortcutPath = GetShortcutPath(DesktopPath, ShortcutName);
 
     return IPlatformFile::GetPlatformPhysical().DeleteFile(*ShortcutPath);
-#endif
+    #endif
 }
 
-// TWORZENIE SKRÓTU W MENU START
-bool UShortcutFunctionLibrary::CreateStartMenuShortcut(FString ProgramPath, FString ShortcutName, FString LaunchArgs)
+bool UShortcutFunctionLibrary::CreateStartMenuShortcut(FString ProgramPath, FString ShortcutName, FString LaunchArgs, FString IconPath)
 {
-#if PLATFORM_WINDOWS
+    #if PLATFORM_WINDOWS
     if (!InitializeCOM())
         return false;
 
@@ -222,7 +223,7 @@ bool UShortcutFunctionLibrary::CreateStartMenuShortcut(FString ProgramPath, FStr
 
     return SUCCEEDED(hr);
 
-#elif PLATFORM_LINUX
+    #elif PLATFORM_LINUX
     FString ApplicationsPath = GetHomeDirectory() / TEXT(".local/share/applications");
     FString ShortcutPath = GetShortcutPath(ApplicationsPath, ShortcutName);
 
@@ -232,14 +233,13 @@ bool UShortcutFunctionLibrary::CreateStartMenuShortcut(FString ProgramPath, FStr
         FullCommand += TEXT(" ") + LaunchArgs;
     }
 
-    return CreateDesktopFile(ShortcutPath, FullCommand, ShortcutName);
-#endif
+    return CreateDesktopFile(ShortcutPath, FullCommand, ShortcutName, IconPath);
+    #endif
 }
 
-// USUWANIE SKRÓTU Z MENU START
 bool UShortcutFunctionLibrary::RemoveStartMenuShortcut(FString ShortcutName)
 {
-#if PLATFORM_WINDOWS
+    #if PLATFORM_WINDOWS
     if (!InitializeCOM())
         return false;
 
@@ -257,10 +257,10 @@ bool UShortcutFunctionLibrary::RemoveStartMenuShortcut(FString ShortcutName)
     UninitializeCOM();
     return bResult;
 
-#elif PLATFORM_LINUX
+    #elif PLATFORM_LINUX
     FString ApplicationsPath = GetHomeDirectory() / TEXT(".local/share/applications");
     FString ShortcutPath = GetShortcutPath(ApplicationsPath, ShortcutName);
 
     return IPlatformFile::GetPlatformPhysical().DeleteFile(*ShortcutPath);
-#endif
+    #endif
 }

@@ -10,17 +10,17 @@ class PIOZAGAMELAUNCHER_API UShortcutFunctionLibrary : public UBlueprintFunction
 
 public:
 
-    /** Creates a desktop shortcut with optional launch arguments */
+    /** Creates a desktop shortcut with optional launch arguments and icon path */
     UFUNCTION(BlueprintCallable, Category = "Shortcut")
-    static bool CreateDesktopShortcut(FString ProgramPath, FString ShortcutName, FString LaunchArgs);
+    static bool CreateDesktopShortcut(FString ProgramPath, FString ShortcutName, FString LaunchArgs, FString IconPath = TEXT(""));
 
     /** Removes a desktop shortcut */
     UFUNCTION(BlueprintCallable, Category = "Shortcut")
     static bool RemoveDesktopShortcut(FString ShortcutName);
 
-    /** Creates a start menu shortcut with optional launch arguments */
+    /** Creates a start menu shortcut with optional launch arguments and icon path */
     UFUNCTION(BlueprintCallable, Category = "Shortcut")
-    static bool CreateStartMenuShortcut(FString ProgramPath, FString ShortcutName, FString LaunchArgs);
+    static bool CreateStartMenuShortcut(FString ProgramPath, FString ShortcutName, FString LaunchArgs, FString IconPath = TEXT(""));
 
     /** Removes a start menu shortcut */
     UFUNCTION(BlueprintCallable, Category = "Shortcut")
