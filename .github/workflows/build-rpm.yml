@@ -55,7 +55,7 @@ jobs:
       run: rpmbuild --define "_topdir $PWD/rpm_build" -ba rpm_build/SPECS/PiozaLauncher.spec
 
     - name: Upload RPM artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: pioza-launcher-rpm
         path: rpm_build/RPMS/x86_64/*.rpm
