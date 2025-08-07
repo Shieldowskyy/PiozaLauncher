@@ -47,7 +47,7 @@ jobs:
 
     - name: Copy Debian control files
       run: |
-        cp -r PiozaGameLauncher/Build/Linux/debian deb_build/DEBIAN
+        cp -r Build/Linux/debian deb_build/DEBIAN
 
     - name: Build .deb package
       run: |
