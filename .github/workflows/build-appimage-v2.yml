@@ -31,7 +31,7 @@ jobs:
         ls -l AppRun
 
     - name: Make build.sh executable
-      run: chmod +x Build/Linux/AppImage/AppImage/build.sh
+      run: chmod +x Build/Linux/AppImage/build.sh
 
     - name: Run build.sh to create AppImage
       working-directory: Build/Linux/AppImage
