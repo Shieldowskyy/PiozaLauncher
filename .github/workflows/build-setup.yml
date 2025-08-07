@@ -1,0 +1,47 @@
+name: Build Installer
+
+on:
+  workflow_dispatch:
+    inputs:
+      zip_url:
+        description: "Direct URL to the ZIP archive containing Windows build (must include 'Windows' subfolder)"
+        required: true
+        type: string
+      version:
+        description: "App version to include in the installer"
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: Compile Inno Setup Installer
+    runs-on: windows-latest
+
+    steps:
+      # Checkout current repo (required for .iss and LICENSE)
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Download the provided ZIP file from the input URL
+      - name: Download Build ZIP
+        run: curl -L "${{ github.event.inputs.zip_url }}" -o build.zip
+
+      # Extract ZIP to a temporary folder
+      - name: Extract Build ZIP
+        run: |
+          mkdir build_temp
+          tar -xf build.zip -C build_temp
+
+      # Compile the Inno Setup script
+      - name: Compile Inno Setup Installer
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        with:
+          path: Build/Windows/Release/InnoSetup/installer.iss
+          options: "/DMyAppVersion=${{ github.event.inputs.version }} /O+"
+
+      # Upload the installer as an artifact
+      - name: Upload Installer EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: PiozaLauncherInstaller
+          path: PiozaGL-${{ github.event.inputs.version }}.exe
