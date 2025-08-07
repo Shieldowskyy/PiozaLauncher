@@ -9,6 +9,14 @@ on:
       zipUrl:
         description: 'URL to ZIP containing Linux/ folder (Unreal build)'
         required: true
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      zip_url:
+        required: true
+        type: string
 
 jobs:
   build-appimage:
