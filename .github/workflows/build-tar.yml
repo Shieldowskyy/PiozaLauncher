@@ -1,0 +1,47 @@
+name: Build tar.gz
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v0.7.2)'
+        required: true
+        default: 'v0.7.2'
+      zip_url:
+        description: 'URL to ZIP archive containing Linux folder'
+        required: true
+        default: 'https://example.com/PiozaLauncher-linux.zip'
+
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      zip_url:
+        required: true
+        type: string
+
+jobs:
+  build_tar:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install unzip
+      run: sudo apt-get update && sudo apt-get install -y unzip
+
+    - name: Download ZIP archive
+      run: curl -L "${{ inputs.zip_url }}" -o source.zip
+
+    - name: Unpack ZIP archive
+      run: unzip source.zip -d source_unpacked
+
+    - name: Create tar.gz archive without extra Linux folder level
+      run: |
+        mkdir -p artifacts
+        tar -czf artifacts/pioza-launcher-${{ inputs.version }}.tar.gz -C source_unpacked/Linux .
+
+    - name: Upload tar.gz artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: pioza-launcher-tar
+        path: artifacts/pioza-launcher-${{ inputs.version }}.tar.gz
