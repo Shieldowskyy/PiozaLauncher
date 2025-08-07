@@ -1,44 +1,45 @@
-name: Build AppImage from ZIP
+name: Build AppImage
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version string (e.g. v0.6.8)'
+        description: 'Version tag (eg. v0.7.2)'
         required: true
       zipUrl:
-        description: 'Optional: direct URL to ZIP with build'
-        required: false
+        description: 'URL to ZIP containing Linux/ folder (Unreal build)'
+        required: true
 
 jobs:
-  appimage:
+  build-appimage:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+    - name: Checkout repo (for build.sh and AppRun, desktop, icon)
+      uses: actions/checkout@v3
 
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y curl unzip libfuse2 upx-ucl file
+    - name: Download Unreal Linux build ZIP
+      run: |
+        mkdir -p Build/Linux/AppImage/PiozaLauncher.AppDir
+        curl -L "${{ github.event.inputs.zipUrl }}" -o build.zip
+        unzip build.zip -d Build/Linux/AppImage/PiozaLauncher.AppDir/
 
-      - name: Download build ZIP (optional)
-        if: ${{ github.event.inputs.zipUrl != '' }}
-        run: |
-          curl -L "${{ github.event.inputs.zipUrl }}" -o launcher.zip
-          unzip launcher.zip -d temp_launcher
-          mkdir -p Build/Linux/AppImage/PiozaLauncher.AppDir/usr/bin
-          cp -r temp_launcher/* Build/Linux/AppImage/PiozaLauncher.AppDir/usr/bin/
+    - name: Create AppRun symlink
+      run: |
+        cd Build/Linux/AppImage/PiozaLauncher.AppDir
+        ln -sf Linux/PiozaGameLauncher.sh AppRun
+        ls -l AppRun
 
-      - name: Build AppImage
-        run: |
-          chmod +x Build/Linux/AppImage/build.sh
-          cd Build/Linux/AppImage
-          ./build.sh "${{ github.event.inputs.version }}"
+    - name: Make build.sh executable
+      run: chmod +x Build/Linux/AppImage/AppImage/build.sh
 
-      - name: Upload AppImage
-        uses: actions/upload-artifact@v4
-        with:
-          name: PiozaLauncher-AppImage
-          path: Build/Linux/AppImage/PiozaGL-v*-x86_64.AppImage
+    - name: Run build.sh to create AppImage
+      working-directory: Build/Linux/AppImage
+      run: |
+        ./build.sh ${{ github.event.inputs.version }}
+
+    - name: Upload AppImage artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: PiozaLauncher-AppImage
+        path: Build/Linux/AppImage/PiozaGL-v*-x86_64.AppImage
