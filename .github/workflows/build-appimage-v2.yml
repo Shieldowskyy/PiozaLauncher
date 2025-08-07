@@ -15,6 +15,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y libfuse2 upx curl unzip
+    
     - name: Checkout repo (for build.sh and AppRun, desktop, icon)
       uses: actions/checkout@v3
 
