@@ -24,3 +24,9 @@ jobs:
     with:
       version: ${{ github.event.inputs.version }}
       zip_url: ${{ github.event.inputs.zip_url }}
+
+  build_tar:
+    uses: ./.github/workflows/build-tar.yml
+    with:
+      version: ${{ github.event.inputs.version }}
+      zip_url: ${{ github.event.inputs.zip_url }}
