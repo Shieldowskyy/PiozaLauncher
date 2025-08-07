@@ -30,6 +30,12 @@ jobs:
       version: ${{ github.event.inputs.version }}
       zip_url: ${{ github.event.inputs.zip_url }}
 
+  build_appimage:
+    uses: ./.github/workflows/build-appimage-v2.yml
+    with:
+      version: ${{ github.event.inputs.version }}
+      zip_url: ${{ github.event.inputs.zip_url }}
+
   build_tar:
     uses: ./.github/workflows/build-tar.yml
     with:
@@ -59,5 +65,6 @@ jobs:
             dist/**/*.deb
             dist/**/*.rpm
             dist/**/*.tar.*
+            dist/**/*.AppImage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
