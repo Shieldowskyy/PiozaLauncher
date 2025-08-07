@@ -1,0 +1,48 @@
+name: Build RPM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_rpm:
+    runs-on: ubuntu-latest
+
+    env:
+      VERSION: "0.7.2"
+      DATE: ${{ github.event.head_commit.timestamp }}
+      NAME: "pioza-launcher"
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Install RPM tools and unzip
+      run: sudo apt-get update && sudo apt-get install -y rpm build-essential unzip python3 zenity tar vulkan-utils
+
+    - name: Prepare sources directory
+      run: |
+        mkdir -p rpm_build/SOURCES
+        # Zip just the Linux folder from Build/Linux/AppImage/PiozaLauncher.AppDir/
+        cd Build/Linux/AppImage/PiozaLauncher.AppDir
+        zip -r ../../../../rpm_build/SOURCES/${{ env.NAME }}-${{ env.VERSION }}.zip Linux
+
+    - name: Prepare specs directory
+      run: mkdir -p rpm_build/SPECS
+
+    - name: Copy spec file and replace variables
+      run: |
+        sed \
+          -e "s/%{version}/${{ env.VERSION }}/g" \
+          -e "s/%{date}/$(date +'%a %b %d %Y')/g" \
+          Build/Linux/rpm/PiozaLauncher.spec > rpm_build/SPECS/PiozaLauncher.spec
+
+    - name: Build RPM
+      run: rpmbuild --define "_topdir $PWD/rpm_build" -ba rpm_build/SPECS/PiozaLauncher.spec
+
+    - name: Upload RPM
+      uses: actions/upload-artifact@v3
+      with:
+        name: pioza-launcher-rpm
+        path: rpm_build/RPMS/x86_64/*.rpm
