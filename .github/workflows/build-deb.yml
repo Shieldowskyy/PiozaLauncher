@@ -1,0 +1,58 @@
+name: Build DEB
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v0.7.2)'
+        required: true
+        default: 'v0.7.2'
+      zip_url:
+        description: 'URL to ZIP archive containing Linux folder'
+        required: true
+        default: 'https://example.com/PiozaLauncher-linux.zip'
+
+jobs:
+  build_deb:
+    runs-on: ubuntu-latest
+
+    env:
+      NAME: pioza-launcher
+      VERSION: ${{ github.event.inputs.version }}
+
+    steps:
+    - name: Install required packages
+      run: sudo apt-get update && sudo apt-get install -y unzip dpkg-dev
+
+    - name: Download ZIP archive
+      run: |
+        curl -L "${{ github.event.inputs.zip_url }}" -o source.zip
+
+    - name: Unpack ZIP archive
+      run: |
+        unzip source.zip -d source_unpacked
+
+    - name: Prepare DEB build tree
+      run: |
+        rm -rf deb_build
+        mkdir -p deb_build
+
+    - name: Copy Linux files into deb_build/opt/pioza-launcher
+      run: |
+        mkdir -p deb_build/opt/pioza-launcher
+        cp -r source_unpacked/Linux/* deb_build/opt/pioza-launcher/
+
+    - name: Copy Debian control files
+      run: |
+        cp -r PiozaGameLauncher/Build/Linux/debian deb_build/DEBIAN
+
+    - name: Build .deb package
+      run: |
+        dpkg-deb --build deb_build
+        mv deb_build.deb "${NAME}_${VERSION}_amd64.deb"
+
+    - name: Upload DEB artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: pioza-launcher-deb
+        path: "${NAME}_${VERSION}_amd64.deb"
