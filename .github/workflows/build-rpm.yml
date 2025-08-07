@@ -11,7 +11,7 @@ on:
         description: 'URL to ZIP archive containing Linux folder'
         required: true
         default: 'https://example.com/PiozaLauncher-linux.zip'
-    workflow_call:
+  workflow_call:
     inputs:
       version:
         required: true
