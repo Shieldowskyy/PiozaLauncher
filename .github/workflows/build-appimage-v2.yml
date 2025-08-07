@@ -1,0 +1,44 @@
+name: Build AppImage from ZIP
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version string (e.g. v0.6.8)'
+        required: true
+      zipUrl:
+        description: 'Optional: direct URL to ZIP with build'
+        required: false
+
+jobs:
+  appimage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y curl unzip libfuse2 upx-ucl file
+
+      - name: Download build ZIP (optional)
+        if: ${{ github.event.inputs.zipUrl != '' }}
+        run: |
+          curl -L "${{ github.event.inputs.zipUrl }}" -o launcher.zip
+          unzip launcher.zip -d temp_launcher
+          mkdir -p Build/Linux/AppImage/PiozaLauncher.AppDir/usr/bin
+          cp -r temp_launcher/* Build/Linux/AppImage/PiozaLauncher.AppDir/usr/bin/
+
+      - name: Build AppImage
+        run: |
+          chmod +x Build/Linux/AppImage/build.sh
+          cd Build/Linux/AppImage
+          ./build.sh "${{ github.event.inputs.version }}"
+
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: PiozaLauncher-AppImage
+          path: Build/Linux/AppImage/PiozaGL-v*-x86_64.AppImage
