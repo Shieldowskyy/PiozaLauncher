@@ -13,7 +13,7 @@ BuildArch:      x86_64
 Requires:       zenity, python3, tar, vulkan, libnotify, curl
 
 %description
-Pioza Launcher packaged as RPM.
+An open source game launcher for Dasho Games titles and more!
 
 %prep
 # Unzip the main source archive

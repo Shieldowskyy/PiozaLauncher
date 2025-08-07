@@ -4,5 +4,5 @@ Exec=AppRun %u
 Icon=pioza_icon
 Type=Application
 Categories=Game;
-Comment=Launcher for Pioza games
+Comment=An open source game launcher for Dasho Games titles and more!
 MimeType=x-scheme-handler/pioza;
