@@ -4,8 +4,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Launcher\n"
-"POT-Creation-Date: 2025-08-07 10:02\n"
-"PO-Revision-Date: 2025-08-07 10:02\n"
+"POT-Creation-Date: 2025-08-07 11:04\n"
+"PO-Revision-Date: 2025-08-07 11:04\n"
 "Language-Team: \n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
@@ -61,13 +61,6 @@ msgstr "X"
 msgctxt ",DE04E5A9D5134EB99A9EB2D2E4C12BF1"
 msgid "About"
 msgstr "About"
-
-#. Key:	910F7D5A518342E598F64AFCE4F50AB3
-#. SourceLocation:	/Game/Blueprints/Widgets/W_AboutLauncher.W_AboutLauncher_C:WidgetTree.Version.Text
-#: /Game/Blueprints/Widgets/W_AboutLauncher.W_AboutLauncher_C:WidgetTree.Version.Text
-msgctxt ",910F7D5A518342E598F64AFCE4F50AB3"
-msgid "About {gamename}"
-msgstr "About {gamename}"
 
 #. Key:	17D5B1995BBD45CCB09B2D2C06F5EA16
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AboutLauncher.W_AboutLauncher_C:WidgetTree.Version_1.Text
@@ -931,8 +924,8 @@ msgid "Download"
 msgstr "Download"
 
 #. Key:	5AE3D1EBD4244A69848227431D94B626
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.ButtonText_2.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.ButtonText_2.Text
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.ButtonText_1.Text
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.ButtonText_1.Text
 msgctxt ",5AE3D1EBD4244A69848227431D94B626"
 msgid "X"
 msgstr "X"
@@ -958,34 +951,6 @@ msgctxt ",C3AAC67845701333710399996952049B"
 msgid "Minimum Requirements:"
 msgstr "Minimum Requirements:"
 
-#. Key:	76AD3E804BD15560384E68A80F730CB3
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.DevNameText.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.DevNameText.Text
-msgctxt ",76AD3E804BD15560384E68A80F730CB3"
-msgid "DevName"
-msgstr "DevName"
-
-#. Key:	E13531E44099D105F8202AB154F5BA15
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.dirText.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.dirText.Text
-msgctxt ",E13531E44099D105F8202AB154F5BA15"
-msgid "dir"
-msgstr "dir"
-
-#. Key:	8E236C2D4F32BD66E369DAA3568B24B6
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.GameTitleText.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.GameTitleText.Text
-msgctxt ",8E236C2D4F32BD66E369DAA3568B24B6"
-msgid "GameTitle"
-msgstr "GameTitle"
-
-#. Key:	070E06334CEA0B1C9C96029D148B6533
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.InstallStatusText.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.InstallStatusText.Text
-msgctxt ",070E06334CEA0B1C9C96029D148B6533"
-msgid "Progress: nAn%"
-msgstr "Progress: nAn%"
-
 #. Key:	701F4324C15E48B7B1551C3A669EF754
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.MetadataDesc.Text
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.MetadataDesc.Text
@@ -999,13 +964,6 @@ msgstr "Establishing connection to manifests server..."
 msgctxt ",E649963B2003431786B4B72B560F5C8B"
 msgid "Establishing connection..."
 msgstr "Establishing connection..."
-
-#. Key:	383B04BE4483076CE579B083E0732708
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.PlatformName.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.PlatformName.Text
-msgctxt ",383B04BE4483076CE579B083E0732708"
-msgid "PlatformName"
-msgstr "PlatformName"
 
 #. Key:	A5ECB210470D2322C693C8948D2E515A
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.PlaytimeText.Text
@@ -1021,13 +979,6 @@ msgctxt ",07695184AD5642FA8DCE8200C33B4669"
 msgid "eg. /usr/bin/wine"
 msgstr "eg. /usr/bin/wine"
 
-#. Key:	6F348EAFDBD748888FFD565FB4AD2A8E
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.ProtonPathTB.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.ProtonPathTB.Text
-msgctxt ",6F348EAFDBD748888FFD565FB4AD2A8E"
-msgid "/usr/bin/wine"
-msgstr "/usr/bin/wine"
-
 #. Key:	E7A865F94E7B472DB33F5585068A8D13
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.ProtonPathTB.ToolTipText
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.ProtonPathTB.ToolTipText
@@ -1041,13 +992,6 @@ msgstr "Only change this if you know what you're doing."
 msgctxt ",5F4F48F944B6E00E38BB7BA14A60ED15"
 msgid "Download & Install"
 msgstr "Download & Install"
-
-#. Key:	60C8B9634F9DCC9F8D890480AC31B9EF
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock.Text
-msgctxt ",60C8B9634F9DCC9F8D890480AC31B9EF"
-msgid "..."
-msgstr "..."
 
 #. Key:	565EF93B4757544903C1B2B7E1578092
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_0.Text
@@ -1133,12 +1077,12 @@ msgctxt ",FBF1201C6D6C48F5942FA1665F9AED1C"
 msgid "EXIT"
 msgstr "EXIT"
 
-#. Key:	BF1F24D441321EAE765D918AA3AB9982
+#. Key:	AA4FBD064D324FB6B706C569760274E1
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_180.Text
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_180.Text
-msgctxt ",BF1F24D441321EAE765D918AA3AB9982"
-msgid "SelectedDir: "
-msgstr "SelectedDir: "
+msgctxt ",AA4FBD064D324FB6B706C569760274E1"
+msgid "Selected Dir: "
+msgstr "Selected Dir: "
 
 #. Key:	D06E0C3B4F34C1F50893B2857D2CDBA3
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_182.Text
@@ -1266,26 +1210,12 @@ msgctxt ",5100E5954EF4C8CD39C290BFE34DB81A"
 msgid "This will affect only current selected game!"
 msgstr "This will affect only current selected game!"
 
-#. Key:	742137654CE004EB5B8230820C4DA943
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_6.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_6.Text
-msgctxt ",742137654CE004EB5B8230820C4DA943"
-msgid "MB"
-msgstr "MB"
-
 #. Key:	8CBE8EFA44389E17839304A844437003
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_7.Text
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_7.Text
 msgctxt ",8CBE8EFA44389E17839304A844437003"
 msgid "Install-time Size (with Cache): "
 msgstr "Install-time Size (with Cache): "
-
-#. Key:	9BFD963045BDE98B6EED16B0A06222A6
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.VersionName.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.VersionName.Text
-msgctxt ",9BFD963045BDE98B6EED16B0A06222A6"
-msgid "VersionName"
-msgstr "VersionName"
 
 #. Key:	DA4216934D5C37771A13E1AC1BB3705F
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.VersionText.Text
