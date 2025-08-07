@@ -10,7 +10,7 @@ Source1:        PiozaGameLauncher.desktop
 Source2:        pioza_icon.png
 
 BuildArch:      x86_64
-Requires:       zenity, python3, tar, vulkan, libnotify
+Requires:       zenity, python3, tar, vulkan, libnotify, curl
 
 %description
 Pioza Launcher packaged as RPM.
