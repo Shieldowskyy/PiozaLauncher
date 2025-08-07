@@ -45,27 +45,61 @@ The launcher supports both **native Linux games** and **Windows games via Wine**
 
 The Linux version of Pioza Launcher requires a few system dependencies:
 
-- `zenity` – used for the file picker dialogs
-- `wine` – required for running Windows games
+- `zenity` – used for file picker dialogs  
+- `wine` – required to run Windows games
 
 Install these using your distribution’s package manager.
-# Opening project in Unreal Engine
-Pioza Launcher is built on Unreal Engine. It was easier for me to write something in Unreal Blueprints for simpler prototyping, but i have plans to rewrite some elements in C++ in future.
-## Engine
-To run this project, you have to install Unreal Engine 5.5 on your machine! Also you might need Visual Studio with configured Unreal Engine components to compile all plugins and C++ code!
-## Plugins
-### Optional
-> [!NOTE]
-> While you might already be able to run the project without these plugin, I recommend installing it so that project can start without any problems.
 
-You can also install Sentry Unreal plugin to report all crashes to me. It will be helpful for investigating further problems!\
+# Opening the Project in Unreal Engine
+
+Pioza Launcher is built with Unreal Engine. I found it easier to prototype some features using Unreal Blueprints, but I plan to rewrite parts of it in C++ in the future.
+
+## Engine
+
+To run this project, you must install Unreal Engine 5.5 on your machine. You might also need Visual Studio with the Unreal Engine components installed to compile all plugins and C++ code.
+
+## Plugins
+
+All required plugins are now included in the repository!
+
+### Optional
+
+> [!NOTE]  
+> Although you might be able to run the project without these plugins, I recommend installing them to ensure the project starts without any issues.
+
+Sentry is optional but recommended, and therefore included with the project:  
 [Sentry](https://github.com/getsentry/sentry-unreal/releases)
 
-# External Components
+# 📦 External Components
 
-This project uses the `DSHConsole` component included as a Git submodule, which is licensed under the Apache License 2.0.
+This project includes external components with their own licenses:
 
-- DSHConsole repository: https://github.com/Shieldowskyy/DSHConsole
-- License: Apache License 2.0
+#### ✅ [RuntimeArchiver](https://github.com/gtreshchev/RuntimeArchiver)  
+#### ✅ [RuntimeFilesDownloader](https://github.com/gtreshchev/RuntimeFilesDownloader)  
+#### ✅ [RuntimeAudioImporter](https://github.com/gtreshchev/RuntimeAudioImporter)
 
-The rest of this project is licensed under the Affero General Public License version 3 (AGPLv3).
+All three are licensed under the **MIT License**.  
+Copyright (c) 2024 Georgy Treshchev  
+Full license texts are available in their respective repositories.
+
+#### ✅ [DSHConsole](https://github.com/Shieldowskyy/DSHConsole)
+
+Included as a Git submodule.  
+Licensed under the **Apache License 2.0**.  
+Repository: https://github.com/Shieldowskyy/DSHConsole
+
+#### ✅ [UMU Launcher](https://github.com/Open-Wine-Components/umu-launcher)
+
+Licensed under the **GNU General Public License v3.0 (GPLv3)**.  
+Repository: https://github.com/Open-Wine-Components/umu-launcher
+
+#### ✅ [Sentry Unreal](https://github.com/getsentry/sentry-unreal)
+
+Licensed under the **MIT License**.  
+Repository: https://github.com/getsentry/sentry-unreal
+
+---
+
+### 📄 License
+
+The rest of this project is licensed under the **GNU Affero General Public License v3.0 (AGPLv3)**.
