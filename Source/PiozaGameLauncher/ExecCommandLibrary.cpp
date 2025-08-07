@@ -248,11 +248,11 @@ bool UExecCommandLibrary::TerminateProcessByName(const FString& NameFragment)
 
             if (ProcessName.Contains(NameFragment))
             {
-                HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, Entry.th32ProcessID);
+                HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, false, Entry.th32ProcessID);
                 if (hProcess)
                 {
                     UE_LOG(LogTemp, Warning, TEXT("Terminating process: %s (PID: %d)"), *ProcessName, Entry.th32ProcessID);
-                    TerminateProcess(hProcess, 1);
+                    ::TerminateProcess(hProcess, 1);
                     CloseHandle(hProcess);
                     bAnyTerminated = true;
                 }
@@ -321,11 +321,11 @@ bool UExecCommandLibrary::TerminateProcessesByPathFragment(const FString& PathFr
             {
                 if (ProcPath.Contains(PathFragment))
                 {
-                    HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, Entry.th32ProcessID);
+                    HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, false, Entry.th32ProcessID);
                     if (hProcess)
                     {
                         UE_LOG(LogTemp, Warning, TEXT("Terminating process: %s (PID: %d)"), *ProcPath, Entry.th32ProcessID);
-                        TerminateProcess(hProcess, 1);
+                        ::TerminateProcess(hProcess, 1);
                         CloseHandle(hProcess);
                         bAnyTerminated = true;
                     }
@@ -385,7 +385,7 @@ bool UExecCommandLibrary::GetProcessExecutablePath(uint32 PID, FString& OutPath)
 {
     OutPath.Empty();
 
-    HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_READ, FALSE, PID);
+    HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_READ, false, PID);
     if (!hProcess)
         return false;
 
