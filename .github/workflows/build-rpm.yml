@@ -22,7 +22,7 @@ jobs:
 
     steps:
     - name: Install required packages
-      run: sudo apt-get update && sudo apt-get install -y rpm unzip python3 zenity tar vulkan-utils
+      run: sudo apt-get update && sudo apt-get install -y rpm unzip python3 zenity tar
 
     - name: Download ZIP archive
       run: |
