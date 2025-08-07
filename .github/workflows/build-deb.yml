@@ -49,6 +49,12 @@ jobs:
       run: |
         cp -r Build/Linux/debian/* deb_build/DEBIAN/
 
+    - name: Normalize version (remove leading v)
+      run: |
+        VERSION="${{ github.event.inputs.version }}"
+        VERSION="${VERSION#v}"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
     - name: Replace @VERSION@ in control.in
       run: |
         sed "s/@VERSION@/${{ env.VERSION }}/g" deb_build/DEBIAN/control.in > deb_build/DEBIAN/control
