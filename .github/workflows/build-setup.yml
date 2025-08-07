@@ -26,11 +26,11 @@ jobs:
       - name: Download Build ZIP
         run: curl -L "${{ github.event.inputs.zip_url }}" -o build.zip
 
-      # Extract ZIP to a temporary folder
-      - name: Extract Build ZIP
+      # Extract ZIP using 7z (supports LZMA and all other methods)
+      - name: Extract Build ZIP with 7z
         run: |
           mkdir build_temp
-          tar -xf build.zip -C build_temp
+          7z x build.zip -obuild_temp
 
       # Compile the Inno Setup script
       - name: Compile Inno Setup Installer
