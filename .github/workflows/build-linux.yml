@@ -1,0 +1,26 @@
+name: Build Linux Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v0.7.2)'
+        required: true
+        default: 'v0.7.2'
+      zip_url:
+        description: 'URL to ZIP archive containing Linux folder'
+        required: true
+        default: 'https://example.com/PiozaLauncher-linux.zip'
+
+jobs:
+  build_rpm:
+    uses: ./.github/workflows/build-rpm.yml
+    with:
+      version: ${{ github.event.inputs.version }}
+      zip_url: ${{ github.event.inputs.zip_url }}
+
+  build_deb:
+    uses: ./.github/workflows/build-deb.yml
+    with:
+      version: ${{ github.event.inputs.version }}
+      zip_url: ${{ github.event.inputs.zip_url }}
