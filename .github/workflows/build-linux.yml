@@ -11,6 +11,11 @@ on:
         description: 'URL to ZIP archive containing Linux folder'
         required: true
         default: 'https://example.com/PiozaLauncher-linux.zip'
+      upload_to_latest_release:
+        description: 'Upload built packages to the latest GitHub release'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build_rpm:
@@ -30,3 +35,29 @@ jobs:
     with:
       version: ${{ github.event.inputs.version }}
       zip_url: ${{ github.event.inputs.zip_url }}
+
+  upload_to_release:
+    name: Upload Packages to GitHub Release
+    needs: [build_rpm, build_deb, build_tar]
+    if: ${{ github.event.inputs.upload_to_latest_release == 'true' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Display downloaded files
+        run: ls -R dist
+
+      - name: Upload assets to latest release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          files: |
+            dist/**/*.deb
+            dist/**/*.rpm
+            dist/**/*.tar.*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
