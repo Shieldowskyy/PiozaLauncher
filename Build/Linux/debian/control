@@ -7,5 +7,6 @@ Standards-Version: 4.5.0
 Homepage: https://github.com/Shieldowskyy/PiozaLauncher
 Package: pioza-launcher
 Architecture: amd64
+Version: @VERSION@
 Depends: zenity, python3, tar, libnotify-bin, curl
 Description: An open source game launcher for Dasho Games titles and more!

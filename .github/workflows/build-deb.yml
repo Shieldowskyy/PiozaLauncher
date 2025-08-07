@@ -38,24 +38,29 @@ jobs:
     - name: Prepare DEB build tree
       run: |
         rm -rf deb_build
-        mkdir -p deb_build
+        mkdir -p deb_build/opt/pioza-launcher
+        mkdir -p deb_build/DEBIAN
 
     - name: Copy Linux files into deb_build/opt/pioza-launcher
       run: |
-        mkdir -p deb_build/opt/pioza-launcher
         cp -r source_unpacked/Linux/* deb_build/opt/pioza-launcher/
 
-    - name: Copy Debian control files
+    - name: Copy Debian control folder
       run: |
-        cp -r Build/Linux/debian deb_build/DEBIAN
+        cp -r Build/Linux/debian/* deb_build/DEBIAN/
+
+    - name: Replace @VERSION@ in control.in
+      run: |
+        sed "s/@VERSION@/${{ env.VERSION }}/g" deb_build/DEBIAN/control.in > deb_build/DEBIAN/control
+        rm deb_build/DEBIAN/control.in
 
     - name: Build .deb package
       run: |
         dpkg-deb --build deb_build
-        mv deb_build.deb "${NAME}_${VERSION}_amd64.deb"
+        mv deb_build.deb "${{ env.NAME }}_${{ env.VERSION }}_amd64.deb"
 
     - name: Upload DEB artifact
       uses: actions/upload-artifact@v4
       with:
         name: pioza-launcher-deb
-        path: "${NAME}_${VERSION}_amd64.deb"
+        path: "${{ env.NAME }}_${{ env.VERSION }}_amd64.deb"
