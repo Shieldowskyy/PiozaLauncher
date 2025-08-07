@@ -44,7 +44,7 @@ jobs:
 
   upload_to_release:
     name: Upload Packages to GitHub Release
-    needs: [build_rpm, build_deb, build_tar]
+    needs: [build_rpm, build_deb, build_tar, build_appimage]
     if: ${{ github.event.inputs.upload_to_latest_release == 'true' }}
     runs-on: ubuntu-latest
 
