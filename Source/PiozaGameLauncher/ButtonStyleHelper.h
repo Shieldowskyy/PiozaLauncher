@@ -6,27 +6,31 @@
 #include "ButtonStyleHelper.generated.h"
 
 /**
- * Klasa pomocnicza do modyfikacji stylów przycisków.
+ * Helper class for modifying button styles.
  */
 UCLASS()
 class PIOZAGAMELAUNCHER_API UButtonStyleHelper : public UObject
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
 
-	/** 
-	 * Ustawia ten sam kolor tła dla wszystkich stanów przycisku.
-	 * @param ButtonStyle - Styl, który ma być zmodyfikowany.
-	 * @param BackgroundColor - Kolor tła do ustawienia.
-	 * @return Zmodyfikowany styl przycisku.
-	 */
-	UFUNCTION(BlueprintCallable, Category = "UI")
-	static FButtonStyle SetButtonBackgroundColorWithAlpha(
-		const FButtonStyle& ButtonStyle,
-		const FLinearColor& BackgroundColor,
-		float NormalAlpha = 1.0f,
-		float HoveredAlpha = 0.8f,
-		float PressedAlpha = 0.6f,
-		float DisabledAlpha = 0.4f);
+    /**
+     * Sets the same background color for all button states.
+     * @param ButtonStyle - The button style to modify.
+     * @param BackgroundColor - The background color to apply.
+     * @param NormalAlpha - Alpha for the normal state (default 1.0).
+     * @param HoveredAlpha - Alpha for the hovered state (default 0.8).
+     * @param PressedAlpha - Alpha for the pressed state (default 0.6).
+     * @param DisabledAlpha - Alpha for the disabled state (default 0.4).
+     * @return The modified button style.
+     */
+    UFUNCTION(BlueprintCallable, Category = "UI")
+    static FButtonStyle SetButtonBackgroundColorWithAlpha(
+        const FButtonStyle& ButtonStyle,
+        const FLinearColor& BackgroundColor,
+        float NormalAlpha = 1.0f,
+        float HoveredAlpha = 0.8f,
+        float PressedAlpha = 0.6f,
+        float DisabledAlpha = 0.4f);
 };
