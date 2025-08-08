@@ -14,9 +14,9 @@
 
 void UNotificationFunctionLibrary::SendSystemNotification(const FString& Title, const FString& Message, const FString& AppName)
 {
-    // Na systemie Windows, użyjemy Windows API do powiadomienia
+    // On Windows, we use Windows API for notification
 #if PLATFORM_WINDOWS
-    // Tworzenie powiadomienia systemowego
+    // Creating a system notification
     NOTIFYICONDATA nid = { sizeof(nid) };
     nid.uFlags = NIF_INFO;
     nid.dwInfoFlags = NIIF_INFO;
@@ -26,15 +26,15 @@ void UNotificationFunctionLibrary::SendSystemNotification(const FString& Title, 
     nid.uID = 1;
     Shell_NotifyIcon(NIM_ADD, &nid);
 
-    // Ustawienie ikony
+    // Setting the icon
     nid.uFlags = NIF_ICON;
     nid.hIcon = LoadIcon(NULL, IDI_INFORMATION);
     Shell_NotifyIcon(NIM_MODIFY, &nid);
 #endif
 
-    // Na systemie Linux użyjemy gdbus do wysyłania powiadomienia
+    // On Linux we use notify-send utility to send a notification
 #if PLATFORM_LINUX
-    // Sprawdź, czy użytkownik podał nazwę aplikacji
+    // Check if the user provided an application name
     FString Command;
     if (AppName.IsEmpty())
     {
@@ -45,16 +45,16 @@ void UNotificationFunctionLibrary::SendSystemNotification(const FString& Title, 
         Command = FString::Printf(TEXT("notify-send --app-name='%s' '%s' '%s'"), *AppName, *Title, *Message);
     }
 
-    // Debugowanie: Zapisz komendę do logów
+    // Debug: Save the command to logs
     UE_LOG(LogTemp, Log, TEXT("Linux command: %s"), *Command);
 
-    // Debugowanie: Wypisz komendę do konsoli
+    // Debug: Print the command to the console
     std::cout << "Linux Command: " << TCHAR_TO_ANSI(*Command) << std::endl;
 
-    // Uruchomienie komendy notify-send
+    // Run the notify-send command
     int32 Result = system(TCHAR_TO_ANSI(*Command));
 
-    // Debugowanie: Sprawdzanie wyniku wykonania komendy
+    // Debug: Check the result of the command execution
     if (Result != 0)
     {
         UE_LOG(LogTemp, Error, TEXT("notify-send command failed with error code: %d"), Result);
