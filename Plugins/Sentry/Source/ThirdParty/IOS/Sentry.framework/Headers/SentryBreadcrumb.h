@@ -1,12 +1,12 @@
 #import <Foundation/Foundation.h>
-
 #if __has_include(<Sentry/Sentry.h>)
 #    import <Sentry/SentryDefines.h>
-#    import <Sentry/SentrySerializable.h>
-#else
+#elif __has_include(<SentryWithoutUIKit/Sentry.h>)
 #    import <SentryWithoutUIKit/SentryDefines.h>
-#    import <SentryWithoutUIKit/SentrySerializable.h>
+#else
+#    import <SentryDefines.h>
 #endif
+#import SENTRY_HEADER(SentrySerializable)
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -38,6 +38,12 @@ NS_SWIFT_NAME(Breadcrumb)
  * Message for the breadcrumb
  */
 @property (nonatomic, copy, nullable) NSString *message;
+
+/**
+ * Origin of the breadcrumb that is used to identify source of the breadcrumb
+ * For example hybrid SDKs can identify native breadcrumbs from JS or Flutter
+ */
+@property (nonatomic, copy, nullable) NSString *origin;
 
 /**
  * Arbitrary additional data that will be sent with the breadcrumb

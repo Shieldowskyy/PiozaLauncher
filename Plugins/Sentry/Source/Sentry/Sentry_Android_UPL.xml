@@ -7,14 +7,12 @@
         <setBoolFromProperty result="bIncludeSources" ini="Engine" section="/Script/Sentry.SentrySettings" property="IncludeSources" default="false" />
         <setBoolFromProperty result="bUseLegacyGradlePlugin" ini="Engine" section="/Script/Sentry.SentrySettings" property="UseLegacyGradlePlugin" default="false" />
 
-        <setStringFromProperty result="enabledBuildPlatforms" ini="Engine" section="/Script/Sentry.SentrySettings" property="EnableBuildPlatforms" default=""/>
         <setStringFromProperty result="enabledBuildConfigurations" ini="Engine" section="/Script/Sentry.SentrySettings" property="EnableBuildConfigurations" default=""/>
         <setStringFromProperty result="enabledBuildTargetTypes" ini="Engine" section="/Script/Sentry.SentrySettings" property="EnableBuildTargets" default=""/>
-        
-        <setBoolContains result="bCurrentPlatformDisabled" source="$S(enabledBuildPlatforms)" find="bEnableAndroid=False"/>
+
         <setBoolContains result="bCurrentConfigurationDisabled" source="$S(enabledBuildConfigurations)" find="bEnable$S(Configuration)=False"/>
 
-        <setBoolOr result="bSkipUpload" arg1="$B(bCurrentPlatformDisabled)" arg2="$B(bCurrentConfigurationDisabled)"/>
+        <setBool result="bSkipUpload" value="$B(bCurrentConfigurationDisabled)"/>
 
         <if condition="bSkipUpload">
             <true>
@@ -46,6 +44,7 @@
         <copyFile src="$S(PluginDir)/../ThirdParty/Android/sentry.jar" dst="$S(BuildDir)/gradle/app/libs/sentry.jar" />
         <copyFile src="$S(PluginDir)/../ThirdParty/Android/sentry-android-core-release.aar" dst="$S(BuildDir)/gradle/app/libs/sentry-android-core-release.aar" />
         <copyFile src="$S(PluginDir)/../ThirdParty/Android/sentry-android-ndk-release.aar" dst="$S(BuildDir)/gradle/app/libs/sentry-android-ndk-release.aar" />
+        <copyFile src="$S(PluginDir)/../ThirdParty/Android/sentry-native-ndk-release.aar" dst="$S(BuildDir)/gradle/app/libs/sentry-native-ndk-release.aar" />
         <if condition="bUploadSymbols">
             <true>
                 <copyFile src="$S(ProjectDir)/sentry.properties" dst="$S(BuildDir)/gradle/sentry.properties" />
@@ -176,7 +175,7 @@
                         <insert>
                             dependencies {
                                 classpath 'com.android.tools.build:gradle:3.5.4'
-                                classpath 'io.sentry:sentry-android-gradle-plugin:2.1.5'
+                                classpath 'io.sentry:sentry-android-gradle-plugin:2.1.5' // legacy
                             }
                         </insert>
                     </true>
@@ -186,7 +185,7 @@
                         <insert>
                             dependencies {
                                 classpath 'com.android.tools.build:gradle:7.4.2'
-                                classpath 'io.sentry:sentry-android-gradle-plugin:4.11.0'
+                                classpath 'io.sentry:sentry-android-gradle-plugin:5.8.0' // current
                             }
                         </insert>
                     </false>

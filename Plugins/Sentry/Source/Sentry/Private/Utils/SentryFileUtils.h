@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Sentry. All Rights Reserved.
+// Copyright (c) 2025 Sentry. All Rights Reserved.
 
 #pragma once
 
@@ -7,6 +7,7 @@
 class SentryFileUtils
 {
 public:
+	static FString GetGameLogName();
 	static FString GetGameLogPath();
 	static FString GetGameLogBackupPath();
 	static FString GetGpuDumpPath();
