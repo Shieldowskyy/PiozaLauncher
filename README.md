@@ -45,8 +45,11 @@ The launcher supports both **native Linux games** and **Windows games via Wine**
 
 The Linux version of Pioza Launcher requires a few system dependencies:
 
+- `vulkan` - required to run launcher gui
 - `zenity` – used for file picker dialogs  
-- `wine` – required to run Windows games
+- `libnotify` - used for sending system notifications
+- `python3` - used for running umu-launcher script
+- `tar` - used for unpacking game backup archives
 
 Install these using your distribution’s package manager.
 
