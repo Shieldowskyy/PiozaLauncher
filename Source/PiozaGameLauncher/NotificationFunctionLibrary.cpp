@@ -1,6 +1,5 @@
 #include "NotificationFunctionLibrary.h"
 #include "Misc/Paths.h"
-#include "Misc/OutputDeviceNull.h"
 
 #if PLATFORM_WINDOWS
 #include <Windows.h>
@@ -9,7 +8,6 @@
 #if PLATFORM_LINUX
 #include <stdlib.h>
 #include <iostream>
-#include <fstream>
 #endif
 
 void UNotificationFunctionLibrary::SendSystemNotification(const FString& Title, const FString& Message, const FString& AppName)

@@ -1,10 +1,11 @@
-// Copyright (c) 2022 Sentry. All Rights Reserved.
+// Copyright (c) 2025 Sentry. All Rights Reserved.
 
 #pragma once
 
 #include "Kismet/BlueprintFunctionLibrary.h"
 
 #include "SentryDataTypes.h"
+#include "SentryVariant.h"
 
 #include "SentryLibrary.generated.h"
 
@@ -13,7 +14,6 @@ class USentryEvent;
 class USentryBreadcrumb;
 class USentryUser;
 class USentryUserFeedback;
-class USentryId;
 class USentryAttachment;
 
 /**
@@ -31,8 +31,7 @@ public:
 	 * @param Message Message to sent.
 	 * @param Level Level of the event.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Sentry",
-		Meta = (DeprecatedFunction, DeprecationMessage="Function has been deprecated. Use SentryEvent CreateEventWithMessageAndLevel instead"))
+	UFUNCTION(BlueprintCallable, Category = "Sentry")
 	static USentryEvent* CreateSentryEvent(const FString& Message, ESentryLevel Level);
 
 	/**
@@ -57,7 +56,7 @@ public:
 	 * @param Comments Comments of the user about what happened.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Sentry")
-	static USentryUserFeedback* CreateSentryUserFeedback(USentryId* EventId, const FString& Name, const FString& Email, const FString& Comments);
+	static USentryUserFeedback* CreateSentryUserFeedback(const FString& EventId, const FString& Name, const FString& Email, const FString& Comments);
 
 	/**
 	 * Creates breadcrumb.
@@ -70,7 +69,7 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Sentry", Meta = (AutoCreateRefTerm = "Data"))
 	static USentryBreadcrumb* CreateSentryBreadcrumb(const FString& Message, const FString& Type, const FString& Category,
-		const TMap<FString, FString>& Data, ESentryLevel Level = ESentryLevel::Info);
+		const TMap<FString, FSentryVariant>& Data, ESentryLevel Level = ESentryLevel::Info);
 
 	/**
 	 * Creates attachment with bytes and a filename.
@@ -102,23 +101,4 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Sentry")
 	static USentryTransactionContext* CreateSentryTransactionContext(const FString& Name, const FString& Operation);
-
-	/** Converts string to byte array. */
-	UFUNCTION(BlueprintCallable, Category = "Sentry")
-	static TArray<uint8> StringToBytesArray(const FString& InString);
-
-	/** Converts byte array to string. */
-	UFUNCTION(BlueprintCallable, Category = "Sentry")
-	static FString ByteArrayToString(const TArray<uint8>& Array);
-
-	/**
-	 * Saves string to a file.
-	 *
-	 * @param InString Content of a file.
-	 * @param Filename Name of a file to be saved.
-	 *
-	 * @return Absolute path to a file with specified name and content.
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Sentry")
-	static FString SaveStringToFile(const FString& InString, const FString& Filename);
 };

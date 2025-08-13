@@ -1,23 +1,25 @@
-// Copyright (c) 2022 Sentry. All Rights Reserved.
+// Copyright (c) 2025 Sentry. All Rights Reserved.
 
 #include "SentryLibrary.h"
-#include "SentryEvent.h"
+#include "SentryAttachment.h"
 #include "SentryBreadcrumb.h"
+#include "SentryEvent.h"
+#include "SentryTransactionContext.h"
 #include "SentryUser.h"
 #include "SentryUserFeedback.h"
-#include "SentryId.h"
-#include "SentryAttachment.h"
-#include "SentryTransactionContext.h"
 
-#include "HAL/FileManager.h"
-#include "Misc/FileHelper.h"
-#include "Misc/Paths.h"
+#include "HAL/PlatformSentryAttachment.h"
+#include "HAL/PlatformSentryBreadcrumb.h"
+#include "HAL/PlatformSentryEvent.h"
+#include "HAL/PlatformSentryTransactionContext.h"
+#include "HAL/PlatformSentryUser.h"
+#include "HAL/PlatformSentryUserFeedback.h"
 
 USentryEvent* USentryLibrary::CreateSentryEvent(const FString& Message, ESentryLevel Level)
 {
-	USentryEvent* Event = NewObject<USentryEvent>();
+	USentryEvent* Event = USentryEvent::Create(CreateSharedSentryEvent());
 
-	if(!Message.IsEmpty())
+	if (!Message.IsEmpty())
 		Event->SetMessage(Message);
 
 	Event->SetLevel(Level);
@@ -27,43 +29,41 @@ USentryEvent* USentryLibrary::CreateSentryEvent(const FString& Message, ESentryL
 
 USentryUser* USentryLibrary::CreateSentryUser(const FString& Email, const FString& Id, const FString& Username, const FString& IpAddress, const TMap<FString, FString>& Data)
 {
-	USentryUser* User = NewObject<USentryUser>();
+	USentryUser* User = USentryUser::Create(MakeShareable(new FPlatformSentryUser));
 
-	if(!Email.IsEmpty())
+	if (!Email.IsEmpty())
 		User->SetEmail(Email);
-	if(!Id.IsEmpty())
+	if (!Id.IsEmpty())
 		User->SetId(Id);
-	if(!Username.IsEmpty())
+	if (!Username.IsEmpty())
 		User->SetUsername(Username);
-	if(!IpAddress.IsEmpty())
+	if (!IpAddress.IsEmpty())
 		User->SetIpAddress(IpAddress);
 
-	if(Data.Num() > 0)
+	if (Data.Num() > 0)
 		User->SetData(Data);
 
 	return User;
 }
 
-USentryUserFeedback* USentryLibrary::CreateSentryUserFeedback(USentryId* EventId, const FString& Name, const FString& Email, const FString& Comments)
+USentryUserFeedback* USentryLibrary::CreateSentryUserFeedback(const FString& EventId, const FString& Name, const FString& Email, const FString& Comments)
 {
-	USentryUserFeedback* UserFeedback = NewObject<USentryUserFeedback>();
+	USentryUserFeedback* UserFeedback = USentryUserFeedback::Create(CreateSharedSentryUserFeedback(EventId));
 
-	UserFeedback->Initialize(EventId);
-
-	if(!Name.IsEmpty())
+	if (!Name.IsEmpty())
 		UserFeedback->SetName(Name);
-	if(!Email.IsEmpty())
+	if (!Email.IsEmpty())
 		UserFeedback->SetEmail(Email);
-	if(!Comments.IsEmpty())
+	if (!Comments.IsEmpty())
 		UserFeedback->SetComment(Comments);
 
 	return UserFeedback;
 }
 
 USentryBreadcrumb* USentryLibrary::CreateSentryBreadcrumb(const FString& Message, const FString& Type, const FString& Category,
-	const TMap<FString, FString>& Data, ESentryLevel Level)
+	const TMap<FString, FSentryVariant>& Data, ESentryLevel Level)
 {
-	USentryBreadcrumb* Breadcrumb = NewObject<USentryBreadcrumb>();
+	USentryBreadcrumb* Breadcrumb = USentryBreadcrumb::Create(CreateSharedSentryBreadcrumb());
 
 	Breadcrumb->SetMessage(Message);
 	Breadcrumb->SetCategory(Category);
@@ -76,55 +76,15 @@ USentryBreadcrumb* USentryLibrary::CreateSentryBreadcrumb(const FString& Message
 
 USentryAttachment* USentryLibrary::CreateSentryAttachmentWithData(const TArray<uint8>& Data, const FString& Filename, const FString& ContentType)
 {
-	USentryAttachment* Attachment = NewObject<USentryAttachment>();
-	Attachment->InitializeWithData(Data, Filename, ContentType);
-	return Attachment;
+	return USentryAttachment::Create(CreateSharedSentryAttachment(Data, Filename, ContentType));
 }
 
 USentryAttachment* USentryLibrary::CreateSentryAttachmentWithPath(const FString& Path, const FString& Filename, const FString& ContentType)
 {
-	USentryAttachment* Attachment = NewObject<USentryAttachment>();
-	Attachment->InitializeWithPath(Path, Filename, ContentType);
-	return Attachment;
+	return USentryAttachment::Create(CreateSharedSentryAttachment(Path, Filename, ContentType));
 }
 
 USentryTransactionContext* USentryLibrary::CreateSentryTransactionContext(const FString& Name, const FString& Operation)
 {
-	USentryTransactionContext* TransactionContext = NewObject<USentryTransactionContext>();
-	TransactionContext->Initialize(Name, Operation);
-	return TransactionContext;
-}
-
-TArray<uint8> USentryLibrary::StringToBytesArray(const FString& InString)
-{
-	TArray<uint8> byteArray;
-	byteArray.AddUninitialized(InString.Len());
-
-	uint8* byteArrayPtr = byteArray.GetData();
-
-	int32 NumBytes = 0;
-	const TCHAR* CharPos = *InString;
-
-	while( *CharPos && NumBytes < TNumericLimits<int16>::Max())
-	{
-		byteArrayPtr[ NumBytes ] = (int8)(*CharPos);
-		CharPos++;
-		++NumBytes;
-	}
-
-	return byteArray;
-}
-
-FString USentryLibrary::ByteArrayToString(const TArray<uint8>& Array)
-{
-	return BytesToString(Array.GetData(), Array.Num());
-}
-
-FString USentryLibrary::SaveStringToFile(const FString& InString, const FString& Filename)
-{
-	FString filePath = FPaths::Combine(FPaths::ProjectPersistentDownloadDir(), Filename);
-
-	FFileHelper::SaveStringToFile(InString, *filePath);
-
-	return IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*filePath);
+	return USentryTransactionContext::Create(CreateSharedSentryTransactionContext(Name, Operation));
 }

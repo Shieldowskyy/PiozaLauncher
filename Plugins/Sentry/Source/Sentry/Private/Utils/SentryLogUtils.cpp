@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2024 Sentry. All Rights Reserved.
+// Copyright (c) 2025 Sentry. All Rights Reserved.
 
 #include "SentryLogUtils.h"
 
@@ -24,4 +24,25 @@ void SentryLogUtils::LogStackTrace(const TCHAR* Heading, const ELogVerbosity::Ty
 
 	FMemory::SystemFree(StackTrace);
 #endif
+}
+
+ESentryLevel SentryLogUtils::ConvertLogVerbosityToSentryLevel(const ELogVerbosity::Type LogVerbosity)
+{
+	switch (LogVerbosity)
+	{
+	case ELogVerbosity::Fatal:
+		return ESentryLevel::Fatal;
+	case ELogVerbosity::Error:
+		return ESentryLevel::Error;
+	case ELogVerbosity::Warning:
+		return ESentryLevel::Warning;
+	case ELogVerbosity::Display:
+	case ELogVerbosity::Log:
+		return ESentryLevel::Info;
+	case ELogVerbosity::Verbose:
+	case ELogVerbosity::VeryVerbose:
+		return ESentryLevel::Debug;
+	default:
+		return ESentryLevel::Debug;
+	}
 }
