@@ -32,7 +32,7 @@ You can find the installer and zipped build in the [Releases](https://github.com
 **Note:** The zipped build is **not portable** — it will save its configuration in the `LocalAppData` directory.
 
 - **Windows:** Available both as an installer (`.exe`) and a zipped build.
-- **Linux:** Available only as an AppImage file.
+- **Linux:** Available as .rpm and AppImage.
 
 ## Linux
 
