@@ -5,6 +5,46 @@ APP_NAME="PiozaLauncher"
 APP_DIR="$HOME/.pioza-launcher"
 ICON_URL="https://github.com/Shieldowskyy/PiozaLauncher/raw/main/pioza.ico"
 GITHUB_API="https://api.github.com/repos/Shieldowskyy/PiozaLauncher/releases/latest"
+DESKTOP_FILE="$HOME/.local/share/applications/pioza-launcher.desktop"
+ICON_FILE="$APP_DIR/pioza.png"
+
+show_help() {
+    cat <<EOF
+$APP_NAME installer script
+
+Usage:
+  $(basename "$0")            Install or update $APP_NAME
+  $(basename "$0") --uninstall  Remove $APP_NAME completely
+  $(basename "$0") --help       Show this help message
+EOF
+}
+
+uninstall() {
+    echo "Uninstalling $APP_NAME..."
+    rm -f "$DESKTOP_FILE"
+    rm -rf "$APP_DIR"
+    echo "Uninstallation complete."
+    exit 0
+}
+
+# --------------------------
+# Argument handling
+# --------------------------
+case "$1" in
+    --help|-h)
+        show_help
+        exit 0
+        ;;
+    --uninstall)
+        uninstall
+        ;;
+    "" ) ;; # no arguments -> continue install
+    * )
+        echo "Unknown argument: $1"
+        show_help
+        exit 1
+        ;;
+esac
 
 echo "Checking latest release of $APP_NAME..."
 
@@ -37,7 +77,6 @@ fi
 # --------------------------
 # Download icon and convert to PNG
 # --------------------------
-ICON_FILE="$APP_DIR/pioza.png"
 if [ ! -f "$ICON_FILE" ]; then
     echo "Downloading icon..."
     curl -L "$ICON_URL" -o "$APP_DIR/pioza.ico"
@@ -74,7 +113,6 @@ fi
 # --------------------------
 # Create local desktop shortcut
 # --------------------------
-DESKTOP_FILE="$HOME/.local/share/applications/pioza-launcher.desktop"
 mkdir -p "$(dirname "$DESKTOP_FILE")"
 cat > "$DESKTOP_FILE" <<EOL
 [Desktop Entry]
@@ -90,4 +128,4 @@ echo "Installation complete."
 echo "Run the app with:"
 echo "$APP_DIR/$LATEST_FILE"
 echo ""
-echo "Or find it in your applications menu if your desktop environment supports ~/.local/share/applications."
+echo "Or find it in your applications menu."
