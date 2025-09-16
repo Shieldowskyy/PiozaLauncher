@@ -41,6 +41,21 @@ You can find the installer and zipped build in the [Releases](https://github.com
 Linux support was introduced in **v0.6.8** and has been considered stable since **v0.7.1**.  
 The launcher supports both **native Linux games** and **Windows games via Wine**.
 
+### 🖥️ Installation
+
+To install the latest version of Pioza Launcher on Linux, run this command:
+
+```bash
+curl -sSL dsh.yt/pioza.sh | bash
+````
+
+To uninstall it later, run:
+
+```bash
+curl -sSL dsh.yt/pioza.sh -o /tmp/pioza.sh
+bash /tmp/pioza.sh --uninstall
+```
+
 ### Dependencies
 
 The Linux version of Pioza Launcher requires a few system dependencies:
