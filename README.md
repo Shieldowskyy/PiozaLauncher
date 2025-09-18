@@ -31,9 +31,26 @@
 You can find the installer and zipped build in the [Releases](https://github.com/Shieldowskyy/PiozaGameLauncher/releases) tab.  
 **Note:** The zipped build is **not portable** — it will save its configuration in the `LocalAppData` directory.
 
-- **Windows:** Available both as an installer (`.exe`) and a zipped build.
-- **Linux:** Available as .rpm and AppImage.
+- **Windows:** Available both as an installer (`.exe`) and a zipped build. Winget install script is also available [below](https://github.com/Shieldowskyy/PiozaLauncher/README.md#%EF%B8%8F-installation).
+- **Linux:** Available as .rpm and AppImage. Install script is also available [below](https://github.com/Shieldowskyy/PiozaLauncher/README.md#%EF%B8%8F-installation).
 
+
+## Windows
+### Support
+
+Windows version supports all features and **does not require proton and dependencies** (which are shipped with release)
+
+### 🖥️ Installation
+
+
+#### Winget
+Run this command in ``cmd`` or ``powershell`` (this may require admin privileges):
+
+```bash
+curl -o pioza-launcher.yml https://raw.githubusercontent.com/Shieldowskyy/PiozaLauncher/main/pioza-launcher.yml
+winget settings --enable LocalManifestFiles
+winget install -m pioza-launcher.yml -h
+```
 ## Linux
 
 ### Support
