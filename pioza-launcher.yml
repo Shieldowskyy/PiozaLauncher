@@ -1,0 +1,25 @@
+# PiozaLauncher WinGet Manifest
+PackageIdentifier: DashoGames.PiozaLauncher
+PackageVersion: 0.7.2
+PackageLocale: en-US
+PackageName: Pioza Launcher
+PackageUrl: https://github.com/Shieldowskyy/PiozaLauncher
+Publisher: DashoGames
+Author: Shieldziak (for DashoGames)
+Description: An open-source game launcher for Dasho Games titles and more. Built in Unreal Engine 5 using blueprints.
+ShortDescription: Open-source game launcher for Dasho Games
+License: AGPL-3.0
+Homepage: https://github.com/Shieldowskyy/PiozaLauncher
+Moniker: pioza-launcher
+Installers:
+- Architecture: x64
+  InstallerType: inno
+  InstallerUrl: https://github.com/Shieldowskyy/PiozaLauncher/releases/download/v.0.7.2/PiozaGL-0.7.2.exe
+  InstallerSha256: 69f96115d1b2386b9d41de43601f0fa1924b540990d571572478841fb05b1c0a
+  Scope: user
+  InstallerSwitches:
+    Silent: /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /q
+  InstallModes:
+  - silent
+ManifestType: singleton
+ManifestVersion: 1.4.0
