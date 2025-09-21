@@ -1,13 +1,48 @@
 import sys
 import json
+import re
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QTabWidget, QVBoxLayout, QHBoxLayout, QLabel, 
     QLineEdit, QTextEdit, QPushButton, QFileDialog, QComboBox, QMessageBox, 
     QListWidget, QListWidgetItem, QFormLayout, QMainWindow, QAction, QMenu,
-    QUndoStack, QUndoCommand
+    QUndoStack, QUndoCommand, QDialog, QCheckBox, QGridLayout
 )
 from PyQt5.QtCore import Qt, QSettings
 import os
+
+class ReplaceDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Replace Text")
+        self.setModal(True)
+        
+        layout = QGridLayout()
+        
+        # Search and replace fields
+        self.find_edit = QLineEdit()
+        self.replace_edit = QLineEdit()
+        layout.addWidget(QLabel("Find:"), 0, 0)
+        layout.addWidget(self.find_edit, 0, 1)
+        layout.addWidget(QLabel("Replace with:"), 1, 0)
+        layout.addWidget(self.replace_edit, 1, 1)
+        
+        # Options
+        self.case_sensitive = QCheckBox("Case sensitive")
+        self.whole_word = QCheckBox("Whole word")
+        layout.addWidget(self.case_sensitive, 2, 0)
+        layout.addWidget(self.whole_word, 2, 1)
+        
+        # Buttons
+        btn_layout = QHBoxLayout()
+        replace_btn = QPushButton("Replace All")
+        replace_btn.clicked.connect(self.accept)
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.clicked.connect(self.reject)
+        btn_layout.addWidget(replace_btn)
+        btn_layout.addWidget(cancel_btn)
+        layout.addLayout(btn_layout, 3, 0, 1, 2)
+        
+        self.setLayout(layout)
 
 class GameJsonCreator(QMainWindow):
     def __init__(self):
@@ -94,7 +129,7 @@ class GameJsonCreator(QMainWindow):
         lang_ctrl_layout.addWidget(self.add_lang_btn)
         lang_ctrl_layout.addWidget(self.remove_lang_btn)
         layout.addLayout(lang_ctrl_layout)
-        # Zakładki językowe
+        # Language tabs
         self.lang_tabs = QTabWidget()
         self.lang_fields = {}
         self.langs = ["en"]
@@ -107,20 +142,20 @@ class GameJsonCreator(QMainWindow):
         tab = QWidget()
         form = QFormLayout()
         fields['title'] = QLineEdit()
-        fields['title'].setPlaceholderText("np. PixelRunner: Oldschool Edition")
+        fields['title'].setPlaceholderText("e.g. PixelRunner: Oldschool Edition")
         fields['dev'] = QLineEdit()
-        fields['dev'].setPlaceholderText("np. DashoGames")
+        fields['dev'].setPlaceholderText("e.g. DashoGames")
         fields['desc'] = QTextEdit()
-        fields['desc'].setPlaceholderText("Opis gry w tym języku...")
+        fields['desc'].setPlaceholderText("Game description in this language...")
         fields['changelog'] = QTextEdit()
-        fields['changelog'].setPlaceholderText("Lista zmian w tym języku...")
+        fields['changelog'].setPlaceholderText("Changelog in this language...")
         fields['reqs'] = QTextEdit()
-        fields['reqs'].setPlaceholderText("Minimalne wymagania sprzętowe w tym języku...")
-        form.addRow(f"Tytuł ({lang})", fields['title'])
-        form.addRow(f"Dev ({lang})", fields['dev'])
-        form.addRow(f"Opis ({lang})", fields['desc'])
+        fields['reqs'].setPlaceholderText("Minimum system requirements in this language...")
+        form.addRow(f"Title ({lang})", fields['title'])
+        form.addRow(f"Developer ({lang})", fields['dev'])
+        form.addRow(f"Description ({lang})", fields['desc'])
         form.addRow(f"Changelog ({lang})", fields['changelog'])
-        form.addRow(f"Minimalne wymagania ({lang})", fields['reqs'])
+        form.addRow(f"Minimum requirements ({lang})", fields['reqs'])
         fields['title'].textChanged.connect(self.update_json_preview)
         fields['dev'].textChanged.connect(self.update_json_preview)
         fields['desc'].textChanged.connect(self.update_json_preview)
@@ -254,15 +289,15 @@ class GameJsonCreator(QMainWindow):
         fields = {}
         
         fields['exe'] = QLineEdit()
-        fields['exe'].setPlaceholderText(f"Nazwa pliku wykonywalnego dla {platform}")
+        fields['exe'].setPlaceholderText(f"Executable name for {platform}")
         fields['exe'].textChanged.connect(self.update_json_preview)
         
         fields['track'] = QLineEdit()
-        fields['track'].setPlaceholderText(f"Nazwa pliku do trackowania dla {platform}")
+        fields['track'].setPlaceholderText(f"Playtime Tracking Executable name for {platform}")
         fields['track'].textChanged.connect(self.update_json_preview)
         
         fields['url'] = QLineEdit()
-        fields['url'].setPlaceholderText(f"URL do gry dla {platform}")
+        fields['url'].setPlaceholderText(f"URL to game .zip for {platform}")
         fields['url'].textChanged.connect(self.update_json_preview)
         
         form.addRow("Executable", fields['exe'])
@@ -292,14 +327,14 @@ class GameJsonCreator(QMainWindow):
         plat_ctrl_layout.addWidget(self.remove_platform_btn)
         self.links_layout.addLayout(plat_ctrl_layout)
         
-        # Zakładki platform
+        # Platform tabs
         self.platform_tabs = QTabWidget()
         self.links_layout.addWidget(self.platform_tabs)
         
         # Video URL
         video_layout = QHBoxLayout()
         self.video_url = QLineEdit()
-        self.video_url.setPlaceholderText("np. https://youtube.com/embed/xyz")
+        self.video_url.setPlaceholderText("e.g. https://youtube.com/embed/xyz")
         video_layout.addWidget(QLabel("Video URL:"))
         video_layout.addWidget(self.video_url)
         self.links_layout.addLayout(video_layout)
@@ -514,51 +549,89 @@ class GameJsonCreator(QMainWindow):
             self.load_json_file(file_path)
             
     def show_replace_dialog(self):
-        # TODO: Implement replace dialog
-        QMessageBox.information(self, "Not implemented", 
-                              "Replace functionality will be implemented in a future version.")
-                              
-    def show_about_dialog(self):
-        about_text = f"""<h2>Pioza Game Manifest Creator</h2>
-<p>Version 0.1</p>
+        dialog = ReplaceDialog(self)
+        if dialog.exec_() == QDialog.Accepted:
+            find_text = dialog.find_edit.text()
+            replace_text = dialog.replace_edit.text()
+            case_sensitive = dialog.case_sensitive.isChecked()
+            whole_word = dialog.whole_word.isChecked()
+            count = self.replace_all_text(find_text, replace_text, case_sensitive, whole_word)
+            QMessageBox.information(self, "Replace Complete", 
+                                  f"Replaced {count} occurrence(s)")
 
-<p>A dedicated tool for creating and managing game manifest files for the Pioza Launcher. 
-This application simplifies the process of preparing games for distribution through the Pioza platform 
-by providing an intuitive interface for manifest file creation.</p>
-
-<p>Features:</p>
-<ul>
-    <li>Multi-language game description support</li>
-    <li>Cross-platform configuration</li>
-    <li>Real-time manifest validation</li>
-    <li>Custom metadata management</li>
-    <li>Recent files tracking</li>
-</ul>
-
-<p><b>Author:</b> Shieldziak (DashoGames)</p>
-
-<p><b>License:</b> MIT</p>
-<p>Copyright © 2025 Shieldziak</p>
-
-<p>Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:</p>
-
-<p>The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.</p>
-
-<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.</p>"""
-
-        QMessageBox.about(self, "About Pioza Game Manifest Creator", about_text)
+    def replace_all_text(self, find_text, replace_text, case_sensitive, whole_word):
+        if not find_text:
+            return 0
+            
+        count = 0
+        
+        # Helper function for text replacement
+        def replace_in_text(text):
+            nonlocal count
+            if not case_sensitive:
+                pattern = re.escape(find_text)
+                if whole_word:
+                    pattern = f"\\b{pattern}\\b"
+                matches = re.finditer(pattern, text, re.IGNORECASE)
+                positions = [(m.start(), m.end()) for m in matches]
+                # Replace from end to start to maintain positions
+                for start, end in reversed(positions):
+                    text = text[:start] + replace_text + text[end:]
+                    count += 1
+            else:
+                if whole_word:
+                    text_parts = text.split()
+                    new_parts = []
+                    for part in text_parts:
+                        if part == find_text:
+                            new_parts.append(replace_text)
+                            count += 1
+                        else:
+                            new_parts.append(part)
+                    text = " ".join(new_parts)
+                else:
+                    text = text.replace(find_text, replace_text)
+                    count += len(text.split(find_text)) - 1
+            return text
+        
+        # Replace in all text fields
+        self.name_edit.setText(replace_in_text(self.name_edit.text()))
+        self.gameid_edit.setText(replace_in_text(self.gameid_edit.text()))
+        self.video_url.setText(replace_in_text(self.video_url.text()))
+        
+        # Replace in language fields
+        for lang in self.langs:
+            fields = self.lang_fields[lang]
+            fields['title'].setText(replace_in_text(fields['title'].text()))
+            fields['dev'].setText(replace_in_text(fields['dev'].text()))
+            fields['desc'].setPlainText(replace_in_text(fields['desc'].toPlainText()))
+            fields['changelog'].setPlainText(replace_in_text(fields['changelog'].toPlainText()))
+            fields['reqs'].setPlainText(replace_in_text(fields['reqs'].toPlainText()))
+        
+        # Replace in platform fields
+        for platform in self.platform_fields:
+            fields = self.platform_fields[platform]
+            fields['exe'].setText(replace_in_text(fields['exe'].text()))
+            fields['track'].setText(replace_in_text(fields['track'].text()))
+            fields['url'].setText(replace_in_text(fields['url'].text()))
+        
+        # Replace in custom meta
+        new_meta = {}
+        for key, value in self.custom_meta.items():
+            new_key = replace_in_text(key)
+            new_value = replace_in_text(value)
+            new_meta[new_key] = new_value
+        self.custom_meta = new_meta
+        
+        # Update meta list
+        self.meta_list.clear()
+        for key, value in self.custom_meta.items():
+            self.meta_list.addItem(f"{key}: {value}")
+        
+        # Update JSON preview
+        self.update_json_preview()
+        
+        return count
 
     def save_json(self):
         data = self.collect_data()
@@ -579,17 +652,17 @@ SOFTWARE.</p>"""
             return False
 
     def validate_json(self, data):
-        # Podstawowe pola
+        # Basic fields
         required_str = ["name", "gameID"]
         for key in required_str:
             if not isinstance(data.get(key), str) or not data.get(key).strip():
-                return False, f"Pole '{key}' jest wymagane i nie może być puste."
+                return False, f"Field '{key}' is required and cannot be empty."
 
-        # Platformy
+        # Platforms
         if not data.get("supportedPlatforms") or not isinstance(data["supportedPlatforms"], list):
-            return False, "Pole 'supportedPlatforms' musi być listą i nie może być puste."
+            return False, "Field 'supportedPlatforms' must be a non-empty list."
         
-        # Pola zależne od platform
+        # Platform-dependent fields
         platforms = data["supportedPlatforms"]
         platform_fields = {
             "executableNames": "executable",
@@ -600,40 +673,76 @@ SOFTWARE.</p>"""
             field_data = data.get(field_name, {})
             for platform in platforms:
                 if platform not in field_data:
-                    return False, f"Brak pola {display_name} dla platformy {platform}"
+                    return False, f"Missing {display_name} for platform {platform}"
                 if not field_data[platform].strip():
-                    return False, f"Pole {display_name} dla platformy {platform} nie może być puste"
+                    return False, f"Field {display_name} for platform {platform} cannot be empty"
+                # URL validation for gameURLs
+                if field_name == "gameURLs" and field_data[platform].strip():
+                    if not self.is_valid_url(field_data[platform].strip()):
+                        return False, f"Field {display_name} for platform {platform} is not a valid URL"
 
-        # Pola dla każdego języka
+        # Fields for each language
         required_lang_fields = {
-            "gameTitle": "tytuł",
-            "devName": "deweloper",
-            "description": "opis"
+            "gameTitle": "title",
+            "devName": "developer",
+            "description": "description"
         }
         
         for lang_field, display_name in required_lang_fields.items():
             field_data = data.get(lang_field, {})
-            # Sprawdź czy pole istnieje dla angielskiego
+            # Check if field exists for English
             if "en" not in field_data:
-                return False, f"Brak pola {display_name} dla języka angielskiego"
-            # Sprawdź czy pole nie jest puste dla angielskiego
+                return False, f"Missing {display_name} for English language"
+            # Check if field is not empty for English
             if not field_data["en"].strip():
-                return False, f"Pole {display_name} dla języka angielskiego nie może być puste"
-            # Sprawdź inne języki jeśli istnieją
+                return False, f"Field {display_name} for English language cannot be empty"
+            # Check other languages if present
             for lang in field_data:
                 if not field_data[lang].strip():
-                    return False, f"Pole {display_name} ({lang}) nie może być puste"
+                    return False, f"Field {display_name} ({lang}) cannot be empty"
+
+        # Video URL validation
+        for url in data.get("videoURLs", []):
+            if url and not self.is_valid_url(url):
+                return False, "Video URL is not a valid URL"
 
         # Custom Meta
         if "customMeta" not in data:
-            return False, "Pole customMeta jest wymagane"
+            return False, "Field customMeta is required"
         if not isinstance(data["customMeta"], dict):
-            return False, "Custom Meta musi być słownikiem"
+            return False, "Custom Meta must be a dictionary"
 
         return True, ""
 
+    def is_valid_url(self, url):
+        # Simple URL validation (http, https, ftp)
+        regex = re.compile(
+            r'^(?:http|ftp)s?://'  # http:// or https:// or ftp://
+            r'(?:\S+(?::\S*)?@)?'  # user:pass authentication
+            r'(?:'
+            r'(?P<private_ip>'
+            r'(?:(?:10|127)\.\d{1,3}\.\d{1,3}\.\d{1,3})|'
+            r'(?:(?:169\.254|192\.168)\.\d{1,3}\.\d{1,3})|'
+            r'(?:172\.(?:1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})'
+            r')|'
+            r'(?P<public_ip>'
+            r'(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])'
+            r'(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){3}'
+            r')|'
+            r'(?P<domain>'
+            r'(?:[a-z\u00a1-\uffff0-9]-*)*'
+            r'(?:[a-z\u00a1-\uffff0-9]+)'
+            r'(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*'
+            r'(?:[a-z\u00a1-\uffff0-9]+))*'
+            r'(?:\.(?:[a-z\u00a1-\uffff]{2,}))'
+            r')'
+            r')'
+            r'(?::\d{2,5})?'  # port
+            r'(?:/\S*)?$', re.IGNORECASE)
+        return re.match(regex, url) is not None
+
     def collect_data(self):
-        # Zbiera dane z GUI do dict
+        # Collects GUI data into a struct dict
         gameTitle = {}
         devName = {}
         description = {}
@@ -681,17 +790,59 @@ SOFTWARE.</p>"""
             # Validate the data
             valid, msg = self.validate_json(data)
             if valid:
-                self.validation_label.setText("✓ JSON jest poprawny")
+                self.validation_label.setText("✓ JSON is valid")
                 self.validation_label.setStyleSheet("QLabel { color: green; }")
             else:
-                self.validation_label.setText(f"❌ Błąd walidacji: {msg}")
+                self.validation_label.setText(f"❌ Validation error: {msg}")
                 self.validation_label.setStyleSheet("QLabel { color: red; }")
                 
         except Exception as e:
-            text = f"Błąd generowania JSON: {e}"
+            text = f"JSON generation error: {e}"
             self.preview.setPlainText(text)
-            self.validation_label.setText(f"❌ Błąd składni JSON: {str(e)}")
+            self.validation_label.setText(f"❌ JSON syntax error: {str(e)}")
             self.validation_label.setStyleSheet("QLabel { color: red; }")
+
+    def show_about_dialog(self):
+        about_text = f"""<h2>Pioza Game Manifest Creator</h2>
+<p>Version 0.2</p>
+
+<p>A dedicated tool for creating and managing game manifest files for the Pioza Launcher. 
+This application simplifies the process of preparing games for distribution through the Pioza platform 
+by providing an intuitive interface for manifest file creation.</p>
+
+<p>Features:</p>
+<ul>
+    <li>Multi-language game description support</li>
+    <li>Cross-platform configuration</li>
+    <li>Real-time manifest validation</li>
+    <li>Custom metadata management</li>
+    <li>Recent files tracking</li>
+</ul>
+
+<p><b>Author:</b> Shieldziak (DashoGames)</p>
+
+<p><b>License:</b> MIT</p>
+<p>Copyright © 2025 Shieldziak</p>
+
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:</p>
+
+<p>The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.</p>
+
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</p>"""
+
+        QMessageBox.about(self, "About Pioza Game Manifest Creator", about_text)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
