@@ -56,7 +56,7 @@ winget install -m pioza-launcher.yml -h
 ### Support
 
 Linux support was introduced in **v0.6.8** and has been considered stable since **v0.7.1**.  
-The launcher supports both **native Linux games** and **Windows games via Wine**.
+The launcher supports both **native Linux games** and **Windows games via Proton**.
 
 ### 🖥️ Installation
 
