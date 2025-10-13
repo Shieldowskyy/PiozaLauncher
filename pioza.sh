@@ -51,7 +51,8 @@ check_architecture() {
             echo -e "${GREEN}✓ x86_64 architecture supported${NC}"
             ;;
         aarch64|arm64)
-            echo -e "${GREEN}✓ ARM64 architecture detected${NC}"
+            echo -e "${RED}✗ Error: ARM64 architecture not supported${NC}"
+            exit 1
             ;;
         i386|i686)
             echo -e "${RED}✗ Error: 32-bit architecture not supported${NC}"
