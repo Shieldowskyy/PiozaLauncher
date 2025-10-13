@@ -26,6 +26,7 @@
 - Adding notes in the launcher menu for specific games  
 - Support for changelogs based on HTML files
 - Actions queue
+- ARM64 platforms support
 # Download
 
 You can find the installer and zipped build in the [Releases](https://github.com/Shieldowskyy/PiozaGameLauncher/releases) tab.  
