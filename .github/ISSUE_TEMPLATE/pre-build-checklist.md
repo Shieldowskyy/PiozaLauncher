@@ -16,9 +16,6 @@ assignees: ''
 - [ ] Metadata correctly formatted
     - [ ] Videos play correctly
 - [ ] UI scales properly
-    - [ ] Different DPI settings
-    - [ ] Different resolutions
-    - [ ] Dark/Light mode if supported
 - [ ] Sound works
     - [ ] Menu, effects, videos
 - [ ] Console works
@@ -58,13 +55,12 @@ assignees: ''
 - [ ] About screen works
 
 ## 5. Performance
+- [ ] No stuttering while switching games
 - [ ] Launcher reaches minimum 60FPS on reference machine (T440s)
 - [ ] Startup time checked
 - [ ] No memory leaks during 1-hour runtime test
 
-## 6. Extras (Optional, if supported)
-- [ ] Logs are created and readable
-- [ ] Updater works correctly
+## 6. Extras
 - [ ] Localization / multiple languages work correctly
 
 ---
