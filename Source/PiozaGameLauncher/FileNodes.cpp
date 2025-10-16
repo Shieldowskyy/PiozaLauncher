@@ -128,24 +128,29 @@ bool UFileNodes::BrowseDirectory(const FString& DirectoryPath)
         return false;
     }
 
-#if PLATFORM_WINDOWS
+    #if PLATFORM_ANDROID
+    UE_LOG(LogTemp, Warning, TEXT("BrowseDirectory: Not supported on Android"));
+    return false;
+
+    #elif PLATFORM_WINDOWS
     // Use backslashes on Windows
     NormalizedPath.ReplaceInline(TEXT("/"), TEXT("\\"), ESearchCase::IgnoreCase);
 
-    // Do NOT add trailing slash or quotes
     const FString Command = TEXT("explorer.exe");
     const FString Params = NormalizedPath;
 
-#elif PLATFORM_LINUX
+    FPlatformProcess::CreateProc(*Command, *Params, true, false, false, nullptr, 0, nullptr, nullptr);
+    return true;
+
+    #elif PLATFORM_LINUX
     const FString Command = TEXT("xdg-open");
     const FString Params = FString::Printf(TEXT("\"%s\""), *NormalizedPath);
 
-#else
+    FPlatformProcess::CreateProc(*Command, *Params, true, false, false, nullptr, 0, nullptr, nullptr);
+    return true;
+
+    #else
     UE_LOG(LogTemp, Error, TEXT("BrowseDirectory: Unsupported platform"));
     return false;
-#endif
-
-    FPlatformProcess::CreateProc(*Command, *Params, /* bLaunchDetached */ true, /* bLaunchHidden */ false, /* bLaunchReallyHidden */ false, nullptr, 0, nullptr, nullptr);
-
-    return true;
+    #endif
 }

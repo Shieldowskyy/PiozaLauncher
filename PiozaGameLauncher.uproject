@@ -675,6 +675,7 @@
 	],
 	"TargetPlatforms": [
 		"Windows",
-		"Linux"
+		"Linux",
+		"Android"
 	]
 }
