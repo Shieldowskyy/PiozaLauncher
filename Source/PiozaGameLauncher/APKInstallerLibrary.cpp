@@ -5,235 +5,107 @@
 #include "Android/AndroidApplication.h"
 #endif
 
-bool UAPKInstallerLibrary::InstallAPK(const FString& APKFilePath)
+EAPKInstallError UAPKInstallerLibrary::InstallAPK(const FString& APKFilePath, FString& OutErrorMessage)
 {
-    #if PLATFORM_ANDROID
-    if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
+    OutErrorMessage = TEXT("");
+
+#if PLATFORM_ANDROID
+    JNIEnv* Env = FAndroidApplication::GetJavaEnv();
+    if (!Env)
     {
-        // Get the activity
-        jobject Activity = FAndroidApplication::GetGameActivityThis();
-        jclass ActivityClass = Env->GetObjectClass(Activity);
-
-        // Check permissions first
-        jmethodID GetPackageManager = Env->GetMethodID(ActivityClass, "getPackageManager", "()Landroid/content/pm/PackageManager;");
-        jobject PackageManager = Env->CallObjectMethod(Activity, GetPackageManager);
-
-        jclass PackageManagerClass = Env->GetObjectClass(PackageManager);
-        jmethodID CanRequestPackageInstalls = Env->GetMethodID(PackageManagerClass, "canRequestPackageInstalls", "()Z");
-
-        if (CanRequestPackageInstalls != nullptr)
-        {
-            jboolean CanInstall = Env->CallBooleanMethod(PackageManager, CanRequestPackageInstalls);
-
-            if (!CanInstall)
-            {
-                UE_LOG(LogTemp, Warning, TEXT("No permission to install APK. Use OpenInstallPermissionSettings()."));
-                Env->DeleteLocalRef(ActivityClass);
-                Env->DeleteLocalRef(PackageManager);
-                Env->DeleteLocalRef(PackageManagerClass);
-                return false;
-            }
-        }
-
-        Env->DeleteLocalRef(PackageManager);
-        Env->DeleteLocalRef(PackageManagerClass);
-
-        // Get Android SDK version
-        jclass VersionClass = Env->FindClass("android/os/Build$VERSION");
-        jfieldID SdkIntField = Env->GetStaticFieldID(VersionClass, "SDK_INT", "I");
-        jint SdkInt = Env->GetStaticIntField(VersionClass, SdkIntField);
-        Env->DeleteLocalRef(VersionClass);
-
-        UE_LOG(LogTemp, Log, TEXT("Android SDK version: %d"), SdkInt);
-
-        // Prepare file path
-        jstring JFilePath = Env->NewStringUTF(TCHAR_TO_UTF8(*APKFilePath));
-
-        // Create File object
-        jclass FileClass = Env->FindClass("java/io/File");
-        jmethodID FileConstructor = Env->GetMethodID(FileClass, "<init>", "(Ljava/lang/String;)V");
-        jobject FileObject = Env->NewObject(FileClass, FileConstructor, JFilePath);
-
-        // Check if file exists
-        jmethodID ExistsMethod = Env->GetMethodID(FileClass, "exists", "()Z");
-        jboolean FileExists = Env->CallBooleanMethod(FileObject, ExistsMethod);
-
-        if (!FileExists)
-        {
-            UE_LOG(LogTemp, Error, TEXT("APK file does not exist: %s"), *APKFilePath);
-            Env->DeleteLocalRef(JFilePath);
-            Env->DeleteLocalRef(FileClass);
-            Env->DeleteLocalRef(FileObject);
-            Env->DeleteLocalRef(ActivityClass);
-            return false;
-        }
-
-        // Create Intent
-        jclass IntentClass = Env->FindClass("android/content/Intent");
-        jmethodID IntentConstructor = Env->GetMethodID(IntentClass, "<init>", "(Ljava/lang/String;)V");
-        jstring ActionInstall = Env->NewStringUTF("android.intent.action.INSTALL_PACKAGE");
-        jobject Intent = Env->NewObject(IntentClass, IntentConstructor, ActionInstall);
-
-        jobject Uri = nullptr;
-
-        // For Android 7.0+ (API 24+), try to use FileProvider
-        if (SdkInt >= 24)
-        {
-            // Get application context
-            jmethodID GetApplicationContext = Env->GetMethodID(ActivityClass, "getApplicationContext", "()Landroid/content/Context;");
-            jobject Context = Env->CallObjectMethod(Activity, GetApplicationContext);
-
-            // Get package name
-            jmethodID GetPackageName = Env->GetMethodID(ActivityClass, "getPackageName", "()Ljava/lang/String;");
-            jstring PackageName = (jstring)Env->CallObjectMethod(Activity, GetPackageName);
-
-            // Create authority string
-            const char* PackageNameStr = Env->GetStringUTFChars(PackageName, nullptr);
-            FString Authority = FString(PackageNameStr) + TEXT(".fileprovider");
-            Env->ReleaseStringUTFChars(PackageName, PackageNameStr);
-
-            jstring JAuthority = Env->NewStringUTF(TCHAR_TO_UTF8(*Authority));
-
-            UE_LOG(LogTemp, Log, TEXT("Trying FileProvider with authority: %s"), *Authority);
-
-            // Try to find FileProvider class using ClassLoader
-            jclass ContextClass = Env->GetObjectClass(Context);
-            jmethodID GetClassLoader = Env->GetMethodID(ContextClass, "getClassLoader", "()Ljava/lang/ClassLoader;");
-            jobject ClassLoader = Env->CallObjectMethod(Context, GetClassLoader);
-
-            jclass ClassLoaderClass = Env->GetObjectClass(ClassLoader);
-            jmethodID LoadClass = Env->GetMethodID(ClassLoaderClass, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
-
-            jstring FileProviderClassName = Env->NewStringUTF("androidx.core.content.FileProvider");
-            jclass FileProviderClass = (jclass)Env->CallObjectMethod(ClassLoader, LoadClass, FileProviderClassName);
-
-            Env->DeleteLocalRef(ContextClass);
-            Env->DeleteLocalRef(ClassLoader);
-            Env->DeleteLocalRef(ClassLoaderClass);
-            Env->DeleteLocalRef(FileProviderClassName);
-
-            if (FileProviderClass != nullptr && !Env->ExceptionCheck())
-            {
-                // Get getUriForFile method
-                jmethodID GetUriForFile = Env->GetStaticMethodID(FileProviderClass, "getUriForFile",
-                                                                 "(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;");
-
-                if (GetUriForFile != nullptr && !Env->ExceptionCheck())
-                {
-                    Uri = Env->CallStaticObjectMethod(FileProviderClass, GetUriForFile, Context, JAuthority, FileObject);
-
-                    if (Env->ExceptionCheck())
-                    {
-                        Env->ExceptionDescribe();
-                        Env->ExceptionClear();
-                        Uri = nullptr;
-                        UE_LOG(LogTemp, Warning, TEXT("FileProvider.getUriForFile failed, falling back to file:// URI"));
-                    }
-                    else
-                    {
-                        UE_LOG(LogTemp, Log, TEXT("FileProvider URI created successfully"));
-                    }
-                }
-                else
-                {
-                    Env->ExceptionClear();
-                    UE_LOG(LogTemp, Warning, TEXT("FileProvider.getUriForFile method not found"));
-                }
-
-                Env->DeleteLocalRef(FileProviderClass);
-            }
-            else
-            {
-                Env->ExceptionClear();
-                UE_LOG(LogTemp, Warning, TEXT("FileProvider class not found, using fallback"));
-            }
-
-            Env->DeleteLocalRef(Context);
-            Env->DeleteLocalRef(PackageName);
-            Env->DeleteLocalRef(JAuthority);
-        }
-
-        // Fallback: Create file:// URI for older Android or if FileProvider failed
-        if (Uri == nullptr)
-        {
-            UE_LOG(LogTemp, Log, TEXT("Using file:// URI (fallback)"));
-
-            jclass UriClass = Env->FindClass("android/net/Uri");
-            jmethodID FromFileMethod = Env->GetStaticMethodID(UriClass, "fromFile", "(Ljava/io/File;)Landroid/net/Uri;");
-            Uri = Env->CallStaticObjectMethod(UriClass, FromFileMethod, FileObject);
-            Env->DeleteLocalRef(UriClass);
-        }
-
-        if (Uri != nullptr)
-        {
-            // Set data and type
-            jmethodID SetDataAndType = Env->GetMethodID(IntentClass, "setDataAndType",
-                                                        "(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/Intent;");
-            jstring MimeType = Env->NewStringUTF("application/vnd.android.package-archive");
-            Env->CallObjectMethod(Intent, SetDataAndType, Uri, MimeType);
-
-            // Add flags
-            jmethodID AddFlags = Env->GetMethodID(IntentClass, "addFlags", "(I)Landroid/content/Intent;");
-            Env->CallObjectMethod(Intent, AddFlags, 0x00000001); // FLAG_GRANT_READ_URI_PERMISSION
-            Env->CallObjectMethod(Intent, AddFlags, 0x10000000); // FLAG_ACTIVITY_NEW_TASK
-
-            // Start activity
-            jmethodID StartActivity = Env->GetMethodID(ActivityClass, "startActivity", "(Landroid/content/Intent;)V");
-            Env->CallVoidMethod(Activity, StartActivity, Intent);
-
-            if (Env->ExceptionCheck())
-            {
-                Env->ExceptionDescribe();
-                Env->ExceptionClear();
-                UE_LOG(LogTemp, Error, TEXT("Failed to start installation activity"));
-
-                Env->DeleteLocalRef(MimeType);
-                Env->DeleteLocalRef(Uri);
-                Env->DeleteLocalRef(JFilePath);
-                Env->DeleteLocalRef(FileClass);
-                Env->DeleteLocalRef(FileObject);
-                Env->DeleteLocalRef(ActivityClass);
-                Env->DeleteLocalRef(IntentClass);
-                Env->DeleteLocalRef(Intent);
-                Env->DeleteLocalRef(ActionInstall);
-                return false;
-            }
-
-            UE_LOG(LogTemp, Log, TEXT("APK installation started successfully"));
-
-            // Cleanup
-            Env->DeleteLocalRef(MimeType);
-            Env->DeleteLocalRef(Uri);
-        }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT("Failed to create URI for APK file"));
-            Env->DeleteLocalRef(JFilePath);
-            Env->DeleteLocalRef(FileClass);
-            Env->DeleteLocalRef(FileObject);
-            Env->DeleteLocalRef(ActivityClass);
-            Env->DeleteLocalRef(IntentClass);
-            Env->DeleteLocalRef(Intent);
-            Env->DeleteLocalRef(ActionInstall);
-            return false;
-        }
-
-        // Cleanup
-        Env->DeleteLocalRef(JFilePath);
-        Env->DeleteLocalRef(FileClass);
-        Env->DeleteLocalRef(FileObject);
-        Env->DeleteLocalRef(ActivityClass);
-        Env->DeleteLocalRef(IntentClass);
-        Env->DeleteLocalRef(Intent);
-        Env->DeleteLocalRef(ActionInstall);
-
-        return true;
+        OutErrorMessage = TEXT("Failed to get JNI environment");
+        return EAPKInstallError::NoJNIEnvironment;
     }
-    #endif
 
-    UE_LOG(LogTemp, Warning, TEXT("InstallAPK only works on Android"));
-    return false;
+    jobject Activity = FAndroidApplication::GetGameActivityThis();
+    if (!Activity)
+    {
+        OutErrorMessage = TEXT("Failed to get game activity");
+        return EAPKInstallError::NoJNIEnvironment;
+    }
+
+    // Get Activity class and ClassLoader
+    jclass ActivityClass = Env->GetObjectClass(Activity);
+    jmethodID GetClassLoader = Env->GetMethodID(ActivityClass, "getClassLoader", "()Ljava/lang/ClassLoader;");
+    jobject Loader = Env->CallObjectMethod(Activity, GetClassLoader);
+
+    // Load FileProvider via Class.forName with class loader
+    jclass ClassClass = Env->FindClass("java/lang/Class");
+    jmethodID ForNameMethod = Env->GetStaticMethodID(ClassClass, "forName",
+                                                     "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;");
+    jstring FileProviderName = Env->NewStringUTF("androidx.core.content.FileProvider");
+    jclass FileProviderClass = (jclass)Env->CallStaticObjectMethod(ClassClass, ForNameMethod,
+                                                                   FileProviderName, JNI_TRUE, Loader);
+
+    Env->DeleteLocalRef(FileProviderName);
+    Env->DeleteLocalRef(ClassClass);
+
+    if (!FileProviderClass)
+    {
+        OutErrorMessage = TEXT("Failed to find FileProvider class with ClassLoader");
+        return EAPKInstallError::FileProviderClassNotFound;
+    }
+
+    // Prepare APK file
+    jstring JFilePath = Env->NewStringUTF(TCHAR_TO_UTF8(*APKFilePath));
+    jclass FileClass = Env->FindClass("java/io/File");
+    jmethodID FileConstructor = Env->GetMethodID(FileClass, "<init>", "(Ljava/lang/String;)V");
+    jobject FileObject = Env->NewObject(FileClass, FileConstructor, JFilePath);
+
+    jmethodID ExistsMethod = Env->GetMethodID(FileClass, "exists", "()Z");
+    if (!Env->CallBooleanMethod(FileObject, ExistsMethod))
+    {
+        OutErrorMessage = FString::Printf(TEXT("APK file does not exist: %s"), *APKFilePath);
+        return EAPKInstallError::FileNotFound;
+    }
+
+    // Get application context
+    jmethodID GetApplicationContext = Env->GetMethodID(ActivityClass, "getApplicationContext", "()Landroid/content/Context;");
+    jobject Context = Env->CallObjectMethod(Activity, GetApplicationContext);
+
+    // Authority from manifest (hardcoded to match manifest)
+    jstring JAuthority = Env->NewStringUTF("yt.dsh.PiozaGameLauncher.fileprovider");
+
+    // Get URI
+    jmethodID GetUriForFile = Env->GetStaticMethodID(FileProviderClass, "getUriForFile",
+                                                     "(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;");
+    jobject Uri = Env->CallStaticObjectMethod(FileProviderClass, GetUriForFile, Context, JAuthority, FileObject);
+
+    if (!Uri)
+    {
+        OutErrorMessage = TEXT("Failed to get URI from FileProvider. Check filepaths.xml and authority.");
+        return EAPKInstallError::FileProviderURICreationFailed;
+    }
+
+    // Create Intent
+    jclass IntentClass = Env->FindClass("android/content/Intent");
+    jmethodID IntentConstructor = Env->GetMethodID(IntentClass, "<init>", "(Ljava/lang/String;)V");
+    jstring ActionInstall = Env->NewStringUTF("android.intent.action.INSTALL_PACKAGE");
+    jobject Intent = Env->NewObject(IntentClass, IntentConstructor, ActionInstall);
+
+    jmethodID SetDataAndType = Env->GetMethodID(IntentClass, "setDataAndType",
+                                                "(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/Intent;");
+    jstring MimeType = Env->NewStringUTF("application/vnd.android.package-archive");
+    Env->CallObjectMethod(Intent, SetDataAndType, Uri, MimeType);
+
+    // Add flags
+    jmethodID AddFlags = Env->GetMethodID(IntentClass, "addFlags", "(I)Landroid/content/Intent;");
+    Env->CallObjectMethod(Intent, AddFlags, 0x00000001); // FLAG_GRANT_READ_URI_PERMISSION
+    Env->CallObjectMethod(Intent, AddFlags, 0x10000000); // FLAG_ACTIVITY_NEW_TASK
+
+    // Start installation activity
+    jmethodID StartActivity = Env->GetMethodID(ActivityClass, "startActivity", "(Landroid/content/Intent;)V");
+    Env->CallVoidMethod(Activity, StartActivity, Intent);
+
+    OutErrorMessage = TEXT("APK installation started successfully");
+    return EAPKInstallError::Success;
+
+#else
+    OutErrorMessage = TEXT("InstallAPK only works on Android platform");
+    return EAPKInstallError::NotAndroidPlatform;
+#endif
 }
+
 
 bool UAPKInstallerLibrary::CanInstallFromUnknownSources()
 {

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root xmlns:android="http://schemas.android.com/apk/res/android">
+    <init>
+        <log text="Applying FileProvider ProGuard keep rules"/>
+    </init>
+
+    <proguardAdditions>
+        <insert>
+            -keep class androidx.core.content.FileProvider { *; }
+            -keep public class * extends androidx.core.content.FileProvider { *; }
+        </insert>
+    </proguardAdditions>
+</root>

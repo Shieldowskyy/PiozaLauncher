@@ -4,6 +4,21 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "APKInstallerLibrary.generated.h"
 
+UENUM(BlueprintType)
+enum class EAPKInstallError : uint8
+{
+    Success = 0,
+    NotAndroidPlatform = 1,
+    NoJNIEnvironment = 2,
+    NoInstallPermission = 3,
+    FileNotFound = 4,
+    FileProviderClassNotFound = 5,
+    FileProviderMethodNotFound = 6,
+    FileProviderURICreationFailed = 7,
+    IntentCreationFailed = 8,
+    ActivityStartFailed = 9
+};
+
 UCLASS()
 class PIOZAGAMELAUNCHER_API UAPKInstallerLibrary : public UBlueprintFunctionLibrary
 {
@@ -15,8 +30,8 @@ public:
      * @param APKFilePath - Full path to the APK file (e.g. /storage/emulated/0/Download/app.apk)
      * @return true if installation was launched successfully, false otherwise
      */
-    UFUNCTION(BlueprintCallable, Category = "Android|APK Installer")
-    static bool InstallAPK(const FString& APKFilePath);
+    UFUNCTION(BlueprintCallable, Category = "APK Installer")
+    static EAPKInstallError InstallAPK(const FString& APKFilePath, FString& OutErrorMessage);
 
     /**
      * Checks if the application has permission to install from unknown sources
