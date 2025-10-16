@@ -65,6 +65,7 @@ Build/Linux/AppImage/PiozaLauncher.AppDir/Linux
 !Build/Windows/**
 Build/Windows/Release/Windows
 Build/Windows/Release/InnoSetup/*.exe
+!Build/Android/**
 
 # Built data for maps
 *_BuiltData.uasset
@@ -95,3 +96,4 @@ Build/Windows/ChunkLayerInfo/pakchunklayers.txt
 /Build/Windows/Installer/InnoSetup/Output
 *.exe
 *.zip
+*.keystore
