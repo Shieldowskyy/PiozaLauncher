@@ -7,6 +7,7 @@
 
 #include "SentryDataTypes.h"
 #include "SentryScope.h"
+#include "SentryTransactionOptions.h"
 #include "SentryVariant.h"
 
 #include "SentrySubsystem.generated.h"
@@ -14,10 +15,11 @@
 class USentrySettings;
 class USentryBreadcrumb;
 class USentryEvent;
-class USentryUserFeedback;
+class USentryFeedback;
 class USentryUser;
 class USentryBeforeSendHandler;
 class USentryBeforeBreadcrumbHandler;
+class USentryBeforeLogHandler;
 class USentryTransaction;
 class USentryTraceSampler;
 class USentryTransactionContext;
@@ -97,6 +99,51 @@ public:
 		ESentryLevel Level = ESentryLevel::Info);
 
 	/**
+	 * Add a debug level structured log message to Sentry.
+	 *
+	 * @param Message Log message to add.
+	 * @param Category Optional category to prepend to the message.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Sentry")
+	void LogDebug(const FString& Message, const FString& Category = TEXT("LogSentrySdk"));
+
+	/**
+	 * Add an info level structured log message to Sentry.
+	 *
+	 * @param Message Log message to add.
+	 * @param Category Optional category to prepend to the message.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Sentry")
+	void LogInfo(const FString& Message, const FString& Category = TEXT("LogSentrySdk"));
+
+	/**
+	 * Add a warning level structured log message to Sentry.
+	 *
+	 * @param Message Log message to add.
+	 * @param Category Optional category to prepend to the message.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Sentry")
+	void LogWarning(const FString& Message, const FString& Category = TEXT("LogSentrySdk"));
+
+	/**
+	 * Add an error level structured log message to Sentry.
+	 *
+	 * @param Message Log message to add.
+	 * @param Category Optional category to prepend to the message.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Sentry")
+	void LogError(const FString& Message, const FString& Category = TEXT("LogSentrySdk"));
+
+	/**
+	 * Add a fatal level structured log message to Sentry.
+	 *
+	 * @param Message Log message to add.
+	 * @param Category Optional category to prepend to the message.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Sentry")
+	void LogFatal(const FString& Message, const FString& Category = TEXT("LogSentrySdk"));
+
+	/**
 	 * Clear all breadcrumbs of the current Scope.
 	 *
 	 * @note: Not supported for Windows/Linux.
@@ -167,21 +214,21 @@ public:
 	/**
 	 * Captures a user feedback.
 	 *
-	 * @param UserFeedback The user feedback to send to Sentry.
+	 * @param Feedback The feedback to send to Sentry.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Sentry")
-	void CaptureUserFeedback(USentryUserFeedback* UserFeedback);
+	void CaptureFeedback(USentryFeedback* Feedback);
 
 	/**
 	 * Captures a user feedback.
 	 *
-	 * @param EventId The event Id.
-	 * @param Email The user email.
-	 * @param Comments The user comments.
-	 * @param Name The optional username.
+	 * @param Message User feedback message (required).
+	 * @param Name User name.
+	 * @param Email User email.
+	 * @param EventId Associated event identifier.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Sentry")
-	void CaptureUserFeedbackWithParams(const FString& EventId, const FString& Email, const FString& Comments, const FString& Name);
+	void CaptureFeedbackWithParams(const FString& Message, const FString& Name, const FString& Email, const FString& EventId);
 
 	/**
 	 * Sets a user for the current scope.
@@ -247,21 +294,49 @@ public:
 	void EndSession();
 
 	/**
+	 * Gives user consent for uploading crash reports.
+	 *
+	 * @note: This method is supported only on Windows and Linux, on other platforms it is a no-op.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Sentry")
+	void GiveUserConsent();
+
+	/**
+	 * Revokes user consent for uploading crash reports.
+	 *
+	 * @note: This method is supported only on Windows and Linux, on other platforms it is a no-op.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Sentry")
+	void RevokeUserConsent();
+
+	/**
+	 * Returns the current user consent value.
+	 *
+	 * @return Current user consent value.
+	 *
+	 * @note: This method is supported only on Windows and Linux, on other platforms it returns default `Unknown` value.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Sentry")
+	EUserConsent GetUserConsent() const;
+
+	/**
 	 * Starts a new transaction.
 	 *
 	 * @param Name Transaction name.
 	 * @param Operation Short code identifying the type of operation the span is measuring.
+	 * @param BindToScope Flag indicating whether the SDK should bind the new transaction to the scope. Defaults to false (transaction is not bound to scope).
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Sentry")
-	USentryTransaction* StartTransaction(const FString& Name, const FString& Operation);
+	USentryTransaction* StartTransaction(const FString& Name, const FString& Operation, bool BindToScope = false);
 
 	/**
 	 * Starts a new transaction with given context.
 	 *
 	 * @param Context Transaction context.
+	 * @param BindToScope Flag indicating whether the SDK should bind the new transaction to the scope. Defaults to false (transaction is not bound to scope).
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Sentry")
-	USentryTransaction* StartTransactionWithContext(USentryTransactionContext* Context);
+	USentryTransaction* StartTransactionWithContext(USentryTransactionContext* Context, bool BindToScope = false);
 
 	/**
 	 * Starts a new transaction with given context and timestamp.
@@ -270,9 +345,10 @@ public:
 	 *
 	 * @param Context Transaction context.
 	 * @param Timestamp Transaction timestamp (microseconds since the Unix epoch).
+	 * @param BindToScope Flag indicating whether the SDK should bind the new transaction to the scope. Defaults to false (transaction is not bound to scope).
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Sentry")
-	USentryTransaction* StartTransactionWithContextAndTimestamp(USentryTransactionContext* Context, int64 Timestamp);
+	USentryTransaction* StartTransactionWithContextAndTimestamp(USentryTransactionContext* Context, int64 Timestamp, bool BindToScope = false);
 
 	/**
 	 * Starts a new transaction with given context and options.
@@ -281,7 +357,7 @@ public:
 	 * @param Options Transaction options.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Sentry")
-	USentryTransaction* StartTransactionWithContextAndOptions(USentryTransactionContext* Context, const TMap<FString, FString>& Options);
+	USentryTransaction* StartTransactionWithContextAndOptions(USentryTransactionContext* Context, const FSentryTransactionOptions& Options);
 
 	/**
 	 * Creates a transaction context to propagate distributed tracing metadata from upstream
@@ -296,6 +372,12 @@ public:
 	/** Checks if Sentry event capturing is supported for current settings. */
 	UFUNCTION(BlueprintCallable, Category = "Sentry")
 	bool IsSupportedForCurrentSettings() const;
+
+	/** Retrieves the underlying native implementation. */
+	TSharedPtr<ISentrySubsystem> GetNativeObject() const;
+
+	/** Gets the before log handler instance. */
+	USentryBeforeLogHandler* GetBeforeLogHandler() const;
 
 private:
 	/** Adds default context data for all events captured by Sentry SDK. */
@@ -338,12 +420,15 @@ private:
 	TSharedPtr<FSentryErrorOutputDevice> OutputDeviceError;
 
 	UPROPERTY()
-	USentryBeforeSendHandler* BeforeSendHandler;
+	TObjectPtr<USentryBeforeSendHandler> BeforeSendHandler;
 	UPROPERTY()
-	USentryBeforeBreadcrumbHandler* BeforeBreadcrumbHandler;
+	TObjectPtr<USentryBeforeBreadcrumbHandler> BeforeBreadcrumbHandler;
 
 	UPROPERTY()
-	USentryTraceSampler* TraceSampler;
+	TObjectPtr<USentryBeforeLogHandler> BeforeLogHandler;
+
+	UPROPERTY()
+	TObjectPtr<USentryTraceSampler> TraceSampler;
 
 	FDelegateHandle PreLoadMapDelegate;
 	FDelegateHandle PostLoadMapDelegate;
