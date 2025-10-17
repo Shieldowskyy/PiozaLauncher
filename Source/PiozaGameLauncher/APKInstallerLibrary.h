@@ -81,4 +81,10 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Android|APK Installer")
     static void UninstallPackage(const FString& PackageName);
 
+    UFUNCTION(BlueprintCallable, Category = "APK Installer")
+    static int32 GetPackageVersionCode(const FString& PackageName);
+
+    UFUNCTION(BlueprintCallable, Category = "APK Installer")
+    static FString GetPackageVersionName(const FString& PackageName);
+
 };

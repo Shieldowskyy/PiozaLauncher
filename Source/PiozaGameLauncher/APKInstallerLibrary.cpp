@@ -349,3 +349,93 @@ void UAPKInstallerLibrary::UninstallPackage(const FString& PackageName)
     #endif
 }
 
+int32 UAPKInstallerLibrary::GetPackageVersionCode(const FString& PackageName)
+{
+    #if PLATFORM_ANDROID
+    if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
+    {
+        jobject Activity = FAndroidApplication::GetGameActivityThis();
+        jclass ActivityClass = Env->GetObjectClass(Activity);
+        jmethodID GetPackageManager = Env->GetMethodID(ActivityClass, "getPackageManager", "()Landroid/content/pm/PackageManager;");
+        jobject PackageManager = Env->CallObjectMethod(Activity, GetPackageManager);
+        jclass PackageManagerClass = Env->GetObjectClass(PackageManager);
+        jmethodID GetPackageInfo = Env->GetMethodID(PackageManagerClass, "getPackageInfo",
+                                                    "(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;");
+        jstring JPackageName = Env->NewStringUTF(TCHAR_TO_UTF8(*PackageName));
+        int32 VersionCode = -1;
+
+        jobject PackageInfo = Env->CallObjectMethod(PackageManager, GetPackageInfo, JPackageName, 0);
+
+        if (Env->ExceptionCheck())
+        {
+            Env->ExceptionClear(); // Package not found
+        }
+        else if (PackageInfo)
+        {
+            jclass PackageInfoClass = Env->GetObjectClass(PackageInfo);
+            jfieldID VersionCodeField = Env->GetFieldID(PackageInfoClass, "versionCode", "I");
+            VersionCode = Env->GetIntField(PackageInfo, VersionCodeField);
+            Env->DeleteLocalRef(PackageInfoClass);
+        }
+
+        Env->DeleteLocalRef(JPackageName);
+        if (PackageInfo) Env->DeleteLocalRef(PackageInfo);
+        Env->DeleteLocalRef(PackageManagerClass);
+        Env->DeleteLocalRef(PackageManager);
+        Env->DeleteLocalRef(ActivityClass);
+
+        return VersionCode;
+    }
+    #endif
+    return -1;
+}
+
+FString UAPKInstallerLibrary::GetPackageVersionName(const FString& PackageName)
+{
+    #if PLATFORM_ANDROID
+    if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
+    {
+        jobject Activity = FAndroidApplication::GetGameActivityThis();
+        jclass ActivityClass = Env->GetObjectClass(Activity);
+        jmethodID GetPackageManager = Env->GetMethodID(ActivityClass, "getPackageManager", "()Landroid/content/pm/PackageManager;");
+        jobject PackageManager = Env->CallObjectMethod(Activity, GetPackageManager);
+        jclass PackageManagerClass = Env->GetObjectClass(PackageManager);
+        jmethodID GetPackageInfo = Env->GetMethodID(PackageManagerClass, "getPackageInfo",
+                                                    "(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;");
+        jstring JPackageName = Env->NewStringUTF(TCHAR_TO_UTF8(*PackageName));
+        FString VersionName = TEXT("");
+
+        jobject PackageInfo = Env->CallObjectMethod(PackageManager, GetPackageInfo, JPackageName, 0);
+
+        if (Env->ExceptionCheck())
+        {
+            Env->ExceptionClear(); // Package not found
+        }
+        else if (PackageInfo)
+        {
+            jclass PackageInfoClass = Env->GetObjectClass(PackageInfo);
+            jfieldID VersionNameField = Env->GetFieldID(PackageInfoClass, "versionName", "Ljava/lang/String;");
+            jstring JVersionName = (jstring)Env->GetObjectField(PackageInfo, VersionNameField);
+
+            if (JVersionName)
+            {
+                const char* VersionNameChars = Env->GetStringUTFChars(JVersionName, nullptr);
+                VersionName = FString(UTF8_TO_TCHAR(VersionNameChars));
+                Env->ReleaseStringUTFChars(JVersionName, VersionNameChars);
+                Env->DeleteLocalRef(JVersionName);
+            }
+
+            Env->DeleteLocalRef(PackageInfoClass);
+        }
+
+        Env->DeleteLocalRef(JPackageName);
+        if (PackageInfo) Env->DeleteLocalRef(PackageInfo);
+        Env->DeleteLocalRef(PackageManagerClass);
+        Env->DeleteLocalRef(PackageManager);
+        Env->DeleteLocalRef(ActivityClass);
+
+        return VersionName;
+    }
+    #endif
+    return TEXT("");
+}
