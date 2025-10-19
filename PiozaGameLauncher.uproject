@@ -637,10 +637,6 @@
 			"Enabled": true
 		},
 		{
-			"Name": "StructUtils",
-			"Enabled": true
-		},
-		{
 			"Name": "PlatformCrypto",
 			"Enabled": false
 		},
@@ -673,18 +669,12 @@
 			"Enabled": false
 		},
 		{
-			"Name": "AndroidBackgroundService",
-			"Enabled": true,
-			"SupportedTargetPlatforms": [
-				"Android"
-			]
+			"Name": "StructUtils",
+			"Enabled": true
 		},
 		{
-			"Name": "AndroidFetchBackgroundDownload",
-			"Enabled": true,
-			"SupportedTargetPlatforms": [
-				"Android"
-			]
+			"Name": "AndroidPermission",
+			"Enabled": false
 		}
 	],
 	"TargetPlatforms": [
