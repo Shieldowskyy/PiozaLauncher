@@ -126,7 +126,8 @@ Repository: https://github.com/Shieldowskyy/DSHConsole
 
 #### ✅ [UMU Launcher](https://github.com/Open-Wine-Components/umu-launcher)
 
-Licensed under the **GNU General Public License v3.0 (GPLv3)**.  
+Licensed under the **GNU General Public License v3.0 (GPLv3)**. 
+**Not included** - downloaded automatically on first run only on Linux platform builds.
 Repository: https://github.com/Open-Wine-Components/umu-launcher
 
 #### ✅ [Sentry Unreal](https://github.com/getsentry/sentry-unreal)
@@ -137,5 +138,6 @@ Repository: https://github.com/getsentry/sentry-unreal
 ---
 
 ### 📄 License
+This project is open source under the AGPL-3.0 license. This allows you to inspect the code and verify its safety.
 
-The rest of this project is licensed under the **GNU Affero General Public License v3.0 (AGPLv3)**.
+**Future Plans**: Once the project is mature and stable, I intend to relicense it to Apache 2.0. This will give everyone the freedom to create their own launcher variants, including closed-source versions, while keeping the core project open and transparent.
