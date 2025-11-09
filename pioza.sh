@@ -95,11 +95,11 @@ check_vulkan_support() {
         echo -e "${YELLOW}  2. Install vulkan drivers for your GPU:${NC}"
         
         if command -v dnf &>/dev/null; then
-            echo -e "${CYAN}     Fedora: sudo dnf install mesa-vulkan-drivers vulkan${NC}"
+            echo -e "${CYAN}     Fedora: sudo dnf install fuse mesa-vulkan-drivers vulkan${NC}"
         elif command -v apt &>/dev/null; then
             echo -e "${CYAN}     Debian/Ubuntu: sudo apt install mesa-vulkan-drivers vulkan-tools${NC}"
         elif command -v pacman &>/dev/null; then
-            echo -e "${CYAN}     Arch: sudo pacman -S vulkan-icd-loader lib32-vulkan-icd-loader${NC}"
+            echo -e "${CYAN}     Arch: sudo pacman -S fuse zenity python vulkan-icd-loader lib32-vulkan-icd-loader${NC}"
         elif command -v zypper &>/dev/null; then
             echo -e "${CYAN}     openSUSE: sudo zypper install libvulkan1 vulkan-tools${NC}"
         fi
