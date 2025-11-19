@@ -617,12 +617,10 @@ class GameJsonCreator(QMainWindow):
                     if not self.is_valid_url(field_data[platform].strip()):
                         return False, f"Field {display_name} for platform {platform} is not a valid URL"
 
+        # Required language fields (must not be empty)
         required_lang_fields = {
             "GameTitle": "title",
-            "DevName": "developer",
-            "Description": "description",
-            "Changelog": "changelog",
-            "minimumReqs": "minimum requirements"
+            "DevName": "developer"
         }
 
         for lang_field, display_name in required_lang_fields.items():
@@ -632,6 +630,8 @@ class GameJsonCreator(QMainWindow):
             for lang in field_data:
                 if not field_data[lang].strip():
                     return False, f"Field {display_name} ({lang}) cannot be empty"
+
+        # Optional language fields (Description, Changelog, minimumReqs) - no validation needed
 
         if "VideoURLs" not in data:
             return False, "Field VideoURLs is required"
