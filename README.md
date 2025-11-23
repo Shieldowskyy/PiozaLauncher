@@ -142,6 +142,18 @@ Repository: https://github.com/getsentry/sentry-unreal
 ---
 
 ### 📄 License
-This project is open source under the AGPL-3.0 license. This allows you to inspect the code and verify its safety.
 
-**Future Plans**: Once the project is mature and stable, I intend to relicense it to Apache 2.0. This will give everyone the freedom to create their own launcher variants, including closed-source versions, while keeping the core project open and transparent.
+**From version 0.8.0 onwards**, this project is licensed under the **MIT License**.
+
+This means you are free to:
+- ✅ Use this code in commercial projects
+- ✅ Create closed-source derivatives
+- ✅ Modify and redistribute without restrictions
+- ✅ Use in proprietary software
+
+**Note:** Versions 0.7.x and earlier were licensed under AGPL-3.0. 
+You can still use those versions under AGPL-3.0 terms if needed.
+
+See [LICENSE](LICENSE) file for full terms.
+
+Copyright © 2025 Shieldziak (DashoGames)
