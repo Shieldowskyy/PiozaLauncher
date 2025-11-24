@@ -114,6 +114,7 @@ Sentry is optional but recommended, and therefore included with the project:
 
 This project includes external components with their own licenses:
 
+## Plugins
 #### ✅ [RuntimeArchiver](https://github.com/gtreshchev/RuntimeArchiver)  
 #### ✅ [RuntimeFilesDownloader](https://github.com/gtreshchev/RuntimeFilesDownloader)  
 #### ✅ [RuntimeAudioImporter](https://github.com/gtreshchev/RuntimeAudioImporter)
@@ -122,22 +123,29 @@ All three are licensed under the **MIT License**.
 Copyright (c) 2024 Georgy Treshchev  
 Full license texts are available in their respective repositories.
 
+#### ✅ [Sentry Unreal](https://github.com/getsentry/sentry-unreal)
+
+Licensed under the **MIT License**.  
+Repository: https://github.com/getsentry/sentry-unreal
+
 #### ✅ [DSHConsole](https://github.com/Shieldowskyy/DSHConsole)
 
 Included as a Git submodule.  
 Licensed under the **Apache License 2.0**.  
 Repository: https://github.com/Shieldowskyy/DSHConsole
 
+## External Runtimes
 #### ✅ [UMU Launcher](https://github.com/Open-Wine-Components/umu-launcher)
 
-Licensed under the **GNU General Public License v3.0 (GPLv3)**. 
-**Not included** - downloaded automatically on first run only on Linux platform builds.
+Licensed under the **GNU General Public License v3.0 (GPLv3)**.  
+**Not included** - downloaded automatically on first run only on Linux platform builds.  
 Repository: https://github.com/Open-Wine-Components/umu-launcher
 
-#### ✅ [Sentry Unreal](https://github.com/getsentry/sentry-unreal)
+## Resources
+#### ✅ [Material Icons by Google](https://fonts.google.com/icons)
 
-Licensed under the **MIT License**.  
-Repository: https://github.com/getsentry/sentry-unreal
+Licensed under the **Apache License 2.0**.  
+Available here: https://fonts.google.com/icons
 
 ---
 
