@@ -483,10 +483,6 @@
 			"Enabled": false
 		},
 		{
-			"Name": "MediaPlayerEditor",
-			"Enabled": false
-		},
-		{
 			"Name": "WmfMedia",
 			"Enabled": false
 		},
@@ -675,6 +671,34 @@
 		{
 			"Name": "AndroidPermission",
 			"Enabled": false
+		},
+		{
+			"Name": "VPxDecoderElectra",
+			"Enabled": true
+		},
+		{
+			"Name": "OpusDecoderElectra",
+			"Enabled": true
+		},
+		{
+			"Name": "ElectraUtil",
+			"Enabled": true
+		},
+		{
+			"Name": "ElectraSubtitles",
+			"Enabled": true
+		},
+		{
+			"Name": "ElectraCodecs",
+			"Enabled": true
+		},
+		{
+			"Name": "ElectraPlayer",
+			"Enabled": true
+		},
+		{
+			"Name": "FlacDecoderElectra",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
