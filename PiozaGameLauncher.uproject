@@ -695,6 +695,14 @@
 		{
 			"Name": "FlacDecoderElectra",
 			"Enabled": true
+		},
+		{
+			"Name": "CommonUI",
+			"Enabled": true
+		},
+		{
+			"Name": "WidgetEditorToolPalette",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
