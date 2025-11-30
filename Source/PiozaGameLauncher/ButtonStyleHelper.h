@@ -32,4 +32,15 @@ public:
         float HoveredAlpha = 0.8f,
         float PressedAlpha = 0.6f,
         float DisabledAlpha = 0.4f);
+
+    /**
+     * Sets outline settings for all button states using FSlateBrushOutlineSettings.
+     * @param ButtonStyle - The button style to modify.
+     * @param OutlineSettings - Outline settings to apply to all states.
+     * @return The modified button style.
+     */
+    UFUNCTION(BlueprintCallable, Category = "UI")
+    static FButtonStyle SetButtonOutlineSettings(
+        const FButtonStyle& ButtonStyle,
+        const FSlateBrushOutlineSettings& OutlineSettings);
 };

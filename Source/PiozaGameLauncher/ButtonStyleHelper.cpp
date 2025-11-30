@@ -25,3 +25,16 @@ FButtonStyle UButtonStyleHelper::SetButtonBackgroundColorWithAlpha(
 	return NewStyle;
 }
 
+FButtonStyle UButtonStyleHelper::SetButtonOutlineSettings(
+	const FButtonStyle& ButtonStyle,
+	const FSlateBrushOutlineSettings& OutlineSettings)
+{
+	FButtonStyle NewStyle = ButtonStyle;
+
+	NewStyle.Normal.OutlineSettings = OutlineSettings;
+	NewStyle.Hovered.OutlineSettings = OutlineSettings;
+	NewStyle.Pressed.OutlineSettings = OutlineSettings;
+	NewStyle.Disabled.OutlineSettings = OutlineSettings;
+
+	return NewStyle;
+}
