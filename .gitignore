@@ -97,3 +97,4 @@ Build/Windows/ChunkLayerInfo/pakchunklayers.txt
 *.exe
 *.zip
 *.keystore
+/Plugins/Editor
