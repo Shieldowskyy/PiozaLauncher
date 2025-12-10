@@ -7,7 +7,7 @@
 		{
 			"Name": "PiozaGameLauncher",
 			"Type": "Runtime",
-			"LoadingPhase": "Default",
+			"LoadingPhase": "PostConfigInit",
 			"AdditionalDependencies": [
 				"Engine"
 			]
@@ -690,10 +690,6 @@
 		},
 		{
 			"Name": "ElectraPlayer",
-			"Enabled": true
-		},
-		{
-			"Name": "FlacDecoderElectra",
 			"Enabled": true
 		},
 		{
