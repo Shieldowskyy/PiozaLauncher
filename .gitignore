@@ -98,3 +98,5 @@ Build/Windows/ChunkLayerInfo/pakchunklayers.txt
 *.zip
 *.keystore
 /Plugins/Editor
+*.apk
+*.aab
