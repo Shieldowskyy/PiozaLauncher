@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "InstancedStruct.h"
+#include "StructUtils/InstancedStruct.h"
 #include "JsonObjectConverter.h"
 #include "JsonParserLib.generated.h"
 
