@@ -7,13 +7,31 @@
 #if PLATFORM_ANDROID
 #include "Android/AndroidJNI.h"
 #include "Android/AndroidApplication.h"
+
+static FString GetFileProviderAuthority(JNIEnv* Env, jobject Activity)
+{
+    // Get Package Name
+    jclass ActivityClass = Env->GetObjectClass(Activity);
+    jmethodID GetPackageName = Env->GetMethodID(ActivityClass, "getPackageName", "()Ljava/lang/String;");
+    jstring PackageName = (jstring)Env->CallObjectMethod(Activity, GetPackageName);
+
+    const char* PackageNameChars = Env->GetStringUTFChars(PackageName, nullptr);
+    FString Auth = FString(UTF8_TO_TCHAR(PackageNameChars)) + TEXT(".fileprovider");
+
+    // Cleanup
+    Env->ReleaseStringUTFChars(PackageName, PackageNameChars);
+    Env->DeleteLocalRef(PackageName);
+    Env->DeleteLocalRef(ActivityClass);
+
+    return Auth;
+}
 #endif
 
 EAPKInstallError UAPKInstallerLibrary::InstallAPK(const FString& APKFilePath, FString& OutErrorMessage)
 {
     OutErrorMessage = TEXT("");
 
-#if PLATFORM_ANDROID
+    #if PLATFORM_ANDROID
     JNIEnv* Env = FAndroidApplication::GetJavaEnv();
     if (!Env)
     {
@@ -28,29 +46,32 @@ EAPKInstallError UAPKInstallerLibrary::InstallAPK(const FString& APKFilePath, FS
         return EAPKInstallError::NoJNIEnvironment;
     }
 
-    // Get Activity class and ClassLoader
+    // --- SCOPE MANAGEMENT FOR LOCAL REFS ---
+    if (Env->PushLocalFrame(128) < 0)
+    {
+        OutErrorMessage = TEXT("Failed to push JNI local frame");
+        return EAPKInstallError::UnknownError; // Teraz to zadziała, bo dodaliśmy wartość do Enuma
+    }
+
+    // 1. Get ClassLoader & FileProvider Class
     jclass ActivityClass = Env->GetObjectClass(Activity);
     jmethodID GetClassLoader = Env->GetMethodID(ActivityClass, "getClassLoader", "()Ljava/lang/ClassLoader;");
     jobject Loader = Env->CallObjectMethod(Activity, GetClassLoader);
 
-    // Load FileProvider via Class.forName with class loader
     jclass ClassClass = Env->FindClass("java/lang/Class");
-    jmethodID ForNameMethod = Env->GetStaticMethodID(ClassClass, "forName",
-                                                     "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;");
-    jstring FileProviderName = Env->NewStringUTF("androidx.core.content.FileProvider");
-    jclass FileProviderClass = (jclass)Env->CallStaticObjectMethod(ClassClass, ForNameMethod,
-                                                                   FileProviderName, JNI_TRUE, Loader);
+    jmethodID ForNameMethod = Env->GetStaticMethodID(ClassClass, "forName", "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;");
 
-    Env->DeleteLocalRef(FileProviderName);
-    Env->DeleteLocalRef(ClassClass);
+    jstring FileProviderName = Env->NewStringUTF("androidx.core.content.FileProvider");
+    jclass FileProviderClass = (jclass)Env->CallStaticObjectMethod(ClassClass, ForNameMethod, FileProviderName, JNI_TRUE, Loader);
 
     if (!FileProviderClass)
     {
-        OutErrorMessage = TEXT("Failed to find FileProvider class with ClassLoader");
+        Env->PopLocalFrame(nullptr);
+        OutErrorMessage = TEXT("Failed to find androidx.core.content.FileProvider. Ensure AndroidX is enabled.");
         return EAPKInstallError::FileProviderClassNotFound;
     }
 
-    // Prepare APK file
+    // 2. Prepare File Object
     jstring JFilePath = Env->NewStringUTF(TCHAR_TO_UTF8(*APKFilePath));
     jclass FileClass = Env->FindClass("java/io/File");
     jmethodID FileConstructor = Env->GetMethodID(FileClass, "<init>", "(Ljava/lang/String;)V");
@@ -59,57 +80,69 @@ EAPKInstallError UAPKInstallerLibrary::InstallAPK(const FString& APKFilePath, FS
     jmethodID ExistsMethod = Env->GetMethodID(FileClass, "exists", "()Z");
     if (!Env->CallBooleanMethod(FileObject, ExistsMethod))
     {
+        Env->PopLocalFrame(nullptr);
         OutErrorMessage = FString::Printf(TEXT("APK file does not exist: %s"), *APKFilePath);
         return EAPKInstallError::FileNotFound;
     }
 
-    // Get application context
+    // 3. Get Context
     jmethodID GetApplicationContext = Env->GetMethodID(ActivityClass, "getApplicationContext", "()Landroid/content/Context;");
     jobject Context = Env->CallObjectMethod(Activity, GetApplicationContext);
 
-    // Authority from manifest (hardcoded to match manifest)
-    jstring JAuthority = Env->NewStringUTF("yt.dsh.PiozaGameLauncher.fileprovider");
+    // 4. Get Dynamic Authority
+    FString AuthorityString = GetFileProviderAuthority(Env, Activity);
+    jstring JAuthority = Env->NewStringUTF(TCHAR_TO_UTF8(*AuthorityString));
 
-    // Get URI
-    jmethodID GetUriForFile = Env->GetStaticMethodID(FileProviderClass, "getUriForFile",
-                                                     "(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;");
+    // 5. Get URI using FileProvider
+    jmethodID GetUriForFile = Env->GetStaticMethodID(FileProviderClass, "getUriForFile", "(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;");
     jobject Uri = Env->CallStaticObjectMethod(FileProviderClass, GetUriForFile, Context, JAuthority, FileObject);
 
-    if (!Uri)
+    if (Env->ExceptionCheck())
     {
-        OutErrorMessage = TEXT("Failed to get URI from FileProvider. Check filepaths.xml and authority.");
+        Env->ExceptionDescribe();
+        Env->ExceptionClear();
+        Env->PopLocalFrame(nullptr);
+        OutErrorMessage = TEXT("FileProvider exception. Check res/xml/filepaths.xml configuration.");
         return EAPKInstallError::FileProviderURICreationFailed;
     }
 
-    // Create Intent
+    if (!Uri)
+    {
+        Env->PopLocalFrame(nullptr);
+        OutErrorMessage = TEXT("Failed to get URI (null).");
+        return EAPKInstallError::FileProviderURICreationFailed;
+    }
+
+    // 6. Create Intent
     jclass IntentClass = Env->FindClass("android/content/Intent");
     jmethodID IntentConstructor = Env->GetMethodID(IntentClass, "<init>", "(Ljava/lang/String;)V");
     jstring ActionInstall = Env->NewStringUTF("android.intent.action.INSTALL_PACKAGE");
     jobject Intent = Env->NewObject(IntentClass, IntentConstructor, ActionInstall);
 
-    jmethodID SetDataAndType = Env->GetMethodID(IntentClass, "setDataAndType",
-                                                "(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/Intent;");
+    jmethodID SetDataAndType = Env->GetMethodID(IntentClass, "setDataAndType", "(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/Intent;");
     jstring MimeType = Env->NewStringUTF("application/vnd.android.package-archive");
     Env->CallObjectMethod(Intent, SetDataAndType, Uri, MimeType);
 
-    // Add flags
+    // 7. Add Flags
     jmethodID AddFlags = Env->GetMethodID(IntentClass, "addFlags", "(I)Landroid/content/Intent;");
     Env->CallObjectMethod(Intent, AddFlags, 0x00000001); // FLAG_GRANT_READ_URI_PERMISSION
     Env->CallObjectMethod(Intent, AddFlags, 0x10000000); // FLAG_ACTIVITY_NEW_TASK
 
-    // Start installation activity
+    // 8. Start Activity
     jmethodID StartActivity = Env->GetMethodID(ActivityClass, "startActivity", "(Landroid/content/Intent;)V");
     Env->CallVoidMethod(Activity, StartActivity, Intent);
+
+    // 9. Cleanup
+    Env->PopLocalFrame(nullptr);
 
     OutErrorMessage = TEXT("APK installation started successfully");
     return EAPKInstallError::Success;
 
-#else
+    #else
     OutErrorMessage = TEXT("InstallAPK only works on Android platform");
     return EAPKInstallError::NotAndroidPlatform;
-#endif
+    #endif
 }
-
 
 bool UAPKInstallerLibrary::CanInstallFromUnknownSources()
 {
@@ -149,22 +182,18 @@ void UAPKInstallerLibrary::OpenInstallPermissionSettings()
         jobject Activity = FAndroidApplication::GetGameActivityThis();
         jclass ActivityClass = Env->GetObjectClass(Activity);
 
-        // Create Intent for installation settings
         jclass IntentClass = Env->FindClass("android/content/Intent");
         jmethodID IntentConstructor = Env->GetMethodID(IntentClass, "<init>", "(Ljava/lang/String;)V");
 
         jstring ActionManageUnknownAppSources = Env->NewStringUTF("android.settings.MANAGE_UNKNOWN_APP_SOURCES");
         jobject Intent = Env->NewObject(IntentClass, IntentConstructor, ActionManageUnknownAppSources);
 
-        // Add flag
         jmethodID AddFlags = Env->GetMethodID(IntentClass, "addFlags", "(I)Landroid/content/Intent;");
-        Env->CallObjectMethod(Intent, AddFlags, 0x10000000); // FLAG_ACTIVITY_NEW_TASK
+        Env->CallObjectMethod(Intent, AddFlags, 0x10000000);
 
-        // Start activity
         jmethodID StartActivity = Env->GetMethodID(ActivityClass, "startActivity", "(Landroid/content/Intent;)V");
         Env->CallVoidMethod(Activity, StartActivity, Intent);
 
-        // Cleanup
         Env->DeleteLocalRef(ActivityClass);
         Env->DeleteLocalRef(IntentClass);
         Env->DeleteLocalRef(Intent);
@@ -179,27 +208,10 @@ FString UAPKInstallerLibrary::GetAppPackageName()
     if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
     {
         jobject Activity = FAndroidApplication::GetGameActivityThis();
-        if (!Activity)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("GetAppPackageName: Activity is null"));
-            return TEXT("");
-        }
+        if (!Activity) return TEXT("");
 
         jclass ActivityClass = Env->GetObjectClass(Activity);
-        if (!ActivityClass)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("GetAppPackageName: ActivityClass is null"));
-            return TEXT("");
-        }
-
-        // getPackageName() -> String
         jmethodID GetPackageName = Env->GetMethodID(ActivityClass, "getPackageName", "()Ljava/lang/String;");
-        if (!GetPackageName)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("GetAppPackageName: getPackageName method not found"));
-            Env->DeleteLocalRef(ActivityClass);
-            return TEXT("");
-        }
 
         jstring PackageName = (jstring)Env->CallObjectMethod(Activity, GetPackageName);
         FString Result;
@@ -211,17 +223,10 @@ FString UAPKInstallerLibrary::GetAppPackageName()
             Env->ReleaseStringUTFChars(PackageName, PackageNameChars);
             Env->DeleteLocalRef(PackageName);
         }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("GetAppPackageName: PackageName is null"));
-        }
-
         Env->DeleteLocalRef(ActivityClass);
         return Result;
     }
     #endif
-
-    UE_LOG(LogTemp, Warning, TEXT("GetAppPackageName: Only works on Android"));
     return TEXT("");
 }
 
@@ -237,8 +242,7 @@ bool UAPKInstallerLibrary::IsPackageInstalled(const FString& PackageName)
         jobject PackageManager = Env->CallObjectMethod(Activity, GetPackageManager);
         jclass PackageManagerClass = Env->GetObjectClass(PackageManager);
 
-        jmethodID GetPackageInfo = Env->GetMethodID(PackageManagerClass, "getPackageInfo",
-                                                    "(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;");
+        jmethodID GetPackageInfo = Env->GetMethodID(PackageManagerClass, "getPackageInfo", "(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;");
         jstring JPackageName = Env->NewStringUTF(TCHAR_TO_UTF8(*PackageName));
 
         bool bInstalled = true;
@@ -246,7 +250,7 @@ bool UAPKInstallerLibrary::IsPackageInstalled(const FString& PackageName)
 
         if (Env->ExceptionCheck())
         {
-            Env->ExceptionClear(); // Package not found
+            Env->ExceptionClear();
             bInstalled = false;
         }
 
@@ -270,14 +274,11 @@ bool UAPKInstallerLibrary::LaunchApp(const FString& PackageName)
         jobject Activity = FAndroidApplication::GetGameActivityThis();
         jclass ActivityClass = Env->GetObjectClass(Activity);
 
-        // Get PackageManager
         jmethodID GetPackageManager = Env->GetMethodID(ActivityClass, "getPackageManager", "()Landroid/content/pm/PackageManager;");
         jobject PackageManager = Env->CallObjectMethod(Activity, GetPackageManager);
         jclass PackageManagerClass = Env->GetObjectClass(PackageManager);
 
-        // getLaunchIntentForPackage
-        jmethodID GetLaunchIntent = Env->GetMethodID(PackageManagerClass, "getLaunchIntentForPackage",
-                                                     "(Ljava/lang/String;)Landroid/content/Intent;");
+        jmethodID GetLaunchIntent = Env->GetMethodID(PackageManagerClass, "getLaunchIntentForPackage", "(Ljava/lang/String;)Landroid/content/Intent;");
         jstring JPackageName = Env->NewStringUTF(TCHAR_TO_UTF8(*PackageName));
 
         jobject LaunchIntent = Env->CallObjectMethod(PackageManager, GetLaunchIntent, JPackageName);
@@ -285,12 +286,10 @@ bool UAPKInstallerLibrary::LaunchApp(const FString& PackageName)
         bool bLaunched = false;
         if (LaunchIntent != nullptr)
         {
-            // Add FLAG_ACTIVITY_NEW_TASK
             jclass IntentClass = Env->GetObjectClass(LaunchIntent);
             jmethodID AddFlags = Env->GetMethodID(IntentClass, "addFlags", "(I)Landroid/content/Intent;");
             Env->CallObjectMethod(LaunchIntent, AddFlags, 0x10000000);
 
-            // Start activity
             jmethodID StartActivity = Env->GetMethodID(ActivityClass, "startActivity", "(Landroid/content/Intent;)V");
             Env->CallVoidMethod(Activity, StartActivity, LaunchIntent);
 
@@ -315,33 +314,26 @@ void UAPKInstallerLibrary::UninstallPackage(const FString& PackageName)
     #if PLATFORM_ANDROID
     if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
     {
-        // Retrieve the current activity
         jobject Activity = FAndroidApplication::GetGameActivityThis();
         jclass ActivityClass = Env->GetObjectClass(Activity);
 
-        // Find the Intent class
         jclass IntentClass = Env->FindClass("android/content/Intent");
         jmethodID IntentConstructor = Env->GetMethodID(IntentClass, "<init>", "(Ljava/lang/String;Landroid/net/Uri;)V");
 
-        // Create the package URI
         jstring PackageURIString = Env->NewStringUTF(TCHAR_TO_UTF8(*FString::Printf(TEXT("package:%s"), *PackageName)));
         jclass UriClass = Env->FindClass("android/net/Uri");
         jmethodID ParseMethod = Env->GetStaticMethodID(UriClass, "parse", "(Ljava/lang/String;)Landroid/net/Uri;");
         jobject PackageURI = Env->CallStaticObjectMethod(UriClass, ParseMethod, PackageURIString);
 
-        // Create the uninstall intent
         jstring ActionUninstall = Env->NewStringUTF("android.intent.action.UNINSTALL_PACKAGE");
         jobject UninstallIntent = Env->NewObject(IntentClass, IntentConstructor, ActionUninstall, PackageURI);
 
-        // Add FLAG_ACTIVITY_NEW_TASK
         jmethodID AddFlagsMethod = Env->GetMethodID(IntentClass, "addFlags", "(I)Landroid/content/Intent;");
-        Env->CallObjectMethod(UninstallIntent, AddFlagsMethod, 0x10000000); // FLAG_ACTIVITY_NEW_TASK
+        Env->CallObjectMethod(UninstallIntent, AddFlagsMethod, 0x10000000);
 
-        // Start the activity
         jmethodID StartActivity = Env->GetMethodID(ActivityClass, "startActivity", "(Landroid/content/Intent;)V");
         Env->CallVoidMethod(Activity, StartActivity, UninstallIntent);
 
-        // Clean up local references
         Env->DeleteLocalRef(ActionUninstall);
         Env->DeleteLocalRef(PackageURIString);
         Env->DeleteLocalRef(PackageURI);
@@ -363,8 +355,7 @@ int32 UAPKInstallerLibrary::GetPackageVersionCode(const FString& PackageName)
         jmethodID GetPackageManager = Env->GetMethodID(ActivityClass, "getPackageManager", "()Landroid/content/pm/PackageManager;");
         jobject PackageManager = Env->CallObjectMethod(Activity, GetPackageManager);
         jclass PackageManagerClass = Env->GetObjectClass(PackageManager);
-        jmethodID GetPackageInfo = Env->GetMethodID(PackageManagerClass, "getPackageInfo",
-                                                    "(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;");
+        jmethodID GetPackageInfo = Env->GetMethodID(PackageManagerClass, "getPackageInfo", "(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;");
         jstring JPackageName = Env->NewStringUTF(TCHAR_TO_UTF8(*PackageName));
         int32 VersionCode = -1;
 
@@ -372,7 +363,7 @@ int32 UAPKInstallerLibrary::GetPackageVersionCode(const FString& PackageName)
 
         if (Env->ExceptionCheck())
         {
-            Env->ExceptionClear(); // Package not found
+            Env->ExceptionClear();
         }
         else if (PackageInfo)
         {
@@ -404,8 +395,7 @@ FString UAPKInstallerLibrary::GetPackageVersionName(const FString& PackageName)
         jmethodID GetPackageManager = Env->GetMethodID(ActivityClass, "getPackageManager", "()Landroid/content/pm/PackageManager;");
         jobject PackageManager = Env->CallObjectMethod(Activity, GetPackageManager);
         jclass PackageManagerClass = Env->GetObjectClass(PackageManager);
-        jmethodID GetPackageInfo = Env->GetMethodID(PackageManagerClass, "getPackageInfo",
-                                                    "(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;");
+        jmethodID GetPackageInfo = Env->GetMethodID(PackageManagerClass, "getPackageInfo", "(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;");
         jstring JPackageName = Env->NewStringUTF(TCHAR_TO_UTF8(*PackageName));
         FString VersionName = TEXT("");
 
@@ -413,7 +403,7 @@ FString UAPKInstallerLibrary::GetPackageVersionName(const FString& PackageName)
 
         if (Env->ExceptionCheck())
         {
-            Env->ExceptionClear(); // Package not found
+            Env->ExceptionClear();
         }
         else if (PackageInfo)
         {
@@ -428,7 +418,6 @@ FString UAPKInstallerLibrary::GetPackageVersionName(const FString& PackageName)
                 Env->ReleaseStringUTFChars(JVersionName, VersionNameChars);
                 Env->DeleteLocalRef(JVersionName);
             }
-
             Env->DeleteLocalRef(PackageInfoClass);
         }
 

@@ -20,7 +20,8 @@ enum class EAPKInstallError : uint8
     FileProviderMethodNotFound = 6,
     FileProviderURICreationFailed = 7,
     IntentCreationFailed = 8,
-    ActivityStartFailed = 9
+    ActivityStartFailed = 9,
+    UnknownError = 10
 };
 
 UCLASS()
