@@ -1,3 +1,7 @@
+// Pioza Launcher
+// Copyright (c) 2025 DashoGames
+// Licensed under the MIT License - see LICENSE file for details
+
 #include "JsonParserLib.h"
 
 bool UJsonParserLib::JsonToStruct(const FString& JsonString, UScriptStruct* StructType, FInstancedStruct& OutStruct)

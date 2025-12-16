@@ -1,4 +1,6 @@
-// Created by Shieldziak for DashoGames <3
+// Pioza Launcher
+// Copyright (c) 2025 DashoGames
+// Licensed under the MIT License - see LICENSE file for details
 
 #include "ChecksumLibrary.h"
 #include "Misc/FileHelper.h"

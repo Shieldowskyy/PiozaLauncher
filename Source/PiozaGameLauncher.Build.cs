@@ -1,9 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Pioza Launcher
+// Copyright (c) 2025 DashoGames
+// Licensed under the MIT License - see LICENSE file for details
 
 using UnrealBuildTool;
 using System;
 using System.IO;
-
 
 public class PiozaGameLauncher : ModuleRules
 {
@@ -26,7 +27,6 @@ public class PiozaGameLauncher : ModuleRules
 			"StructUtils"
 		});
 
-		// Uncomment if you are using Slate UI
 		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 
 		if (Target.Platform == UnrealTargetPlatform.Android)
@@ -34,11 +34,6 @@ public class PiozaGameLauncher : ModuleRules
 			PrivateDependencyModuleNames.Add("Launch");
 			AdditionalPropertiesForReceipt.Add("AndroidPlugin", Path.Combine(ModuleDirectory, "AndroidFileProviderFix_APL.xml"));
 		}
-        
-		// Uncomment if you are using online features
-		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
-
-		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
         
 		// Add build date definition
 		PublicDefinitions.Add("BUILD_DATE=\"" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "\"");
