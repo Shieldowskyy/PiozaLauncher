@@ -11,7 +11,7 @@
 - Moving files to other drives/folders  
 - Displaying game descriptions, minimum requirements, screenshots, and videos  
 - Playing sound effects when clicking on a game  
-- Easily changing [repositories](https://github.com/Shieldowskyy/PiozaGameLauncher/wiki/PiozaRepo-(and-manifest)) via the console  
+- Easily changing [repositories](https://github.com/Shieldowskyy/PiozaLauncher/wiki/Pioza-Repo-V2) via the console  
 - Extending functionality with custom console libraries and more
 - Creating backups of downloaded games  
 - Making shortcut in start menu and on desktop
