@@ -13,7 +13,6 @@ public:
     {
         FDefaultGameModuleImpl::StartupModule();
         
-        // Automatycznie dodaj flagę AllowSoftwareRendering do command line
         FString CurrentCommandLine = FCommandLine::Get();
         if (!CurrentCommandLine.Contains(TEXT("AllowSoftwareRendering")))
         {
