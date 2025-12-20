@@ -6,7 +6,10 @@
 #include "Misc/Paths.h"
 
 #if PLATFORM_WINDOWS
-#include <Windows.h>
+#include "Windows/AllowWindowsPlatformTypes.h"
+#include <windows.h>
+#include <shellapi.h>
+#include "Windows/HideWindowsPlatformTypes.h"
 #endif
 
 #if PLATFORM_LINUX
