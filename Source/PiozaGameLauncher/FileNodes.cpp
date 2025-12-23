@@ -9,6 +9,11 @@
 #include "HAL/PlatformFileManager.h"
 #include "HAL/PlatformProcess.h"
 #include "GenericPlatform/GenericPlatformFile.h"
+#if PLATFORM_ANDROID
+#include "Android/AndroidApplication.h"
+#include "Android/AndroidJNI.h"
+#include <jni.h>
+#endif
 
 bool UFileNodes::ReadText(const FString& FilePath, FString& OutText)
 {
@@ -154,11 +159,90 @@ bool UFileNodes::BrowseDirectory(const FString& DirectoryPath)
         return false;
     }
 
-    #if PLATFORM_ANDROID
-    UE_LOG(LogTemp, Warning, TEXT("BrowseDirectory: Not supported on Android"));
+#if PLATFORM_ANDROID
+    if (JNIEnv* Env = FAndroidApplication::GetJavaEnv())
+    {
+        // Android API 24+ throws FileUriExposedException if we try to share a "file://" URI.
+        // To fix this without complex FileProvider setup in manifest,
+        // we temporarily disable the StrictMode VM policy for file URIs.
+        
+        // 1. Get StrictMode class and methods
+        jclass StrictModeClass = Env->FindClass("android/os/StrictMode");
+        jmethodID DisableDeathMethod = Env->GetStaticMethodID(StrictModeClass, "disableDeathOnFileUriExposure", "()V");
+        
+        if (DisableDeathMethod)
+        {
+            Env->CallStaticVoidMethod(StrictModeClass, DisableDeathMethod);
+        }
+
+        // 2. Prepare the URI (Must use file:// protocol)
+        FString UriString = FString(TEXT("file://")) + NormalizedPath;
+        jstring jUriString = Env->NewStringUTF(TCHAR_TO_UTF8(*UriString));
+
+        jclass UriClass = Env->FindClass("android/net/Uri");
+        jmethodID ParseMethod = Env->GetStaticMethodID(UriClass, "parse", "(Ljava/lang/String;)Landroid/net/Uri;");
+        jobject UriObject = Env->CallStaticObjectMethod(UriClass, ParseMethod, jUriString);
+
+        // 3. Create Intent (ACTION_VIEW)
+        jclass IntentClass = Env->FindClass("android/content/Intent");
+        jstring ActionView = Env->NewStringUTF("android.intent.action.VIEW");
+        jmethodID IntentCtor = Env->GetMethodID(IntentClass, "<init>", "(Ljava/lang/String;)V");
+        jobject IntentObject = Env->NewObject(IntentClass, IntentCtor, ActionView);
+
+        // 4. Set Data and Type
+        // "resource/folder" is a de-facto standard for file managers.
+        // "vnd.android.cursor.dir/file" is another option, but resource/folder is widely supported by 3rd party apps.
+        jmethodID SetDataAndTypeMethod = Env->GetMethodID(IntentClass, "setDataAndType", "(Landroid/net/Uri;Ljava/lang/String;)Landroid/content/Intent;");
+        jstring MimeType = Env->NewStringUTF("resource/folder");
+        Env->CallObjectMethod(IntentObject, SetDataAndTypeMethod, UriObject, MimeType);
+
+        // 5. Add Flags
+        // FLAG_ACTIVITY_NEW_TASK (0x10000000) is required when starting activity from non-activity context
+        // FLAG_GRANT_READ_URI_PERMISSION (0x00000001) is good practice
+        jmethodID AddFlagsMethod = Env->GetMethodID(IntentClass, "addFlags", "(I)Landroid/content/Intent;");
+        Env->CallObjectMethod(IntentObject, AddFlagsMethod, 0x10000000 | 0x00000001);
+
+        // 6. Start Activity safely
+        jobject GameActivity = FAndroidApplication::GetGameActivityThis();
+        jclass ActivityClass = Env->GetObjectClass(GameActivity);
+        jmethodID StartActivityMethod = Env->GetMethodID(ActivityClass, "startActivity", "(Landroid/content/Intent;)V");
+
+        // We wrap this in a try-catch equivalent (checking for ActivityNotFoundException)
+        // However, in JNI C++, we should check if the intent resolves to avoid a crash, 
+        // or let the Java side handle the exception. 
+        // Here we attempt to start it. If no file manager is installed, this might throw a Java exception.
+        // Ideally, you would check resolveActivity in Java, but for brevity:
+        
+        bool bExceptionOccurred = false;
+        Env->CallVoidMethod(GameActivity, StartActivityMethod, IntentObject);
+        
+        if (Env->ExceptionCheck())
+        {
+            Env->ExceptionDescribe(); // Log exception to Logcat
+            Env->ExceptionClear();    // Clear it so app doesn't crash
+            UE_LOG(LogTemp, Warning, TEXT("BrowseDirectory: No application found to handle directory browsing."));
+            
+            // Fallback: Try generic generic mime type if resource/folder failed
+            jstring WildcardMime = Env->NewStringUTF("*/*");
+            Env->CallObjectMethod(IntentObject, SetDataAndTypeMethod, UriObject, WildcardMime);
+            Env->CallVoidMethod(GameActivity, StartActivityMethod, IntentObject);
+            
+            if (Env->ExceptionCheck())
+            {
+                Env->ExceptionClear();
+                UE_LOG(LogTemp, Error, TEXT("BrowseDirectory: Failed to open directory even with wildcard fallback."));
+                return false;
+            }
+        }
+
+        UE_LOG(LogTemp, Log, TEXT("BrowseDirectory: Android Intent sent for path: %s"), *UriString);
+        return true;
+    }
+    
+    UE_LOG(LogTemp, Error, TEXT("BrowseDirectory: Failed to get JNI Environment"));
     return false;
 
-    #elif PLATFORM_WINDOWS
+#elif PLATFORM_WINDOWS
     // Windows Explorer handles backslashes better in some edge cases
     NormalizedPath.ReplaceInline(TEXT("/"), TEXT("\\"), ESearchCase::IgnoreCase);
 
@@ -169,15 +253,15 @@ bool UFileNodes::BrowseDirectory(const FString& DirectoryPath)
     FPlatformProcess::CreateProc(*Command, *Params, true, false, false, nullptr, 0, nullptr, nullptr);
     return true;
 
-    #elif PLATFORM_LINUX
+#elif PLATFORM_LINUX
     const FString Command = TEXT("xdg-open");
     const FString Params = FString::Printf(TEXT("\"%s\""), *NormalizedPath);
 
     FPlatformProcess::CreateProc(*Command, *Params, true, false, false, nullptr, 0, nullptr, nullptr);
     return true;
 
-    #else
+#else
     UE_LOG(LogTemp, Error, TEXT("BrowseDirectory: Unsupported platform"));
     return false;
-    #endif
+#endif
 }
