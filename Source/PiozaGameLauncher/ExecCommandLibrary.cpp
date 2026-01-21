@@ -205,7 +205,6 @@ FString UExecCommandLibrary::ExecuteSystemCommand(
 
     if (bDetached)
     {
-        ActiveProcesses.Add(ProcessID, ProcessHandle);
         UE_LOG(LogTemp, Log, TEXT("Process started detached. PID: %d"), ProcessID);
     }
     else
