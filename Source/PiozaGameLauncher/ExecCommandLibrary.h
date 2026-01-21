@@ -100,6 +100,9 @@ private:
     /** Map of active processes tracked by their ProcessID */
     static TMap<int32, FProcHandle> ActiveProcesses;
 
+    static TMap<int32, TSet<uint32>> TrackedProcessTrees;
+    static void UpdateProcessTree(int32 RootPID);
+
 #if PLATFORM_WINDOWS
     /** Retrieves the executable path for a process by PID (Windows) */
     static bool GetProcessExecutablePath(uint32 PID, FString& OutPath);

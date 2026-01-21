@@ -15,9 +15,13 @@
 #elif PLATFORM_LINUX
 #include <dirent.h>
 #include <unistd.h>
+#include <fstream>
+#include <string>
+#include <sstream>
 #endif
 
 TMap<int32, FProcHandle> UExecCommandLibrary::ActiveProcesses;
+TMap<int32, TSet<uint32>> UExecCommandLibrary::TrackedProcessTrees;
 
 static FString EscapeAndQuoteArgument(const FString& Arg)
 {
@@ -61,6 +65,81 @@ static FString BuildArgumentString(const TArray<FString>& Args)
         EscapedArgs.Add(EscapeAndQuoteArgument(Arg));
     }
     return FString::Join(EscapedArgs, TEXT(" "));
+}
+
+void UExecCommandLibrary::UpdateProcessTree(int32 RootPID)
+{
+    TSet<uint32>& Tree = TrackedProcessTrees.FindOrAdd(RootPID);
+
+    // Only add RootPID if it's the first time
+    if (Tree.Num() == 0)
+    {
+        Tree.Add((uint32)RootPID);
+    }
+
+    #if PLATFORM_WINDOWS
+    HANDLE Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (Snapshot != INVALID_HANDLE_VALUE)
+    {
+        PROCESSENTRY32 Entry;
+        Entry.dwSize = sizeof(PROCESSENTRY32);
+        if (Process32First(Snapshot, &Entry))
+        {
+            do {
+                if (Tree.Contains(Entry.th32ParentProcessID))
+                {
+                    Tree.Add(Entry.th32ProcessID);
+                }
+            } while (Process32Next(Snapshot, &Entry));
+        }
+        CloseHandle(Snapshot);
+    }
+    #elif PLATFORM_LINUX
+    DIR* Dir = opendir("/proc");
+    if (Dir)
+    {
+        struct dirent* Entry;
+        while ((Entry = readdir(Dir)) != nullptr)
+        {
+            // Only check numeric directories
+            const char* p = Entry->d_name;
+            while (*p >= '0' && *p <= '9') p++;
+            if (*p != '\0' || Entry->d_name[0] == '\0') continue;
+
+            uint32 PID = (uint32)atoi(Entry->d_name);
+            if (PID == 0) continue;
+
+            std::ifstream StatFile("/proc/" + std::string(Entry->d_name) + "/stat");
+            if (StatFile.is_open())
+            {
+                std::string Line;
+                if (std::getline(StatFile, Line))
+                {
+                    // Format: pid (comm) state ppid ...
+                    // comm can contain spaces and parentheses. Find the LAST ')'
+                    size_t LastParen = Line.rfind(')');
+                    if (LastParen != std::string::npos && LastParen + 1 < Line.length())
+                    {
+                        // Parse what comes after ") "
+                        std::istringstream Stream(Line.substr(LastParen + 1));
+                        std::string StateChar;
+                        int PPID = 0;
+                        
+                        // After ')' comes space, then state, then ppid
+                        if (Stream >> StateChar >> PPID)
+                        {
+                            if (Tree.Contains((uint32)PPID))
+                            {
+                                Tree.Add(PID);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        closedir(Dir);
+    }
+    #endif
 }
 
 FString UExecCommandLibrary::ExecuteSystemCommand(
@@ -121,6 +200,8 @@ FString UExecCommandLibrary::ExecuteSystemCommand(
 
     bSuccess = true;
     ProcessID = static_cast<int32>(RealProcessID);
+    ActiveProcesses.Add(ProcessID, ProcessHandle);
+    TrackedProcessTrees.FindOrAdd(ProcessID).Add(RealProcessID);
 
     if (bDetached)
     {
@@ -170,27 +251,27 @@ FString UExecCommandLibrary::ExecuteShellCommand(
     FString ShellArg;
 
     #if PLATFORM_WINDOWS
-        ShellBinary = TEXT("cmd.exe");
-        if (!OptionalWorkingDirectory.IsEmpty())
-        {
-            FString Dir = FPaths::ConvertRelativePathToFull(OptionalWorkingDirectory);
-            ShellArg = FString::Printf(TEXT("/C \"cd /d \"%s\" && %s\""), *Dir, *ShellCommandLine);
-        }
-        else
-        {
-            ShellArg = TEXT("/C \"") + ShellCommandLine + TEXT("\"");
-        }
+    ShellBinary = TEXT("cmd.exe");
+    if (!OptionalWorkingDirectory.IsEmpty())
+    {
+        FString Dir = FPaths::ConvertRelativePathToFull(OptionalWorkingDirectory);
+        ShellArg = FString::Printf(TEXT("/C \"cd /d \"%s\" && %s\""), *Dir, *ShellCommandLine);
+    }
+    else
+    {
+        ShellArg = TEXT("/C \"") + ShellCommandLine + TEXT("\"");
+    }
     #else
-        ShellBinary = TEXT("/bin/sh");
-        if (!OptionalWorkingDirectory.IsEmpty())
-        {
-            FString Dir = FPaths::ConvertRelativePathToFull(OptionalWorkingDirectory);
-            ShellArg = FString::Printf(TEXT("-c \"cd '%s' && %s\""), *Dir, *ShellCommandLine);
-        }
-        else
-        {
-            ShellArg = TEXT("-c \"") + ShellCommandLine + TEXT("\"");
-        }
+    ShellBinary = TEXT("/bin/sh");
+    if (!OptionalWorkingDirectory.IsEmpty())
+    {
+        FString Dir = FPaths::ConvertRelativePathToFull(OptionalWorkingDirectory);
+        ShellArg = FString::Printf(TEXT("-c \"cd '%s' && %s\""), *Dir, *ShellCommandLine);
+    }
+    else
+    {
+        ShellArg = TEXT("-c \"") + ShellCommandLine + TEXT("\"");
+    }
     #endif
 
     return ExecuteSystemCommand(ShellBinary, { ShellArg }, bDetached, bHidden, Priority, OptionalWorkingDirectory, bSuccess, ProcessID);
@@ -198,27 +279,96 @@ FString UExecCommandLibrary::ExecuteShellCommand(
 
 bool UExecCommandLibrary::IsProcessStillRunning(int32 ProcessID)
 {
-    if (FProcHandle* HandlePtr = ActiveProcesses.Find(ProcessID))
+    UpdateProcessTree(ProcessID);
+
+    TSet<uint32>* Tree = TrackedProcessTrees.Find(ProcessID);
+    if (!Tree) return false;
+
+    bool bAnyRunning = false;
+    TArray<uint32> ToRemove;
+
+    for (uint32 PID : *Tree)
     {
-        if (HandlePtr->IsValid())
+        FProcHandle Handle = FPlatformProcess::OpenProcess(PID);
+        bool bIsRunning = false;
+        if (Handle.IsValid())
         {
-            return FPlatformProcess::IsProcRunning(*HandlePtr);
+            bIsRunning = FPlatformProcess::IsProcRunning(Handle);
+            
+            #if PLATFORM_LINUX
+            if (bIsRunning)
+            {
+                // Extra check for Zombie state
+                std::ifstream StatFile("/proc/" + std::to_string(PID) + "/stat");
+                if (StatFile.is_open())
+                {
+                    std::string Line;
+                    if (std::getline(StatFile, Line))
+                    {
+                        size_t LastParen = Line.rfind(')');
+                        if (LastParen != std::string::npos)
+                        {
+                            std::istringstream Stream(Line.substr(LastParen + 1));
+                            std::string State;
+                            if (Stream >> State)
+                            {
+                                if (State == "Z")
+                                {
+                                    bIsRunning = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            #endif
+
+            FPlatformProcess::CloseProc(Handle);
+        }
+
+        if (bIsRunning)
+        {
+            bAnyRunning = true;
+        }
+        else
+        {
+            ToRemove.Add(PID);
         }
     }
-    return false;
+
+    // Clean up dead PIDs to avoid false positives due to PID reuse
+    for (uint32 DeadPID : ToRemove)
+    {
+        Tree->Remove(DeadPID);
+    }
+
+    if (!bAnyRunning)
+    {
+        TrackedProcessTrees.Remove(ProcessID);
+        ActiveProcesses.Remove(ProcessID);
+    }
+
+    return bAnyRunning;
 }
 
 bool UExecCommandLibrary::TerminateProcess(int32 ProcessID)
 {
-    if (FProcHandle* HandlePtr = ActiveProcesses.Find(ProcessID))
+    UpdateProcessTree(ProcessID);
+    TSet<uint32>* Tree = TrackedProcessTrees.Find(ProcessID);
+    if (Tree)
     {
-        if (HandlePtr->IsValid())
+        for (uint32 PID : *Tree)
         {
-            FPlatformProcess::TerminateProc(*HandlePtr);
-            FPlatformProcess::CloseProc(*HandlePtr);
-            ActiveProcesses.Remove(ProcessID);
-            return true;
+            FProcHandle Handle = FPlatformProcess::OpenProcess(PID);
+            if (Handle.IsValid())
+            {
+                FPlatformProcess::TerminateProc(Handle);
+                FPlatformProcess::CloseProc(Handle);
+            }
         }
+        TrackedProcessTrees.Remove(ProcessID);
+        ActiveProcesses.Remove(ProcessID);
+        return true;
     }
     return false;
 }
@@ -228,65 +378,65 @@ bool UExecCommandLibrary::TerminateProcessByName(const FString& NameFragment)
     bool bAnyTerminated = false;
 
     #if PLATFORM_WINDOWS
-        HANDLE Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-        if (Snapshot == INVALID_HANDLE_VALUE)
-            return false;
+    HANDLE Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (Snapshot == INVALID_HANDLE_VALUE)
+        return false;
 
-        PROCESSENTRY32 Entry;
-        Entry.dwSize = sizeof(PROCESSENTRY32);
+    PROCESSENTRY32 Entry;
+    Entry.dwSize = sizeof(PROCESSENTRY32);
 
-        if (Process32First(Snapshot, &Entry))
+    if (Process32First(Snapshot, &Entry))
+    {
+        do
         {
-            do
+            FString ProcessName = Entry.szExeFile;
+            if (ProcessName.Contains(NameFragment))
             {
-                FString ProcessName = Entry.szExeFile;
-                if (ProcessName.Contains(NameFragment))
+                HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, false, Entry.th32ProcessID);
+                if (hProcess)
                 {
-                    HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, false, Entry.th32ProcessID);
-                    if (hProcess)
-                    {
-                        UE_LOG(LogTemp, Warning, TEXT("Terminating process: %s (PID: %d)"), *ProcessName, Entry.th32ProcessID);
-                        ::TerminateProcess(hProcess, 1);
-                        CloseHandle(hProcess);
-                        bAnyTerminated = true;
-                    }
+                    UE_LOG(LogTemp, Warning, TEXT("Terminating process: %s (PID: %d)"), *ProcessName, Entry.th32ProcessID);
+                    ::TerminateProcess(hProcess, 1);
+                    CloseHandle(hProcess);
+                    bAnyTerminated = true;
                 }
-            } while (Process32Next(Snapshot, &Entry));
-        }
+            }
+        } while (Process32Next(Snapshot, &Entry));
+    }
 
-        CloseHandle(Snapshot);
+    CloseHandle(Snapshot);
 
     #elif PLATFORM_LINUX || PLATFORM_MAC
-        FILE* Pipe = popen("ps -eo pid,comm", "r");
-        if (!Pipe)
-            return false;
+    FILE* Pipe = popen("ps -eo pid,comm", "r");
+    if (!Pipe)
+        return false;
 
-        char Buffer[512];
-        while (fgets(Buffer, sizeof(Buffer), Pipe))
+    char Buffer[512];
+    while (fgets(Buffer, sizeof(Buffer), Pipe))
+    {
+        FString Line(Buffer);
+        Line = Line.TrimStartAndEnd();
+
+        TArray<FString> Parts;
+        Line.ParseIntoArrayWS(Parts);
+
+        if (Parts.Num() >= 2)
         {
-            FString Line(Buffer);
-            Line = Line.TrimStartAndEnd();
+            int32 PID = FCString::Atoi(*Parts[0]);
+            FString ProcName = Parts[1];
 
-            TArray<FString> Parts;
-            Line.ParseIntoArrayWS(Parts);
-
-            if (Parts.Num() >= 2)
+            if (ProcName.Contains(NameFragment))
             {
-                int32 PID = FCString::Atoi(*Parts[0]);
-                FString ProcName = Parts[1];
-
-                if (ProcName.Contains(NameFragment))
+                if (kill(PID, SIGTERM) == 0)
                 {
-                    if (kill(PID, SIGTERM) == 0)
-                    {
-                        UE_LOG(LogTemp, Warning, TEXT("Terminated process: %s (PID: %d)"), *ProcName, PID);
-                        bAnyTerminated = true;
-                    }
+                    UE_LOG(LogTemp, Warning, TEXT("Terminated process: %s (PID: %d)"), *ProcName, PID);
+                    bAnyTerminated = true;
                 }
             }
         }
+    }
 
-        pclose(Pipe);
+    pclose(Pipe);
     #endif
 
     return bAnyTerminated;
@@ -297,77 +447,76 @@ bool UExecCommandLibrary::TerminateProcessesByPathFragment(const FString& PathFr
     bool bAnyTerminated = false;
 
     #if PLATFORM_WINDOWS
-        HANDLE Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-        if (Snapshot == INVALID_HANDLE_VALUE)
-            return false;
+    HANDLE Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (Snapshot == INVALID_HANDLE_VALUE)
+        return false;
 
-        PROCESSENTRY32 Entry;
-        Entry.dwSize = sizeof(PROCESSENTRY32);
+    PROCESSENTRY32 Entry;
+    Entry.dwSize = sizeof(PROCESSENTRY32);
 
-        if (Process32First(Snapshot, &Entry))
+    if (Process32First(Snapshot, &Entry))
+    {
+        do
         {
-            do
-            {
-                FString ProcPath;
-                if (GetProcessExecutablePath(Entry.th32ProcessID, ProcPath))
-                {
-                    if (ProcPath.Contains(PathFragment))
-                    {
-                        HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, false, Entry.th32ProcessID);
-                        if (hProcess)
-                        {
-                            UE_LOG(LogTemp, Warning, TEXT("Terminating process: %s (PID: %d)"), *ProcPath, Entry.th32ProcessID);
-                            ::TerminateProcess(hProcess, 1);
-                            CloseHandle(hProcess);
-                            bAnyTerminated = true;
-                        }
-                    }
-                }
-            } while (Process32Next(Snapshot, &Entry));
-        }
-
-        CloseHandle(Snapshot);
-
-    #elif PLATFORM_LINUX
-        DIR* Dir = opendir("/proc");
-        if (!Dir)
-            return false;
-
-        struct dirent* DirEntry;
-
-        // Helper lambda to check if string is numeric
-        auto IsNumeric = [](const char* Str) -> bool
-        {
-            if (!Str || *Str == '\0')
-                return false;
-            for (const char* p = Str; *p; ++p)
-            {
-                if (!(*p >= '0' && *p <= '9'))
-                    return false;
-            }
-            return true;
-        };
-
-        while ((DirEntry = readdir(Dir)) != nullptr)
-        {
-            if (!IsNumeric(DirEntry->d_name))
-                continue;
-
-            int PID = atoi(DirEntry->d_name);
             FString ProcPath;
-            if (GetProcessExecutablePath(PID, ProcPath))
+            if (GetProcessExecutablePath(Entry.th32ProcessID, ProcPath))
             {
                 if (ProcPath.Contains(PathFragment))
                 {
-                    if (kill(PID, SIGTERM) == 0)
+                    HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, false, Entry.th32ProcessID);
+                    if (hProcess)
                     {
-                        UE_LOG(LogTemp, Warning, TEXT("Terminated process: %s (PID: %d)"), *ProcPath, PID);
+                        UE_LOG(LogTemp, Warning, TEXT("Terminating process: %s (PID: %d)"), *ProcPath, Entry.th32ProcessID);
+                        ::TerminateProcess(hProcess, 1);
+                        CloseHandle(hProcess);
                         bAnyTerminated = true;
                     }
                 }
             }
+        } while (Process32Next(Snapshot, &Entry));
+    }
+
+    CloseHandle(Snapshot);
+
+    #elif PLATFORM_LINUX
+    DIR* Dir = opendir("/proc");
+    if (!Dir)
+        return false;
+
+    struct dirent* DirEntry;
+
+    auto IsNumeric = [](const char* Str) -> bool
+    {
+        if (!Str || *Str == '\0')
+            return false;
+        for (const char* p = Str; *p; ++p)
+        {
+            if (!(*p >= '0' && *p <= '9'))
+                return false;
         }
-        closedir(Dir);
+        return true;
+    };
+
+    while ((DirEntry = readdir(Dir)) != nullptr)
+    {
+        if (!IsNumeric(DirEntry->d_name))
+            continue;
+
+        int PID = atoi(DirEntry->d_name);
+        FString ProcPath;
+        if (GetProcessExecutablePath(PID, ProcPath))
+        {
+            if (ProcPath.Contains(PathFragment))
+            {
+                if (kill(PID, SIGTERM) == 0)
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("Terminated process: %s (PID: %d)"), *ProcPath, PID);
+                    bAnyTerminated = true;
+                }
+            }
+        }
+    }
+    closedir(Dir);
     #endif
 
     return bAnyTerminated;
@@ -401,13 +550,13 @@ bool UExecCommandLibrary::GetProcessExecutablePath(int32 PID, FString& OutPath)
     OutPath.Empty();
 
     FString LinkPath = FString::Printf(TEXT("/proc/%d/exe"), PID);
-    TCHAR Buffer[PATH_MAX] = { 0 };
+    char Buffer[PATH_MAX];
 
-    int Count = readlink(TCHAR_TO_ANSI(*LinkPath), (char*)Buffer, PATH_MAX - 1);
+    ssize_t Count = readlink(TCHAR_TO_ANSI(*LinkPath), Buffer, sizeof(Buffer) - 1);
     if (Count > 0)
     {
         Buffer[Count] = '\0';
-        OutPath = FString(Buffer);
+        OutPath = FString(UTF8_TO_TCHAR(Buffer));
         return true;
     }
 
