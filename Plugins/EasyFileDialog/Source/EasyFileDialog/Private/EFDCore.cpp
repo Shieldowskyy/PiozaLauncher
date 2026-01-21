@@ -84,13 +84,29 @@ bool EFDCore::FileDialogShared(bool bSave, const void* ParentHandle, const FStri
     if (bSave) Command += TEXT(" --save --confirm-overwrite");
     else if (Flags & EEasyFileDialogFlags::Multiple) Command += TEXT(" --multiple");
 
-    if (!Title.IsEmpty()) Command += TEXT(" --title='") + Title + TEXT("'");
-    if (!Path.IsEmpty()) Command += TEXT(" --filename='") + FPaths::ConvertRelativePathToFull(Path) + TEXT("'");
-    if (!File.IsEmpty() && !bSave) Command += TEXT("/") + File + TEXT("'");
+    if (!Title.IsEmpty()) Command += TEXT(" --title='") + Title.Replace(TEXT("'"), TEXT("'\\''")) + TEXT("'");
+
+    FString FullPath = Path;
+    if (!File.IsEmpty() && !bSave)
+    {
+        if (FullPath.IsEmpty()) FullPath = File;
+        else FullPath /= File;
+    }
+
+    if (!FullPath.IsEmpty())
+    {
+        Command += TEXT(" --filename='") + FPaths::ConvertRelativePathToFull(FullPath).Replace(TEXT("'"), TEXT("'\\''")) + TEXT("'");
+    }
+
+    FString EscapedCmd = Command;
+    EscapedCmd.ReplaceInline(TEXT("\\"), TEXT("\\\\"));
+    EscapedCmd.ReplaceInline(TEXT("\""), TEXT("\\\""));
+    EscapedCmd.ReplaceInline(TEXT("$"), TEXT("\\$"));
+    EscapedCmd.ReplaceInline(TEXT("`"), TEXT("\\`"));
 
     FString Result, Errors;
     int32 ReturnCode;
-    bool bSuccess = FPlatformProcess::ExecProcess(TEXT("/bin/sh"), *(TEXT("-c \"") + Command + TEXT("\"")), &ReturnCode, &Result, &Errors);
+    bool bSuccess = FPlatformProcess::ExecProcess(TEXT("/bin/sh"), *(TEXT("-c \"") + EscapedCmd + TEXT("\"")), &ReturnCode, &Result, &Errors);
 
     if (!bSuccess || ReturnCode != 0 || Result.IsEmpty()) return false;
 
@@ -150,12 +166,18 @@ bool EFDCore::OpenFolderDialogInner(const void* ParentHandle, const FString& Tit
 
     #elif PLATFORM_LINUX
     FString Cmd = TEXT("zenity --file-selection --directory");
-    if (!Title.IsEmpty()) Cmd += TEXT(" --title='") + Title + TEXT("'");
-    if (!Path.IsEmpty()) Cmd += TEXT(" --filename='") + FPaths::ConvertRelativePathToFull(Path) + TEXT("'");
+    if (!Title.IsEmpty()) Cmd += TEXT(" --title='") + Title.Replace(TEXT("'"), TEXT("'\\''")) + TEXT("'");
+    if (!Path.IsEmpty()) Cmd += TEXT(" --filename='") + FPaths::ConvertRelativePathToFull(Path).Replace(TEXT("'"), TEXT("'\\''")) + TEXT("'");
+
+    FString EscapedCmd = Cmd;
+    EscapedCmd.ReplaceInline(TEXT("\\"), TEXT("\\\\"));
+    EscapedCmd.ReplaceInline(TEXT("\""), TEXT("\\\""));
+    EscapedCmd.ReplaceInline(TEXT("$"), TEXT("\\$"));
+    EscapedCmd.ReplaceInline(TEXT("`"), TEXT("\\`"));
 
     FString Result, Errors;
     int32 RetCode;
-    bool bSuccess = FPlatformProcess::ExecProcess(TEXT("/bin/sh"), *(TEXT("-c \"") + Cmd + TEXT("\"")), &RetCode, &Result, &Errors);
+    bool bSuccess = FPlatformProcess::ExecProcess(TEXT("/bin/sh"), *(TEXT("-c \"") + EscapedCmd + TEXT("\"")), &RetCode, &Result, &Errors);
     if (bSuccess && RetCode == 0 && !Result.IsEmpty())
     {
         OutFolder = Result.TrimEnd();
