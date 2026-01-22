@@ -27,7 +27,7 @@ public class PiozaGameLauncher : ModuleRules
 			"StructUtils"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore", "ImageWrapper", "RenderCore", "RHI" });
 
 		if (Target.Platform == UnrealTargetPlatform.Android)
 		{
