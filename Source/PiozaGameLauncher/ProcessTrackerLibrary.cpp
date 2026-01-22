@@ -4,7 +4,7 @@
 
 #include "ProcessTrackerLibrary.h"
 #include "HAL/PlatformProcess.h"
-#include <signal.h>
+#include "Misc/App.h"
 
 #if PLATFORM_WINDOWS
 #include "Windows/AllowWindowsPlatformTypes.h"
@@ -21,9 +21,14 @@
 
 TMap<int32, FProcHandle> UProcessTrackerLibrary::ActiveProcesses;
 TMap<int32, TSet<uint32>> UProcessTrackerLibrary::TrackedProcessTrees;
+TMap<uint32, TArray<uint32>> UProcessTrackerLibrary::CachedParentMap;
+double UProcessTrackerLibrary::LastScanTime = 0.0;
 
 void UProcessTrackerLibrary::RegisterProcess(int32 ProcessID, FProcHandle Handle)
 {
+    // Clear old data if PID is being reused
+    ClearTracking(ProcessID);
+
     ActiveProcesses.Add(ProcessID, Handle);
     TrackedProcessTrees.FindOrAdd(ProcessID).Add((uint32)ProcessID);
 }
@@ -50,72 +55,93 @@ void UProcessTrackerLibrary::UpdateProcessTree(int32 RootPID)
 {
     TSet<uint32>& Tree = TrackedProcessTrees.FindOrAdd(RootPID);
 
-    // Only add RootPID if it's the first time
-    if (Tree.Num() == 0)
-    {
-        Tree.Add((uint32)RootPID);
-    }
+    // Ensure RootPID is always in its own tree
+    Tree.Add((uint32)RootPID);
 
-    #if PLATFORM_WINDOWS
-    HANDLE Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if (Snapshot != INVALID_HANDLE_VALUE)
+    double CurrentTime = FPlatformTime::Seconds();
+    // Cache the system scan for 0.5 seconds to avoid heavy load if called multi-frame or for multiple processes
+    if (CurrentTime - LastScanTime > 0.5)
     {
-        PROCESSENTRY32 Entry;
-        Entry.dwSize = sizeof(PROCESSENTRY32);
-        if (Process32First(Snapshot, &Entry))
+        CachedParentMap.Empty();
+        LastScanTime = CurrentTime;
+
+        #if PLATFORM_WINDOWS
+        HANDLE Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+        if (Snapshot != INVALID_HANDLE_VALUE)
         {
-            do {
-                if (Tree.Contains(Entry.th32ParentProcessID))
-                {
-                    Tree.Add(Entry.th32ProcessID);
-                }
-            } while (Process32Next(Snapshot, &Entry));
-        }
-        CloseHandle(Snapshot);
-    }
-    #elif PLATFORM_LINUX
-    DIR* Dir = opendir("/proc");
-    if (Dir)
-    {
-        struct dirent* Entry;
-        while ((Entry = readdir(Dir)) != nullptr)
-        {
-            // Only check numeric directories
-            const char* p = Entry->d_name;
-            while (*p >= '0' && *p <= '9') p++;
-            if (*p != '\0' || Entry->d_name[0] == '\0') continue;
-
-            uint32 PID = (uint32)atoi(Entry->d_name);
-            if (PID == 0) continue;
-
-            std::ifstream StatFile("/proc/" + std::string(Entry->d_name) + "/stat");
-            if (StatFile.is_open())
+            PROCESSENTRY32 Entry;
+            Entry.dwSize = sizeof(PROCESSENTRY32);
+            if (Process32First(Snapshot, &Entry))
             {
-                std::string Line;
-                if (std::getline(StatFile, Line))
+                do {
+                    CachedParentMap.FindOrAdd(Entry.th32ParentProcessID).Add(Entry.th32ProcessID);
+                } while (Process32Next(Snapshot, &Entry));
+            }
+            CloseHandle(Snapshot);
+        }
+        #elif PLATFORM_LINUX
+        DIR* Dir = opendir("/proc");
+        if (Dir)
+        {
+            struct dirent* Entry;
+            while ((Entry = readdir(Dir)) != nullptr)
+            {
+                // Only check numeric directories
+                const char* p = Entry->d_name;
+                while (*p >= '0' && *p <= '9') p++;
+                if (*p != '\0' || Entry->d_name[0] == '\0') continue;
+
+                uint32 PID = (uint32)atoi(Entry->d_name);
+                if (PID == 0) continue;
+
+                std::ifstream StatFile("/proc/" + std::string(Entry->d_name) + "/stat");
+                if (StatFile.is_open())
                 {
-                    // Format: pid (comm) state ppid ...
-                    size_t LastParen = Line.rfind(')');
-                    if (LastParen != std::string::npos && LastParen + 1 < Line.length())
+                    std::string Line;
+                    if (std::getline(StatFile, Line))
                     {
-                        std::istringstream Stream(Line.substr(LastParen + 1));
-                        std::string StateChar;
-                        int PPID = 0;
-                        
-                        if (Stream >> StateChar >> PPID)
+                        // Format: pid (comm) state ppid ...
+                        size_t LastParen = Line.rfind(')');
+                        if (LastParen != std::string::npos && LastParen + 1 < Line.length())
                         {
-                            if (Tree.Contains((uint32)PPID))
+                            std::istringstream Stream(Line.substr(LastParen + 1));
+                            std::string StateChar;
+                            uint32 PPID = 0;
+                            
+                            if (Stream >> StateChar >> PPID)
                             {
-                                Tree.Add(PID);
+                                CachedParentMap.FindOrAdd(PPID).Add(PID);
                             }
                         }
                     }
                 }
             }
+            closedir(Dir);
         }
-        closedir(Dir);
+        #endif
     }
-    #endif
+
+    // Now perform BFS to find all descendants starting from RootPID
+    TArray<uint32> Queue;
+    Queue.Add((uint32)RootPID);
+    
+    int32 Head = 0;
+    while (Head < Queue.Num())
+    {
+        uint32 CurrentPID = Queue[Head++];
+        TArray<uint32>* Children = CachedParentMap.Find(CurrentPID);
+        if (Children)
+        {
+            for (uint32 ChildPID : *Children)
+            {
+                if (!Tree.Contains(ChildPID))
+                {
+                    Tree.Add(ChildPID);
+                    Queue.Add(ChildPID);
+                }
+            }
+        }
+    }
 }
 
 bool UProcessTrackerLibrary::IsProcessStillRunning(int32 ProcessID)

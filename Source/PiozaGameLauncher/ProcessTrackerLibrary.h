@@ -65,4 +65,10 @@ private:
     /** Updates the process tree for the given Root PID by scanning system processes */
     static void UpdateProcessTree(int32 RootPID);
 
+    /** Cached parent-to-children relationship map for the entire system */
+    static TMap<uint32, TArray<uint32>> CachedParentMap;
+    
+    /** Timestamp of the last system-wide process scan */
+    static double LastScanTime;
+
 };
