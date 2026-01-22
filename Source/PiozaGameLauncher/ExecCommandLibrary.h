@@ -80,13 +80,6 @@ public:
         int32& ProcessID
     );
 
-    /**
-     * Checks whether a process with given ProcessID is still running.
-     * @param ProcessID - ID of the process to check.
-     * @return true if process is running; false otherwise.
-     */
-    UFUNCTION(BlueprintCallable, Category = "System")
-    static bool IsProcessStillRunning(int32 ProcessID);
 
     /**
      * Terminates the process with given ProcessID.
@@ -96,18 +89,4 @@ public:
     UFUNCTION(BlueprintCallable, Category = "System")
     static bool TerminateProcess(int32 ProcessID);
 
-private:
-    /** Map of active processes tracked by their ProcessID */
-    static TMap<int32, FProcHandle> ActiveProcesses;
-
-    static TMap<int32, TSet<uint32>> TrackedProcessTrees;
-    static void UpdateProcessTree(int32 RootPID);
-
-#if PLATFORM_WINDOWS
-    /** Retrieves the executable path for a process by PID (Windows) */
-    static bool GetProcessExecutablePath(uint32 PID, FString& OutPath);
-#elif PLATFORM_LINUX
-    /** Retrieves the executable path for a process by PID (Linux) */
-    static bool GetProcessExecutablePath(int32 PID, FString& OutPath);
-#endif
 };

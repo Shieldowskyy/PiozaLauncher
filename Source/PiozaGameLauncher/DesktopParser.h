@@ -66,28 +66,11 @@ public:
 	static FString GetExecutableNameFromPath(const FString& ExecutablePath);
 
 	UFUNCTION(BlueprintCallable, Category = "Desktop Parser")
-	static FString ResolveIconPath(const FString& IconName, int32 PreferredSize = 256);
-
-	UFUNCTION(BlueprintCallable, Category = "Desktop Parser")
-	static TArray<FString> GetIconSearchPaths();
-
-	UFUNCTION(BlueprintCallable, Category = "Desktop Parser")
 	static FString ResolveExecutablePath(const FString& ExecutableName);
-
-	UFUNCTION(BlueprintCallable, Category = "Desktop Parser")
-	static UTexture2D* LoadIconAsTexture(const FString& IconPath, int32 IconIndex = 0);
-
-	UFUNCTION(BlueprintCallable, Category = "Desktop Parser")
-	static bool SaveTextureToFile(UTexture2D* Texture, const FString& FilePath);
 
 private:
 	static FDesktopEntryInfo ParseLinuxDesktopFile(const FString& FilePath);
 	static FDesktopEntryInfo ParseWindowsShortcut(const FString& FilePath);
 	static void SplitCommandLine(const FString& FullCommandLine, FString& OutExecutable, TArray<FString>& OutArguments);
 	static TArray<FString> TokenizeCommandLine(const FString& CommandLine);
-	
-#if PLATFORM_WINDOWS
-	static UTexture2D* CreateTextureFromHIcon(void* InHIcon);
-	static void* GetWindowsIconHandle(const FString& FilePath, int32 IconIndex);
-#endif
 };
