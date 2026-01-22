@@ -123,6 +123,10 @@ All three are licensed under the **MIT License**.
 Copyright (c) 2024 Georgy Treshchev  
 Full license texts are available in their respective repositories.
 
+#### ✅ [EasyFileDialog](https://github.com/unrealsumon/EasyFileDialog)
+Licensed under the **MIT License**.  
+Repository: https://github.com/unrealsumon/EasyFileDialog
+
 #### ✅ [Sentry Unreal](https://github.com/getsentry/sentry-unreal)
 
 Licensed under the **MIT License**.  
