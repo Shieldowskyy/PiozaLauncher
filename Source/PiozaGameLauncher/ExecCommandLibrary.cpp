@@ -73,13 +73,16 @@ FString UExecCommandLibrary::ExecuteSystemCommand(
     ProcessID = -1;
     uint32 RealProcessID = 0;
 
-    // Create pipes for output capture
+    // Create pipes for output capture only if not detached
     void* ReadPipe = nullptr;
     void* WritePipe = nullptr;
-    if (!FPlatformProcess::CreatePipe(ReadPipe, WritePipe))
+    if (!bDetached)
     {
-        bSuccess = false;
-        return TEXT("Failed to create pipes.");
+        if (!FPlatformProcess::CreatePipe(ReadPipe, WritePipe))
+        {
+            bSuccess = false;
+            return TEXT("Failed to create pipes.");
+        }
     }
 
     // Prepare working directory
@@ -148,8 +151,11 @@ FString UExecCommandLibrary::ExecuteSystemCommand(
         FPlatformProcess::CloseProc(ProcessHandle);
         UE_LOG(LogTemp, Log, TEXT("Process finished. PID: %d"), ProcessID);
     }
-
-    FPlatformProcess::ClosePipe(ReadPipe, WritePipe);
+    
+    if (ReadPipe || WritePipe)
+    {
+        FPlatformProcess::ClosePipe(ReadPipe, WritePipe);
+    }
     return Output;
 }
 
