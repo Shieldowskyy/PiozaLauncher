@@ -11,6 +11,8 @@
 
 DECLARE_MULTICAST_DELEGATE(FOnTrayIconClickedNative);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTrayIconClicked);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnApplicationMinimizedToTray);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnApplicationRestoredFromTray);
 
 /**
  * Subsystem for managing the system tray icon on Windows and Linux.
@@ -33,19 +35,31 @@ public:
     UPROPERTY(BlueprintAssignable, Category = "System Tray")
     FOnTrayIconClicked OnTrayIconClicked;
 
+    UPROPERTY(BlueprintAssignable, Category = "System Tray")
+    FOnApplicationMinimizedToTray OnApplicationMinimizedToTray;
+
+    UPROPERTY(BlueprintAssignable, Category = "System Tray")
+    FOnApplicationRestoredFromTray OnApplicationRestoredFromTray;
+
+    UFUNCTION(BlueprintPure, Category = "System Tray")
+    bool IsApplicationInTray() const;
+
     FOnTrayIconClickedNative OnTrayIconClickedNative;
 
     FString LastTooltip;
     FString LastIconPath;
 
 private:
+    bool bIsIconVisible = false;
+
     void OnRequestDestroyWindowOverride(const TSharedRef<SWindow>& InWindow);
+    FString GetBestIconPath() const;
+    bool bHasShownInitialTrayIcon = false;
 
 private:
 #if PLATFORM_WINDOWS
     void* TrayIconData = nullptr;
     static USystemTraySubsystem* Instance;
-    bool bIsIconVisible = false;
 
     // Windows Message Handler
     bool HandleWindowsMessage(void* hWnd, uint32 Message, uintptr_t WParam, intptr_t LParam, intptr_t* OutResult);
@@ -53,7 +67,6 @@ private:
 
 #if PLATFORM_LINUX
     void* NativeDBusConnection = nullptr;
-    bool bIsIconVisible = false;
     
     // Linux specific methods
     void InitLinuxDBus();

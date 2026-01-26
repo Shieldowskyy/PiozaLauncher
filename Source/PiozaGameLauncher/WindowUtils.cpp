@@ -70,7 +70,9 @@ void UWindowUtils::RestoreFromTray()
             USystemTraySubsystem* TraySubsystem = GI->GetSubsystem<USystemTraySubsystem>();
             if (TraySubsystem)
             {
-                TraySubsystem->HideTrayIcon();
+                // Keep tray icon visible
+                // TraySubsystem->HideTrayIcon();
+                TraySubsystem->ShowTrayIcon(TEXT("Pioza Launcher"));
             }
         }
     }
