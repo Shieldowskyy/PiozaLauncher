@@ -13,6 +13,41 @@ DECLARE_MULTICAST_DELEGATE(FOnTrayIconClickedNative);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTrayIconClicked);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnApplicationMinimizedToTray);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnApplicationRestoredFromTray);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTrayMenuItemClicked, class UTrayMenuItem*, MenuItem);
+
+UCLASS(BlueprintType)
+class PIOZAGAMELAUNCHER_API UTrayMenuItem : public UObject
+{
+    GENERATED_BODY()
+
+public:
+    UPROPERTY(BlueprintReadOnly, Category = "System Tray")
+    int32 InternalId = 0;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "System Tray")
+    FString Label;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "System Tray")
+    bool bIsEnabled = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "System Tray")
+    bool bIsSeparator = false;
+
+    UPROPERTY(BlueprintAssignable, Category = "System Tray")
+    FOnTrayMenuItemClicked OnClicked;
+
+    UFUNCTION(BlueprintCallable, Category = "System Tray")
+    void SetLabel(const FString& InLabel);
+
+    UFUNCTION(BlueprintCallable, Category = "System Tray")
+    void SetEnabled(bool bInEnabled);
+
+    UFUNCTION(BlueprintCallable, Category = "System Tray")
+    void RemoveFromTray();
+
+private:
+    void NotifyParentRefresh();
+};
 
 /**
  * Subsystem for managing the system tray icon on Windows and Linux.
@@ -41,6 +76,24 @@ public:
     UPROPERTY(BlueprintAssignable, Category = "System Tray")
     FOnApplicationRestoredFromTray OnApplicationRestoredFromTray;
 
+    UFUNCTION(BlueprintCallable, Category = "System Tray")
+    UTrayMenuItem* CreateTrayMenuItem(const FString& Label, bool bIsEnabled = true, bool bIsSeparator = false);
+
+    UFUNCTION(BlueprintCallable, Category = "System Tray")
+    void AddTrayMenuItem(UTrayMenuItem* MenuItem);
+
+    UFUNCTION(BlueprintCallable, Category = "System Tray")
+    void InsertTrayMenuItem(UTrayMenuItem* MenuItem, int32 Index);
+
+    UFUNCTION(BlueprintCallable, Category = "System Tray")
+    void RemoveTrayMenuItem(UTrayMenuItem* MenuItem);
+
+    UFUNCTION(BlueprintCallable, Category = "System Tray")
+    void ClearTrayMenuItems(bool bKeepTitle = true);
+
+    UFUNCTION(BlueprintPure, Category = "System Tray")
+    const TArray<UTrayMenuItem*>& GetTrayMenuItems() const { return MenuItems; }
+
     UFUNCTION(BlueprintPure, Category = "System Tray")
     bool IsApplicationInTray() const;
 
@@ -48,6 +101,12 @@ public:
 
     FString LastTooltip;
     FString LastIconPath;
+
+    UPROPERTY()
+    TArray<UTrayMenuItem*> MenuItems;
+
+    void RefreshTrayMenu();
+    int32 NextInternalId = 1;
 
 private:
     bool bIsIconVisible = false;
@@ -63,6 +122,7 @@ private:
 
     // Windows Message Handler
     bool HandleWindowsMessage(void* hWnd, uint32 Message, uintptr_t WParam, intptr_t LParam, intptr_t* OutResult);
+    void ShowWindowsContextMenu(void* hWnd);
 #endif
 
 #if PLATFORM_LINUX

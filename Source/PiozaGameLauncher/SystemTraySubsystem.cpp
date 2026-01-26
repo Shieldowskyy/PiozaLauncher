@@ -110,6 +110,34 @@ static const FDBusPropertyEntry DBusProperties[] = {
     { nullptr, nullptr }
 };
 
+void UTrayMenuItem::SetLabel(const FString& InLabel)
+{
+    Label = InLabel;
+    NotifyParentRefresh();
+}
+
+void UTrayMenuItem::SetEnabled(bool bInEnabled)
+{
+    bIsEnabled = bInEnabled;
+    NotifyParentRefresh();
+}
+
+void UTrayMenuItem::RemoveFromTray()
+{
+    if (USystemTraySubsystem* Parent = Cast<USystemTraySubsystem>(GetOuter()))
+    {
+        Parent->RemoveTrayMenuItem(this);
+    }
+}
+
+void UTrayMenuItem::NotifyParentRefresh()
+{
+    if (USystemTraySubsystem* Parent = Cast<USystemTraySubsystem>(GetOuter()))
+    {
+        Parent->RefreshTrayMenu();
+    }
+}
+
 static bool AppendPropertyVariant(DBusMessageIter* iter, const char* property, USystemTraySubsystem* Subsystem)
 {
     for (const FDBusPropertyEntry* Entry = DBusProperties; Entry->Name; ++Entry) {
@@ -349,11 +377,18 @@ static DBusHandlerResult MenuDBusMessageHandler(::DBusConnection* conn, DBusMess
         dbus_message_iter_open_container(&root_struct, DBUS_TYPE_ARRAY, "v", &children_array);
         
         if (parentId == 0) {
-            // Add items
-            AppendMenuItem(&children_array, 1, "PiozaLauncher", false, false); // Title
-            AppendMenuItem(&children_array, 2, nullptr, true, true);       // Separator
-            AppendMenuItem(&children_array, 3, "Open Pioza Launcher", true, false);
-            AppendMenuItem(&children_array, 4, "Quit Pioza Launcher", true, false);
+            // Add items from our dynamic list
+            if (Subsystem)
+            {
+                for (UTrayMenuItem* Item : Subsystem->MenuItems)
+                {
+                    if (Item)
+                    {
+                        FTCHARToUTF8 Conv(*Item->Label);
+                        AppendMenuItem(&children_array, Item->InternalId, Item->bIsSeparator ? nullptr : (const char*)Conv.Get(), Item->bIsEnabled, Item->bIsSeparator);
+                    }
+                }
+            }
         }
         
         dbus_message_iter_close_container(&root_struct, &children_array);
@@ -391,12 +426,27 @@ static DBusHandlerResult MenuDBusMessageHandler(::DBusConnection* conn, DBusMess
         
         if (strcmp(eventId, "clicked") == 0) {
             UE_LOG(LogTemp, Log, TEXT("Tray Menu Clicked: %d"), id);
-            if (id == 3 && Subsystem) { // Open
-                 Subsystem->OnTrayIconClicked.Broadcast();
-                 Subsystem->OnTrayIconClickedNative.Broadcast();
-            }
-            if (id == 4) { // Quit
-                 FPlatformMisc::RequestExit(false);
+            if (Subsystem) {
+                // Execute on Game Thread
+                AsyncTask(ENamedThreads::GameThread, [Subsystem, id]() {
+                    for (UTrayMenuItem* Item : Subsystem->MenuItems)
+                    {
+                        if (Item && Item->InternalId == id)
+                        {
+                            Item->OnClicked.Broadcast(Item);
+                            break;
+                        }
+                    }
+                    
+                    // Special cases for Open/Quit if they are the default ones
+                    if (id == 3) { // Open
+                        Subsystem->OnTrayIconClicked.Broadcast();
+                        Subsystem->OnTrayIconClickedNative.Broadcast();
+                    }
+                    else if (id == 4) { // Quit
+                        FPlatformMisc::RequestExit(false);
+                    }
+                });
             }
         }
         
@@ -457,6 +507,12 @@ void USystemTraySubsystem::Initialize(FSubsystemCollectionBase& Collection)
 #if PLATFORM_LINUX
     InitLinuxDBus();
 #endif
+
+    // Add default menu items
+    AddTrayMenuItem(CreateTrayMenuItem(TEXT("Pioza Launcher"), false, false)); // Title
+    AddTrayMenuItem(CreateTrayMenuItem(TEXT(""), true, true));                 // Separator
+    AddTrayMenuItem(CreateTrayMenuItem(TEXT("Open Pioza Launcher")));
+    AddTrayMenuItem(CreateTrayMenuItem(TEXT("Quit Pioza Launcher")));
 
     // This handles cases where the window is created after subsystem initialization
     if (!TickerHandle.IsValid())
@@ -640,6 +696,70 @@ void USystemTraySubsystem::ShowTrayIcon(const FString& Tooltip, const FString& I
 #endif
 }
 
+UTrayMenuItem* USystemTraySubsystem::CreateTrayMenuItem(const FString& Label, bool bIsEnabled, bool bIsSeparator)
+{
+    UTrayMenuItem* NewItem = NewObject<UTrayMenuItem>(this);
+    NewItem->InternalId = NextInternalId++;
+    NewItem->Label = Label;
+    NewItem->bIsEnabled = bIsEnabled;
+    NewItem->bIsSeparator = bIsSeparator;
+    return NewItem;
+}
+
+void USystemTraySubsystem::AddTrayMenuItem(UTrayMenuItem* MenuItem)
+{
+    InsertTrayMenuItem(MenuItem, MenuItems.Num());
+}
+
+void USystemTraySubsystem::InsertTrayMenuItem(UTrayMenuItem* MenuItem, int32 Index)
+{
+    if (MenuItem && !MenuItems.Contains(MenuItem))
+    {
+        Index = FMath::Clamp(Index, 0, MenuItems.Num());
+        MenuItems.Insert(MenuItem, Index);
+        RefreshTrayMenu();
+    }
+}
+
+void USystemTraySubsystem::RemoveTrayMenuItem(UTrayMenuItem* MenuItem)
+{
+    if (MenuItem)
+    {
+        MenuItems.Remove(MenuItem);
+        RefreshTrayMenu();
+    }
+}
+
+void USystemTraySubsystem::ClearTrayMenuItems(bool bKeepTitle)
+{
+    if (bKeepTitle)
+    {
+        MenuItems.RemoveAll([](UTrayMenuItem* Item) {
+            return Item && Item->InternalId != 1 && Item->InternalId != 2; // Keep title and separator
+        });
+    }
+    else
+    {
+        MenuItems.Empty();
+    }
+
+    RefreshTrayMenu();
+}
+
+void USystemTraySubsystem::RefreshTrayMenu()
+{
+#if PLATFORM_LINUX
+    if (NativeDBusConnection) {
+        ::DBusConnection* conn = (::DBusConnection*)NativeDBusConnection;
+        DBusMessage* signal = dbus_message_new_signal("/MenuBar", "com.canonical.dbusmenu", "LayoutUpdated");
+        dbus_connection_send(conn, signal, nullptr);
+        dbus_message_unref(signal);
+        dbus_connection_flush(conn);
+    }
+#endif
+    // Windows doesn't need proactive refresh as the menu is built on-the-fly in WM_RBUTTONUP
+}
+
 void USystemTraySubsystem::HideTrayIcon()
 {
     if (!bIsIconVisible) return;
@@ -681,8 +801,59 @@ bool USystemTraySubsystem::HandleWindowsMessage(void* hWnd, uint32 Message, uint
             OnTrayIconClicked.Broadcast();
             return true;
         }
+        else if (TrayEvent == WM_RBUTTONUP)
+        {
+            ShowWindowsContextMenu(hWnd);
+            return true;
+        }
+    }
+    else if (Message == WM_COMMAND)
+    {
+        int32 Id = LOWORD(WParam);
+        // We only care about IDs that we know are in our dynamic menu
+        for (UTrayMenuItem* Item : MenuItems)
+        {
+            if (Item && Item->InternalId == Id)
+            {
+                Item->OnClicked.Broadcast(Item);
+                
+                // Default actions
+                if (Id == 3) { // Open
+                     OnTrayIconClicked.Broadcast();
+                     OnTrayIconClickedNative.Broadcast();
+                }
+                else if (Id == 4) { // Quit
+                     FPlatformMisc::RequestExit(false);
+                }
+                return true;
+            }
+        }
     }
     return false;
+}
+
+void USystemTraySubsystem::ShowWindowsContextMenu(void* hWnd)
+{
+    HMENU hMenu = CreatePopupMenu();
+    if (!hMenu) return;
+
+    for (UTrayMenuItem* Item : MenuItems)
+    {
+        if (!Item) continue;
+
+        uint32 Flags = MF_STRING;
+        if (!Item->bIsEnabled) Flags |= MF_GRAYED;
+        if (Item->bIsSeparator) Flags = MF_SEPARATOR;
+
+        AppendMenu(hMenu, Flags, (UINT_PTR)Item->InternalId, *Item->Label);
+    }
+
+    POINT MousePos;
+    GetCursorPos(&MousePos);
+
+    SetForegroundWindow((HWND)hWnd);
+    TrackPopupMenu(hMenu, TPM_RIGHTBUTTON, MousePos.x, MousePos.y, 0, (HWND)hWnd, NULL);
+    DestroyMenu(hMenu);
 }
 #endif
 
