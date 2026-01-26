@@ -18,4 +18,10 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "Window")
     static void RestoreWindow();
+
+    UFUNCTION(BlueprintCallable, Category = "Window")
+    static void MinimizeToTray(const FString& Tooltip, const FString& IconPath = "");
+
+    UFUNCTION(BlueprintCallable, Category = "Window")
+    static void RestoreFromTray();
 };

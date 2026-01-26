@@ -34,6 +34,14 @@ public class PiozaGameLauncher : ModuleRules
 			PrivateDependencyModuleNames.Add("Launch");
 			AdditionalPropertiesForReceipt.Add("AndroidPlugin", Path.Combine(ModuleDirectory, "AndroidFileProviderFix_APL.xml"));
 		}
+
+		if (Target.Platform == UnrealTargetPlatform.Linux)
+		{
+			PublicSystemLibraries.Add("dbus-1");
+			PublicSystemIncludePaths.Add("/usr/include/dbus-1.0");
+			PublicSystemIncludePaths.Add("/usr/lib/x86_64-linux-gnu/dbus-1.0/include");
+			PublicSystemLibraryPaths.Add("/usr/lib/x86_64-linux-gnu");
+		}
         
 		// Add build date definition
 		PublicDefinitions.Add("BUILD_DATE=\"" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "\"");
