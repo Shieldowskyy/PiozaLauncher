@@ -6,6 +6,7 @@
 #include "Framework/Application/SlateApplication.h"
 #include "Async/Async.h"
 #include "WindowUtils.h"
+#include "Misc/Guid.h"
 
 #if PLATFORM_WINDOWS
 #include "Windows/AllowWindowsPlatformTypes.h"
@@ -59,7 +60,6 @@ static void AddUintVariant(DBusMessageIter* iter, uint32 val)
     dbus_message_iter_close_container(iter, &variant);
 }
 
-// --- Property Handlers ---
 static void Prop_Category(DBusMessageIter* iter, USystemTraySubsystem*) { AddStringVariant(iter, "ApplicationStatus"); }
 static void Prop_Id(DBusMessageIter* iter, USystemTraySubsystem*) { AddStringVariant(iter, "PiozaLauncher"); }
 static void Prop_Title(DBusMessageIter* iter, USystemTraySubsystem* Sub) {
@@ -140,6 +140,8 @@ void UTrayMenuItem::NotifyParentRefresh()
 
 static bool AppendPropertyVariant(DBusMessageIter* iter, const char* property, USystemTraySubsystem* Subsystem)
 {
+    if (!property) return false;
+    
     for (const FDBusPropertyEntry* Entry = DBusProperties; Entry->Name; ++Entry) {
         if (strcmp(property, Entry->Name) == 0) {
             Entry->Handler(iter, Subsystem);
@@ -151,37 +153,43 @@ static bool AppendPropertyVariant(DBusMessageIter* iter, const char* property, U
 
 static DBusHandlerResult TrayDBusMessageHandler(::DBusConnection* conn, DBusMessage* msg, void* data)
 {
+    if (!conn || !msg) return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+    
     USystemTraySubsystem* Subsystem = (USystemTraySubsystem*)data;
     
     if (dbus_message_is_method_call(msg, "org.freedesktop.DBus.Introspectable", "Introspect"))
     {
         DBusMessage* reply = dbus_message_new_method_return(msg);
-        dbus_message_append_args(reply, DBUS_TYPE_STRING, &SNI_INTROSPECTION_XML, DBUS_TYPE_INVALID);
-        dbus_connection_send(conn, reply, nullptr);
-        dbus_message_unref(reply);
+        if (reply)
+        {
+            dbus_message_append_args(reply, DBUS_TYPE_STRING, &SNI_INTROSPECTION_XML, DBUS_TYPE_INVALID);
+            dbus_connection_send(conn, reply, nullptr);
+            dbus_message_unref(reply);
+        }
         return DBUS_HANDLER_RESULT_HANDLED;
     }
 
-    // Application Activation (Single Instance)
     if (dbus_message_is_method_call(msg, "org.dashogames.piozalauncher", "Activate"))
     {
-        if (Subsystem)
+        if (Subsystem && IsValid(Subsystem))
         {
-            // Execute on Game Thread to be safe
-            AsyncTask(ENamedThreads::GameThread, [Subsystem]() {
-                Subsystem->OnTrayIconClickedNative.Broadcast();
-                Subsystem->OnTrayIconClicked.Broadcast();
-                
-                // Also force window to front if possible via Slate
-                if (FSlateApplication::IsInitialized())
+            TWeakObjectPtr<USystemTraySubsystem> WeakSubsystem = Subsystem;
+            AsyncTask(ENamedThreads::GameThread, [WeakSubsystem]() {
+                if (USystemTraySubsystem* SafeSubsystem = WeakSubsystem.Get())
                 {
-                    TSharedPtr<GenericApplication> GenericApp = FSlateApplication::Get().GetPlatformApplication();
-                    if (GenericApp.IsValid())
+                    SafeSubsystem->OnTrayIconClickedNative.Broadcast();
+                    SafeSubsystem->OnTrayIconClicked.Broadcast();
+                    
+                    if (FSlateApplication::IsInitialized())
                     {
-                        TSharedPtr<SWindow> TopWindow = FSlateApplication::Get().GetActiveTopLevelWindow();
-                        if (TopWindow.IsValid())
+                        TSharedPtr<GenericApplication> GenericApp = FSlateApplication::Get().GetPlatformApplication();
+                        if (GenericApp.IsValid())
                         {
-                            TopWindow->BringToFront(true);
+                            TSharedPtr<SWindow> TopWindow = FSlateApplication::Get().GetActiveTopLevelWindow();
+                            if (TopWindow.IsValid())
+                            {
+                                TopWindow->BringToFront(true);
+                            }
                         }
                     }
                 }
@@ -189,43 +197,55 @@ static DBusHandlerResult TrayDBusMessageHandler(::DBusConnection* conn, DBusMess
         }
         
         DBusMessage* reply = dbus_message_new_method_return(msg);
-        dbus_connection_send(conn, reply, nullptr);
-        dbus_message_unref(reply);
+        if (reply)
+        {
+            dbus_connection_send(conn, reply, nullptr);
+            dbus_message_unref(reply);
+        }
         return DBUS_HANDLER_RESULT_HANDLED;
     }
 
-    // SNI Methods
     if (dbus_message_is_method_call(msg, "org.kde.StatusNotifierItem", "Activate"))
     {
-        // Broadcast on UI thread
-        if (Subsystem) 
+        if (Subsystem && IsValid(Subsystem)) 
         {
-            Subsystem->OnTrayIconClicked.Broadcast();
-            Subsystem->OnTrayIconClickedNative.Broadcast();
+            TWeakObjectPtr<USystemTraySubsystem> WeakSubsystem = Subsystem;
+            AsyncTask(ENamedThreads::GameThread, [WeakSubsystem]() {
+                if (USystemTraySubsystem* SafeSubsystem = WeakSubsystem.Get())
+                {
+                    SafeSubsystem->OnTrayIconClicked.Broadcast();
+                    SafeSubsystem->OnTrayIconClickedNative.Broadcast();
+                }
+            });
         }
         DBusMessage* reply = dbus_message_new_method_return(msg);
-        dbus_connection_send(conn, reply, nullptr);
-        dbus_message_unref(reply);
+        if (reply)
+        {
+            dbus_connection_send(conn, reply, nullptr);
+            dbus_message_unref(reply);
+        }
         return DBUS_HANDLER_RESULT_HANDLED;
     }
     
-    // Properties
     if (dbus_message_is_method_call(msg, "org.freedesktop.DBus.Properties", "Get"))
     {
-        const char *iface_req, *prop;
+        const char *iface_req = nullptr, *prop = nullptr;
         if (dbus_message_get_args(msg, nullptr, DBUS_TYPE_STRING, &iface_req, DBUS_TYPE_STRING, &prop, DBUS_TYPE_INVALID))
         {
             DBusMessage* reply = dbus_message_new_method_return(msg);
-            DBusMessageIter iter;
-            dbus_message_iter_init_append(reply, &iter);
-            
-            if (!AppendPropertyVariant(&iter, prop, Subsystem))
+            if (reply)
             {
-                AddStringVariant(&iter, "");
+                DBusMessageIter iter;
+                dbus_message_iter_init_append(reply, &iter);
+                
+                if (!AppendPropertyVariant(&iter, prop, Subsystem))
+                {
+                    AddStringVariant(&iter, "");
+                }
+                
+                dbus_connection_send(conn, reply, nullptr);
+                dbus_message_unref(reply);
             }
-            
-            dbus_connection_send(conn, reply, nullptr);
-            dbus_message_unref(reply);
             return DBUS_HANDLER_RESULT_HANDLED;
         }
     }
@@ -233,22 +253,25 @@ static DBusHandlerResult TrayDBusMessageHandler(::DBusConnection* conn, DBusMess
     if (dbus_message_is_method_call(msg, "org.freedesktop.DBus.Properties", "GetAll"))
     {
         DBusMessage* reply = dbus_message_new_method_return(msg);
-        DBusMessageIter iter, dict;
-        dbus_message_iter_init_append(reply, &iter);
-        dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &dict);
-        
-        for (const FDBusPropertyEntry* Entry = DBusProperties; Entry->Name; ++Entry)
+        if (reply)
         {
-            DBusMessageIter entry_iter;
-            dbus_message_iter_open_container(&dict, DBUS_TYPE_DICT_ENTRY, nullptr, &entry_iter);
-            dbus_message_iter_append_basic(&entry_iter, DBUS_TYPE_STRING, &Entry->Name);
-            Entry->Handler(&entry_iter, Subsystem);
-            dbus_message_iter_close_container(&dict, &entry_iter);
+            DBusMessageIter iter, dict;
+            dbus_message_iter_init_append(reply, &iter);
+            dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "{sv}", &dict);
+            
+            for (const FDBusPropertyEntry* Entry = DBusProperties; Entry->Name; ++Entry)
+            {
+                DBusMessageIter entry_iter;
+                dbus_message_iter_open_container(&dict, DBUS_TYPE_DICT_ENTRY, nullptr, &entry_iter);
+                dbus_message_iter_append_basic(&entry_iter, DBUS_TYPE_STRING, &Entry->Name);
+                Entry->Handler(&entry_iter, Subsystem);
+                dbus_message_iter_close_container(&dict, &entry_iter);
+            }
+            
+            dbus_message_iter_close_container(&iter, &dict);
+            dbus_connection_send(conn, reply, nullptr);
+            dbus_message_unref(reply);
         }
-        
-        dbus_message_iter_close_container(&iter, &dict);
-        dbus_connection_send(conn, reply, nullptr);
-        dbus_message_unref(reply);
         return DBUS_HANDLER_RESULT_HANDLED;
     }
 
@@ -261,10 +284,8 @@ static void AppendMenuItem(DBusMessageIter* parent_array_iter, int id, const cha
     dbus_message_iter_open_container(parent_array_iter, DBUS_TYPE_VARIANT, "(ia{sv}av)", &variant);
     dbus_message_iter_open_container(&variant, DBUS_TYPE_STRUCT, nullptr, &struct_iter);
     
-    // ID
     dbus_message_iter_append_basic(&struct_iter, DBUS_TYPE_INT32, &id);
     
-    // Properties Dict
     DBusMessageIter props_iter;
     dbus_message_iter_open_container(&struct_iter, DBUS_TYPE_ARRAY, "{sv}", &props_iter);
     
@@ -305,7 +326,6 @@ static void AppendMenuItem(DBusMessageIter* parent_array_iter, int id, const cha
 
     dbus_message_iter_close_container(&struct_iter, &props_iter);
     
-    // Children Array (Empty for leaf items)
     DBusMessageIter children_iter;
     dbus_message_iter_open_container(&struct_iter, DBUS_TYPE_ARRAY, "v", &children_iter);
     dbus_message_iter_close_container(&struct_iter, &children_iter);
@@ -316,107 +336,107 @@ static void AppendMenuItem(DBusMessageIter* parent_array_iter, int id, const cha
 
 static DBusHandlerResult MenuDBusMessageHandler(::DBusConnection* conn, DBusMessage* msg, void* data)
 {
+    if (!conn || !msg) return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+    
     USystemTraySubsystem* Subsystem = (USystemTraySubsystem*)data;
     
-    // Introspection
     if (dbus_message_is_method_call(msg, "org.freedesktop.DBus.Introspectable", "Introspect"))
     {
         DBusMessage* reply = dbus_message_new_method_return(msg);
-        dbus_message_append_args(reply, DBUS_TYPE_STRING, &DBUSMENU_INTROSPECTION_XML, DBUS_TYPE_INVALID);
-        dbus_connection_send(conn, reply, nullptr);
-        dbus_message_unref(reply);
+        if (reply)
+        {
+            dbus_message_append_args(reply, DBUS_TYPE_STRING, &DBUSMENU_INTROSPECTION_XML, DBUS_TYPE_INVALID);
+            dbus_connection_send(conn, reply, nullptr);
+            dbus_message_unref(reply);
+        }
         return DBUS_HANDLER_RESULT_HANDLED;
     }
 
-    // GetLayout
     if (dbus_message_is_method_call(msg, "com.canonical.dbusmenu", "GetLayout"))
     {
         int parentId = 0, recursionDepth = -1;
-        char** propertyNames = nullptr;
-        int n_props = 0;
         
         DBusMessageIter args;
         if (dbus_message_iter_init(msg, &args)) {
             dbus_message_iter_get_basic(&args, &parentId);
             dbus_message_iter_next(&args);
             dbus_message_iter_get_basic(&args, &recursionDepth);
-            // Ignore propertyNames for complexity reduction
         }
         
         DBusMessage* reply = dbus_message_new_method_return(msg);
-        DBusMessageIter iter;
-        dbus_message_iter_init_append(reply, &iter);
-        
-        uint32 revision = 1;
-        dbus_message_iter_append_basic(&iter, DBUS_TYPE_UINT32, &revision);
-        
-        // Root Node Struct (ia{sv}av)
-        DBusMessageIter root_struct;
-        dbus_message_iter_open_container(&iter, DBUS_TYPE_STRUCT, nullptr, &root_struct);
-        
-        int root_id = 0; // Assuming root is always 0
-        dbus_message_iter_append_basic(&root_struct, DBUS_TYPE_INT32, &root_id);
-        
-        // Props (empty for root usually, or children-display=submenu)
-        DBusMessageIter root_props;
-        dbus_message_iter_open_container(&root_struct, DBUS_TYPE_ARRAY, "{sv}", &root_props);
+        if (reply)
         {
-             const char* k = "children-display"; const char* v = "submenu";
-             DBusMessageIter e, val;
-             dbus_message_iter_open_container(&root_props, DBUS_TYPE_DICT_ENTRY, nullptr, &e);
-             dbus_message_iter_append_basic(&e, DBUS_TYPE_STRING, &k);
-             dbus_message_iter_open_container(&e, DBUS_TYPE_VARIANT, "s", &val);
-             dbus_message_iter_append_basic(&val, DBUS_TYPE_STRING, &v);
-             dbus_message_iter_close_container(&e, &val);
-             dbus_message_iter_close_container(&root_props, &e);
-        }
-        dbus_message_iter_close_container(&root_struct, &root_props);
-        
-        // Children Array
-        DBusMessageIter children_array;
-        dbus_message_iter_open_container(&root_struct, DBUS_TYPE_ARRAY, "v", &children_array);
-        
-        if (parentId == 0) {
-            // Add items from our dynamic list
-            if (Subsystem)
+            DBusMessageIter iter;
+            dbus_message_iter_init_append(reply, &iter);
+            
+            uint32 revision = 1;
+            dbus_message_iter_append_basic(&iter, DBUS_TYPE_UINT32, &revision);
+            
+            DBusMessageIter root_struct;
+            dbus_message_iter_open_container(&iter, DBUS_TYPE_STRUCT, nullptr, &root_struct);
+            
+            int root_id = 0;
+            dbus_message_iter_append_basic(&root_struct, DBUS_TYPE_INT32, &root_id);
+            
+            DBusMessageIter root_props;
+            dbus_message_iter_open_container(&root_struct, DBUS_TYPE_ARRAY, "{sv}", &root_props);
             {
-                for (UTrayMenuItem* Item : Subsystem->MenuItems)
+                 const char* k = "children-display"; const char* v = "submenu";
+                 DBusMessageIter e, val;
+                 dbus_message_iter_open_container(&root_props, DBUS_TYPE_DICT_ENTRY, nullptr, &e);
+                 dbus_message_iter_append_basic(&e, DBUS_TYPE_STRING, &k);
+                 dbus_message_iter_open_container(&e, DBUS_TYPE_VARIANT, "s", &val);
+                 dbus_message_iter_append_basic(&val, DBUS_TYPE_STRING, &v);
+                 dbus_message_iter_close_container(&e, &val);
+                 dbus_message_iter_close_container(&root_props, &e);
+            }
+            dbus_message_iter_close_container(&root_struct, &root_props);
+            
+            DBusMessageIter children_array;
+            dbus_message_iter_open_container(&root_struct, DBUS_TYPE_ARRAY, "v", &children_array);
+            
+            if (parentId == 0) {
+                if (Subsystem && IsValid(Subsystem))
                 {
-                    if (Item)
+                    for (UTrayMenuItem* Item : Subsystem->MenuItems)
                     {
-                        FTCHARToUTF8 Conv(*Item->Label);
-                        AppendMenuItem(&children_array, Item->InternalId, Item->bIsSeparator ? nullptr : (const char*)Conv.Get(), Item->bIsEnabled, Item->bIsSeparator);
+                        if (Item && IsValid(Item))
+                        {
+                            FTCHARToUTF8 Conv(*Item->Label);
+                            AppendMenuItem(&children_array, Item->InternalId, Item->bIsSeparator ? nullptr : (const char*)Conv.Get(), Item->bIsEnabled, Item->bIsSeparator);
+                        }
                     }
                 }
             }
+            
+            dbus_message_iter_close_container(&root_struct, &children_array);
+            dbus_message_iter_close_container(&iter, &root_struct);
+            
+            dbus_connection_send(conn, reply, nullptr);
+            dbus_message_unref(reply);
         }
-        
-        dbus_message_iter_close_container(&root_struct, &children_array);
-        dbus_message_iter_close_container(&iter, &root_struct);
-        
-        dbus_connection_send(conn, reply, nullptr);
-        dbus_message_unref(reply);
         return DBUS_HANDLER_RESULT_HANDLED;
     }
     
-    // GetGroupProperties (return empty array)
     if (dbus_message_is_method_call(msg, "com.canonical.dbusmenu", "GetGroupProperties"))
     {
         DBusMessage* reply = dbus_message_new_method_return(msg);
-        DBusMessageIter iter, arr;
-        dbus_message_iter_init_append(reply, &iter);
-        dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "(ia{sv})", &arr);
-        dbus_message_iter_close_container(&iter, &arr);
-        dbus_connection_send(conn, reply, nullptr);
-        dbus_message_unref(reply);
+        if (reply)
+        {
+            DBusMessageIter iter, arr;
+            dbus_message_iter_init_append(reply, &iter);
+            dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "(ia{sv})", &arr);
+            dbus_message_iter_close_container(&iter, &arr);
+            dbus_connection_send(conn, reply, nullptr);
+            dbus_message_unref(reply);
+        }
         return DBUS_HANDLER_RESULT_HANDLED;
     }
     
-    // Event
     if (dbus_message_is_method_call(msg, "com.canonical.dbusmenu", "Event"))
     {
         int id = 0;
-        const char* eventId = "";
+        const char* eventId = nullptr;
         DBusMessageIter args;
         if (dbus_message_iter_init(msg, &args)) {
             dbus_message_iter_get_basic(&args, &id);
@@ -424,64 +444,71 @@ static DBusHandlerResult MenuDBusMessageHandler(::DBusConnection* conn, DBusMess
             dbus_message_iter_get_basic(&args, &eventId);
         }
         
-        if (strcmp(eventId, "clicked") == 0) {
+        if (eventId && strcmp(eventId, "clicked") == 0) {
             UE_LOG(LogTemp, Log, TEXT("Tray Menu Clicked: %d"), id);
-            if (Subsystem) {
-                // Execute on Game Thread
-                AsyncTask(ENamedThreads::GameThread, [Subsystem, id]() {
-                    for (UTrayMenuItem* Item : Subsystem->MenuItems)
+            if (Subsystem && IsValid(Subsystem)) {
+                TWeakObjectPtr<USystemTraySubsystem> WeakSubsystem = Subsystem;
+                AsyncTask(ENamedThreads::GameThread, [WeakSubsystem, id]() {
+                    if (USystemTraySubsystem* SafeSubsystem = WeakSubsystem.Get())
                     {
-                        if (Item && Item->InternalId == id)
+                        for (UTrayMenuItem* Item : SafeSubsystem->MenuItems)
                         {
-                            Item->OnClicked.Broadcast(Item);
-                            break;
+                            if (Item && IsValid(Item) && Item->InternalId == id)
+                            {
+                                Item->OnClicked.Broadcast(Item);
+                                break;
+                            }
                         }
-                    }
-                    
-                    // Special cases for Open/Quit if they are the default ones
-                    if (id == 3) { // Open
-                        Subsystem->OnTrayIconClicked.Broadcast();
-                        Subsystem->OnTrayIconClickedNative.Broadcast();
-                    }
-                    else if (id == 4) { // Quit
-                        FPlatformMisc::RequestExit(false);
+                        
+                        if (id == 3) {
+                            SafeSubsystem->OnTrayIconClicked.Broadcast();
+                            SafeSubsystem->OnTrayIconClickedNative.Broadcast();
+                        }
+                        else if (id == 4) {
+                            FPlatformMisc::RequestExit(false);
+                        }
                     }
                 });
             }
         }
         
         DBusMessage* reply = dbus_message_new_method_return(msg);
-        dbus_connection_send(conn, reply, nullptr);
-        dbus_message_unref(reply);
+        if (reply)
+        {
+            dbus_connection_send(conn, reply, nullptr);
+            dbus_message_unref(reply);
+        }
         return DBUS_HANDLER_RESULT_HANDLED;
     }
     
-    // AboutToShow - return false
     if (dbus_message_is_method_call(msg, "com.canonical.dbusmenu", "AboutToShow"))
     {
          DBusMessage* reply = dbus_message_new_method_return(msg);
-         dbus_bool_t b = FALSE;
-         dbus_message_append_args(reply, DBUS_TYPE_BOOLEAN, &b, DBUS_TYPE_INVALID);
-         dbus_connection_send(conn, reply, nullptr);
-         dbus_message_unref(reply);
+         if (reply)
+         {
+             dbus_bool_t b = FALSE;
+             dbus_message_append_args(reply, DBUS_TYPE_BOOLEAN, &b, DBUS_TYPE_INVALID);
+             dbus_connection_send(conn, reply, nullptr);
+             dbus_message_unref(reply);
+         }
          return DBUS_HANDLER_RESULT_HANDLED;
     }
 
-    // Properties Get/GetAll
     if (dbus_message_is_method_call(msg, "org.freedesktop.DBus.Properties", "Get")) {
-          // just return empty variants for now to avoid errors if called
           DBusMessage* reply = dbus_message_new_method_return(msg);
-          DBusMessageIter iter, v;
-          dbus_message_iter_init_append(reply, &iter);
-          dbus_message_iter_open_container(&iter, DBUS_TYPE_VARIANT, "s", &v);
-          const char* s = "";
-          dbus_message_iter_append_basic(&v, DBUS_TYPE_STRING, &s);
-          dbus_message_iter_close_container(&iter, &v);
-          dbus_connection_send(conn, reply, nullptr);
-          dbus_message_unref(reply);
+          if (reply)
+          {
+              DBusMessageIter iter, v;
+              dbus_message_iter_init_append(reply, &iter);
+              dbus_message_iter_open_container(&iter, DBUS_TYPE_VARIANT, "s", &v);
+              const char* s = "";
+              dbus_message_iter_append_basic(&v, DBUS_TYPE_STRING, &s);
+              dbus_message_iter_close_container(&iter, &v);
+              dbus_connection_send(conn, reply, nullptr);
+              dbus_message_unref(reply);
+          }
           return DBUS_HANDLER_RESULT_HANDLED;
     }
-
 
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
@@ -508,13 +535,11 @@ void USystemTraySubsystem::Initialize(FSubsystemCollectionBase& Collection)
     InitLinuxDBus();
 #endif
 
-    // Add default menu items
-    AddTrayMenuItem(CreateTrayMenuItem(TEXT("Pioza Launcher"), false, false)); // Title
-    AddTrayMenuItem(CreateTrayMenuItem(TEXT(""), true, true));                 // Separator
+    AddTrayMenuItem(CreateTrayMenuItem(TEXT("Pioza Launcher"), false, false));
+    AddTrayMenuItem(CreateTrayMenuItem(TEXT(""), true, true));
     AddTrayMenuItem(CreateTrayMenuItem(TEXT("Open Pioza Launcher")));
     AddTrayMenuItem(CreateTrayMenuItem(TEXT("Quit Pioza Launcher")));
 
-    // This handles cases where the window is created after subsystem initialization
     if (!TickerHandle.IsValid())
     {
         TickerHandle = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateUObject(this, &USystemTraySubsystem::TickSubsystem), 0.1f);
@@ -539,7 +564,6 @@ FString USystemTraySubsystem::GetBestIconPath() const
 #endif
     return IconPath;
 }
-
 
 bool USystemTraySubsystem::IsApplicationInTray() const
 {
@@ -577,30 +601,39 @@ void USystemTraySubsystem::ShowTrayIcon(const FString& Tooltip, const FString& I
 
     if (bIsIconVisible)
     {
-        // Handle updates for already visible icon
 #if PLATFORM_WINDOWS
         if (TrayIconData)
         {
             NOTIFYICONDATA* nid = (NOTIFYICONDATA*)TrayIconData;
-            FCString::Strcpy(nid->szTip, 128, *Tooltip);
+            FCString::Strncpy(nid->szTip, *Tooltip, sizeof(nid->szTip) / sizeof(nid->szTip[0]));
+            nid->szTip[(sizeof(nid->szTip) / sizeof(nid->szTip[0])) - 1] = '\0';
             Shell_NotifyIcon(NIM_MODIFY, nid);
         }
 #endif
 #if PLATFORM_LINUX
         if (NativeDBusConnection) {
              ::DBusConnection* conn = (::DBusConnection*)NativeDBusConnection;
-             // Signal updates
+             
              DBusMessage* signal = dbus_message_new_signal("/StatusNotifierItem", "org.kde.StatusNotifierItem", "NewIcon");
-             dbus_connection_send(conn, signal, nullptr);
-             dbus_message_unref(signal);
+             if (signal)
+             {
+                 dbus_connection_send(conn, signal, nullptr);
+                 dbus_message_unref(signal);
+             }
              
              signal = dbus_message_new_signal("/StatusNotifierItem", "org.kde.StatusNotifierItem", "NewTitle");
-             dbus_connection_send(conn, signal, nullptr);
-             dbus_message_unref(signal);
+             if (signal)
+             {
+                 dbus_connection_send(conn, signal, nullptr);
+                 dbus_message_unref(signal);
+             }
 
              signal = dbus_message_new_signal("/StatusNotifierItem", "org.kde.StatusNotifierItem", "NewStatus");
-             dbus_connection_send(conn, signal, nullptr);
-             dbus_message_unref(signal);
+             if (signal)
+             {
+                 dbus_connection_send(conn, signal, nullptr);
+                 dbus_message_unref(signal);
+             }
              
              dbus_connection_flush(conn);
         }
@@ -623,7 +656,6 @@ void USystemTraySubsystem::ShowTrayIcon(const FString& Tooltip, const FString& I
     nid->uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
     nid->uCallbackMessage = WM_TRAYICON;
     
-    // Try to load custom icon
     FString FullPath = IconPath;
     if (FullPath.IsEmpty())
     {
@@ -635,7 +667,6 @@ void USystemTraySubsystem::ShowTrayIcon(const FString& Tooltip, const FString& I
         nid->hIcon = (HICON)LoadImage(NULL, *FPaths::ConvertRelativePathToFull(FullPath), IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
     }
     
-    // Fallback to application icon
     if (!nid->hIcon)
     {
         nid->hIcon = ExtractIcon(GetModuleHandle(NULL), *FPlatformProcess::ExecutablePath(), 0);
@@ -646,7 +677,8 @@ void USystemTraySubsystem::ShowTrayIcon(const FString& Tooltip, const FString& I
         nid->hIcon = LoadIcon(NULL, IDI_APPLICATION);
     }
     
-    FCString::Strcpy(nid->szTip, 128, *Tooltip);
+    FCString::Strncpy(nid->szTip, *Tooltip, sizeof(nid->szTip) / sizeof(nid->szTip[0]));
+    nid->szTip[(sizeof(nid->szTip) / sizeof(nid->szTip[0])) - 1] = '\0';
     
     if (Shell_NotifyIcon(NIM_ADD, nid))
     {
@@ -673,24 +705,59 @@ void USystemTraySubsystem::ShowTrayIcon(const FString& Tooltip, const FString& I
         
         if (msg)
         {
-            FString BusName = FString::Printf(TEXT("org.kde.StatusNotifierItem-%d-1"), getpid());
+            FString BusName = FString::Printf(TEXT("org.kde.StatusNotifierItem-%d-%s"), getpid(), *FGuid::NewGuid().ToString());
             FTCHARToUTF8 Converter(*BusName);
             const char* service_ptr = (const char*)Converter.Get();
-            dbus_message_append_args(msg, DBUS_TYPE_STRING, &service_ptr, DBUS_TYPE_INVALID);
             
-            if (dbus_connection_send(conn, msg, nullptr))
+            if (!dbus_message_append_args(msg, DBUS_TYPE_STRING, &service_ptr, DBUS_TYPE_INVALID))
+            {
+                UE_LOG(LogTemp, Error, TEXT("Failed to append args to DBus message"));
+                dbus_message_unref(msg);
+                return;
+            }
+            
+            DBusError error;
+            dbus_error_init(&error);
+            
+            DBusMessage* reply = dbus_connection_send_with_reply_and_block(conn, msg, 1000, &error);
+            
+            if (dbus_error_is_set(&error))
+            {
+                UE_LOG(LogTemp, Error, TEXT("DBus error: %s - %s"), 
+                       UTF8_TO_TCHAR(error.name), UTF8_TO_TCHAR(error.message));
+                dbus_error_free(&error);
+                dbus_message_unref(msg);
+                return;
+            }
+            
+            if (reply)
             {
                 bIsIconVisible = true;
                 OnApplicationMinimizedToTray.Broadcast();
-                UE_LOG(LogTemp, Log, TEXT("Sent RegisterStatusNotifierItem to DBus for %s"), *BusName);
+                UE_LOG(LogTemp, Log, TEXT("Successfully registered StatusNotifierItem: %s"), *BusName);
                 
-                // Signal that the icon has changed (requested by some watchers)
-                DBusMessage* signal = dbus_message_new_signal("/StatusNotifierItem", "org.kde.StatusNotifierItem", "NewIcon");
-                dbus_connection_send(conn, signal, nullptr);
-                dbus_message_unref(signal);
+                dbus_message_unref(reply);
+                
+                DBusMessage* signal = dbus_message_new_signal("/StatusNotifierItem", 
+                                                             "org.kde.StatusNotifierItem", 
+                                                             "NewIcon");
+                if (signal)
+                {
+                    dbus_connection_send(conn, signal, nullptr);
+                    dbus_message_unref(signal);
+                    dbus_connection_flush(conn);
+                }
             }
+            else
+            {
+                UE_LOG(LogTemp, Error, TEXT("Failed to register StatusNotifierItem - no reply"));
+            }
+            
             dbus_message_unref(msg);
-            dbus_connection_flush(conn);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("Failed to create DBus message"));
         }
     }
 #endif
@@ -735,7 +802,7 @@ void USystemTraySubsystem::ClearTrayMenuItems(bool bKeepTitle)
     if (bKeepTitle)
     {
         MenuItems.RemoveAll([](UTrayMenuItem* Item) {
-            return Item && Item->InternalId != 1 && Item->InternalId != 2; // Keep title and separator
+            return Item && Item->InternalId != 1 && Item->InternalId != 2;
         });
     }
     else
@@ -752,12 +819,14 @@ void USystemTraySubsystem::RefreshTrayMenu()
     if (NativeDBusConnection) {
         ::DBusConnection* conn = (::DBusConnection*)NativeDBusConnection;
         DBusMessage* signal = dbus_message_new_signal("/MenuBar", "com.canonical.dbusmenu", "LayoutUpdated");
-        dbus_connection_send(conn, signal, nullptr);
-        dbus_message_unref(signal);
-        dbus_connection_flush(conn);
+        if (signal)
+        {
+            dbus_connection_send(conn, signal, nullptr);
+            dbus_message_unref(signal);
+            dbus_connection_flush(conn);
+        }
     }
 #endif
-    // Windows doesn't need proactive refresh as the menu is built on-the-fly in WM_RBUTTONUP
 }
 
 void USystemTraySubsystem::HideTrayIcon()
@@ -783,7 +852,6 @@ void USystemTraySubsystem::OnRequestDestroyWindowOverride(const TSharedRef<SWind
 {
     UE_LOG(LogTemp, Log, TEXT("Window close requested, minimizing to tray instead."));
     
-    // Search for icon in Content/Icons first for packaged builds
     FString IconPath = GetBestIconPath();
     
     UWindowUtils::MinimizeToTray(TEXT("Pioza Launcher is running in background"), IconPath);
@@ -810,19 +878,17 @@ bool USystemTraySubsystem::HandleWindowsMessage(void* hWnd, uint32 Message, uint
     else if (Message == WM_COMMAND)
     {
         int32 Id = LOWORD(WParam);
-        // We only care about IDs that we know are in our dynamic menu
         for (UTrayMenuItem* Item : MenuItems)
         {
-            if (Item && Item->InternalId == Id)
+            if (Item && IsValid(Item) && Item->InternalId == Id)
             {
                 Item->OnClicked.Broadcast(Item);
                 
-                // Default actions
-                if (Id == 3) { // Open
+                if (Id == 3) {
                      OnTrayIconClicked.Broadcast();
                      OnTrayIconClickedNative.Broadcast();
                 }
-                else if (Id == 4) { // Quit
+                else if (Id == 4) {
                      FPlatformMisc::RequestExit(false);
                 }
                 return true;
@@ -839,7 +905,7 @@ void USystemTraySubsystem::ShowWindowsContextMenu(void* hWnd)
 
     for (UTrayMenuItem* Item : MenuItems)
     {
-        if (!Item) continue;
+        if (!Item || !IsValid(Item)) continue;
 
         uint32 Flags = MF_STRING;
         if (!Item->bIsEnabled) Flags |= MF_GRAYED;
@@ -863,7 +929,6 @@ void USystemTraySubsystem::InitLinuxDBus()
     DBusError err;
     dbus_error_init(&err);
 
-    // Use shared connection to avoid threading issues with private ones
     ::DBusConnection* conn = dbus_bus_get(DBUS_BUS_SESSION, &err);
     if (dbus_error_is_set(&err)) {
         UE_LOG(LogTemp, Warning, TEXT("DBus Connection Error (%s)"), UTF8_TO_TCHAR(err.message));
@@ -873,9 +938,7 @@ void USystemTraySubsystem::InitLinuxDBus()
     
     if (!conn) return;
 
-    // Single Instance Check
     const char* AppDBusName = "org.dashogames.piozalauncher";
-    // Do not queue, fail immediately if taken
     int app_result = dbus_bus_request_name(conn, AppDBusName, DBUS_NAME_FLAG_DO_NOT_QUEUE, &err);
     
     if (dbus_error_is_set(&err)) {
@@ -886,7 +949,6 @@ void USystemTraySubsystem::InitLinuxDBus()
     if (app_result == DBUS_REQUEST_NAME_REPLY_EXISTS) {
         UE_LOG(LogTemp, Warning, TEXT("PiozaLauncher is already running. Activating existing instance..."));
         
-        // Attempt to activate the existing instance
         DBusMessage* msg = dbus_message_new_method_call(AppDBusName, "/Application", "org.dashogames.piozalauncher", "Activate");
         if (msg) {
             dbus_connection_send(conn, msg, nullptr);
@@ -894,18 +956,16 @@ void USystemTraySubsystem::InitLinuxDBus()
             dbus_connection_flush(conn);
         }
 
-        // Exit this instance
         FPlatformMisc::RequestExit(false);
         return;
     }
     
-    // We are the primary instance, register the object path for activation
     DBusObjectPathVTable app_vtable = {};
     app_vtable.message_function = TrayDBusMessageHandler;
     dbus_connection_register_object_path(conn, "/Application", &app_vtable, this);
     UE_LOG(LogTemp, Log, TEXT("DBus single instance registered: %s"), UTF8_TO_TCHAR(AppDBusName));
 
-    FString Name = FString::Printf(TEXT("org.kde.StatusNotifierItem-%d-1"), getpid());
+    FString Name = FString::Printf(TEXT("org.kde.StatusNotifierItem-%d-%s"), getpid(), *FGuid::NewGuid().ToString());
     int result = dbus_bus_request_name(conn, TCHAR_TO_UTF8(*Name), DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
     if (dbus_error_is_set(&err)) {
         UE_LOG(LogTemp, Warning, TEXT("DBus Request Name Error (%s)"), UTF8_TO_TCHAR(err.message));
@@ -942,6 +1002,7 @@ void USystemTraySubsystem::ShutdownLinuxDBus()
         ::DBusConnection* conn = (::DBusConnection*)NativeDBusConnection;
         dbus_connection_unregister_object_path(conn, "/StatusNotifierItem");
         dbus_connection_unregister_object_path(conn, "/MenuBar");
+        dbus_connection_unregister_object_path(conn, "/Application");
         NativeDBusConnection = nullptr;
     }
 }
@@ -953,27 +1014,22 @@ bool USystemTraySubsystem::TickSubsystem(float DeltaTime)
     if (NativeDBusConnection)
     {
         ::DBusConnection* conn = (::DBusConnection*)NativeDBusConnection;
-        // Non-blocking dispatch
         dbus_connection_read_write_dispatch(conn, 0);
     }
 #endif
 
-    // Also use this ticker to ensure our window has the close hook
     if (FSlateApplication::IsInitialized())
     {
         TSharedPtr<SWindow> MainWindow = FSlateApplication::Get().GetActiveTopLevelWindow();
         if (MainWindow.IsValid())
         {
-            // Intercept the close button by overriding the destroy request
             MainWindow->SetRequestDestroyWindowOverride(FRequestDestroyWindowOverride::CreateUObject(this, &USystemTraySubsystem::OnRequestDestroyWindowOverride));
             
-            // Show initial tray icon if not already shown
             if (!bHasShownInitialTrayIcon && MainWindow->GetNativeWindow().IsValid())
             {
                 bHasShownInitialTrayIcon = true;
                 ShowTrayIcon(TEXT("Pioza Launcher"), GetBestIconPath());
                 
-                // Also hook the restore action here in case user clicks icon before minimizing
                 if (!OnTrayIconClickedNative.IsBound())
                 {
                     OnTrayIconClickedNative.AddStatic(&UWindowUtils::RestoreFromTray);
@@ -982,5 +1038,5 @@ bool USystemTraySubsystem::TickSubsystem(float DeltaTime)
         }
     }
 
-    return true; // Keep ticking
+    return true;
 }
