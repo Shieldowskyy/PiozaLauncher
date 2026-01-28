@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.0.2",
+	"FriendlyName": "DSHDebugConsole",
+	"Description": "A simple debug console widget.",
+	"Category": "Other",
+	"CreatedBy": "DashoGames (Shieldziak)",
+	"CreatedByURL": "https://github.com/Shieldowskyy",
+	"DocsURL": "https://github.com/Shieldowskyy/DSHConsole",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "DSHDebugConsole",
+			"Type": "Runtime",
+			"LoadingPhase": "PreLoadingScreen"
+		}
+	]
+}
