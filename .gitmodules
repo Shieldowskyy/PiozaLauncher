@@ -13,3 +13,4 @@
 [submodule "Plugins/DSHConsole"]
 	path = Plugins/DSHConsole
 	url = https://github.com/Shieldowskyy/DSHConsole
+	branch = 9a4cf50
