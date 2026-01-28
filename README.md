@@ -134,7 +134,6 @@ Repository: https://github.com/getsentry/sentry-unreal
 
 #### ✅ [DSHConsole](https://github.com/Shieldowskyy/DSHConsole)
 
-Included as a Git submodule.  
 Licensed under the **Apache License 2.0**.  
 Repository: https://github.com/Shieldowskyy/DSHConsole
 
