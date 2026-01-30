@@ -39,6 +39,8 @@ public class PiozaGameLauncher : ModuleRules
 		{
 			PublicSystemLibraries.Add("dbus-1");
 			PublicSystemIncludePaths.Add("/usr/include/dbus-1.0");
+			PublicSystemIncludePaths.Add("/usr/lib64/dbus-1.0/include");
+			PublicSystemLibraryPaths.Add("/usr/lib64");
 			PublicSystemIncludePaths.Add("/usr/lib/x86_64-linux-gnu/dbus-1.0/include");
 			PublicSystemLibraryPaths.Add("/usr/lib/x86_64-linux-gnu");
 		}
