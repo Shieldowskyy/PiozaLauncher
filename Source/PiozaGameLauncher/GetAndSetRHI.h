@@ -20,5 +20,9 @@ public:
 	//Returns current RHI name as a string.
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Engine")
 	static FString GetCurrentRhiName();
+
+	//Returns current monitor refresh rate.
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Hardware")
+	static int32 GetCurrentMonitorRefreshRate();
 };
 
