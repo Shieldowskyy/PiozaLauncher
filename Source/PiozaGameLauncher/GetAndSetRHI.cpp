@@ -1,10 +1,11 @@
-// Pioza Launcher
-// Copyright (c) 2025 DashoGames
-// Licensed under the MIT License - see LICENSE file for details
-
 #include "GetAndSetRHI.h"
 #include "HardwareInfo.h"
 #include "RHI.h"
+
+#if PLATFORM_LINUX
+#include <cstdio>
+#include <cstdlib>
+#endif
 
 FString UGetAndSetRHI::GetCurrentRhiName(void)
 {
@@ -14,28 +15,29 @@ FString UGetAndSetRHI::GetCurrentRhiName(void)
 
 int32 UGetAndSetRHI::GetCurrentMonitorRefreshRate()
 {
+	#if PLATFORM_LINUX
+	FILE* pipe = popen("xrandr | grep '\\*' | grep -oP '[0-9.]+\\*' | grep -oP '^[0-9]+' | sort -n | tail -1", "r");
+	if (pipe)
+	{
+		char buffer[16] = {};
+		fgets(buffer, sizeof(buffer), pipe);
+		pclose(pipe);
+		int32 rate = atoi(buffer);
+		if (rate > 0) return rate;
+	}
+	return 60;
+	#else
 	FScreenResolutionArray Resolutions;
 	if (RHIGetAvailableResolutions(Resolutions, false))
 	{
-		// On many platforms, the first or last entry with the current desktop resolution
-		// will contain the current refresh rate. 
-		// Since we want the "current" one, we can try to matches GEngine's current settings
-		// or just return the highest one available for the "primary" mode.
-		
 		int32 MaxRefreshRate = 0;
 		for (const FScreenResolutionRHI& Res : Resolutions)
 		{
 			if (Res.RefreshRate > (uint32)MaxRefreshRate)
-			{
 				MaxRefreshRate = Res.RefreshRate;
-			}
 		}
-
-		if (MaxRefreshRate > 0)
-		{
-			return MaxRefreshRate;
-		}
+		if (MaxRefreshRate > 0) return MaxRefreshRate;
 	}
-
 	return 60;
+	#endif
 }
