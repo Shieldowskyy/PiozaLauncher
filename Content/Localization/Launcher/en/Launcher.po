@@ -4,8 +4,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Launcher\n"
-"POT-Creation-Date: 2025-11-24 14:50\n"
-"PO-Revision-Date: 2025-11-24 14:50\n"
+"POT-Creation-Date: 2026-03-05 18:40\n"
+"PO-Revision-Date: 2026-03-05 18:40\n"
 "Language-Team: \n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
@@ -31,8 +31,8 @@ msgstr "About {gamename}"
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AboutLauncher.W_AboutLauncher_C:ExecuteUbergraph_W_AboutLauncher [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_AboutLauncher.W_AboutLauncher_C:ExecuteUbergraph_W_AboutLauncher [Script Bytecode]
 msgctxt ",805E55A43E5646C08D27C17A539323E5"
-msgid "{version} | {builddate} | {platform} ({arch})"
-msgstr "{version} | {builddate} | {platform} ({arch})"
+msgid "v.{version} | {builddate} | {platform} ({arch})"
+msgstr "v.{version} | {builddate} | {platform} ({arch})"
 
 #. Key:	8B59A992E3484B0F9C18CFFFD1EF7FB9
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AboutLauncher.W_AboutLauncher_C:ExecuteUbergraph_W_AboutLauncher [Script Bytecode]
@@ -73,8 +73,8 @@ msgstr "View Releases"
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AboutLauncher.W_AboutLauncher_C:WidgetTree.Version_2.Text
 #: /Game/Blueprints/Widgets/W_AboutLauncher.W_AboutLauncher_C:WidgetTree.Version_2.Text
 msgctxt ",D6207D672EBD4EF99DF59D23185FDA85"
-msgid "License AGPL-3.0"
-msgstr "License AGPL-3.0"
+msgid "MIT License"
+msgstr "MIT License"
 
 #. Key:	74DC3B0E95474B7984CD9C1AD7B423BA
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AboutLauncher.W_AboutLauncher_C:WidgetTree.Version_3.Text
@@ -83,19 +83,19 @@ msgctxt ",74DC3B0E95474B7984CD9C1AD7B423BA"
 msgid "Report a bug"
 msgstr "Report a bug"
 
-#. Key:	04F14A7848B97BE9CC4CDF9EB31FFD88
+#. Key:	06A0ECBF455E894D182A4F917C615F54
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
-msgctxt ",04F14A7848B97BE9CC4CDF9EB31FFD88"
-msgid "Developer: {dev}"
-msgstr "Developer: {dev}"
+msgctxt ",06A0ECBF455E894D182A4F917C615F54"
+msgid "ERROR: Failed to save Local Config!"
+msgstr "ERROR: Failed to save Local Config!"
 
 #. Key:	28CFD8254C4FF9E5649001B560E0B622
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
 msgctxt ",28CFD8254C4FF9E5649001B560E0B622"
-msgid "Error saving json file! tried path: {path}"
-msgstr "Error saving json file! tried path: {path}"
+msgid "Error saving json file! tried path: {path}. Error: {2}"
+msgstr "Error saving json file! tried path: {path}. Error: {2}"
 
 #. Key:	3CF1E42148FBECB1C18AD88A8EC025A6
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
@@ -111,12 +111,19 @@ msgctxt ",443C2A2F4B9BB0E3F8292E94E21C343F"
 msgid "All files"
 msgstr "All files"
 
-#. Key:	7CF684864F3DD86754123E9FC6626DA0
+#. Key:	4523D61948C92E305A7205BD6D9D87E5
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
-msgctxt ",7CF684864F3DD86754123E9FC6626DA0"
-msgid "Choose game .exe file"
-msgstr "Choose game .exe file"
+msgctxt ",4523D61948C92E305A7205BD6D9D87E5"
+msgid "ERROR: Directory with executable file does not exist!"
+msgstr "ERROR: Directory with executable file does not exist!"
+
+#. Key:	984D241D949342908E10EED77421B372
+#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
+msgctxt ",984D241D949342908E10EED77421B372"
+msgid "Saving custom game infos:\nCommand: {1}\nPath: {2}"
+msgstr "Saving custom game infos:\nCommand: {1}\nPath: {2}"
 
 #. Key:	A704CF2C430AB6C906655E8A2A9A93B0
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
@@ -146,6 +153,13 @@ msgctxt ",B1E2856943AA91E27D9914B7677492C4"
 msgid "Choose game .wav music theme"
 msgstr "Choose game .wav music theme"
 
+#. Key:	BA702B4745CD06FCFB10BDA10479243C
+#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
+msgctxt ",BA702B4745CD06FCFB10BDA10479243C"
+msgid "ERROR: Executable file does not exist!"
+msgstr "ERROR: Executable file does not exist!"
+
 #. Key:	C63EC45346530F8C204A53A9E90F936D
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
@@ -153,19 +167,12 @@ msgctxt ",C63EC45346530F8C204A53A9E90F936D"
 msgid "Audio files"
 msgstr "Audio files"
 
-#. Key:	DDB50E15F060421186E8A315B5708CDF
+#. Key:	E324690846E30F0240954BBC33F26FA2
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
-msgctxt ",DDB50E15F060421186E8A315B5708CDF"
-msgid "Choose game .sh file"
-msgstr "Choose game .sh file"
-
-#. Key:	F65711154F128A1101BC6DA87AB515E4
-#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
-#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
-msgctxt ",F65711154F128A1101BC6DA87AB515E4"
-msgid "Executable file"
-msgstr "Executable file"
+msgctxt ",E324690846E30F0240954BBC33F26FA2"
+msgid "ERROR: Failed to parse JSON! Check for forbidden characters in Game fields!"
+msgstr "ERROR: Failed to parse JSON! Check for forbidden characters in Game fields!"
 
 #. Key:	F8C914DB45BAF554CF6A6C831CE4DC01
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
@@ -174,30 +181,44 @@ msgctxt ",F8C914DB45BAF554CF6A6C831CE4DC01"
 msgid "Choose game .jpg backgrond"
 msgstr "Choose game .jpg backgrond"
 
-#. Key:	F98C859F461C0852415143919C14A084
-#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
-#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:ExecuteUbergraph_W_AddGameWizard [Script Bytecode]
-msgctxt ",F98C859F461C0852415143919C14A084"
-msgid "Platforms:"
-msgstr "Platforms:"
+#. Key:	7CF684864F3DD86754123E9FC6626DA0
+#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:OpenExecutablePicker [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:OpenExecutablePicker [Script Bytecode]
+msgctxt ",7CF684864F3DD86754123E9FC6626DA0"
+msgid "Choose game .exe file"
+msgstr "Choose game .exe file"
 
-#. Key:	6F9F04B74AE2FDED092BB29AA24A2350
-#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.Button.ToolTipText
-#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.Button.ToolTipText
-msgctxt ",6F9F04B74AE2FDED092BB29AA24A2350"
-msgid "Type game name to unlock picking game icon!"
-msgstr "Type game name to unlock picking game icon!"
+#. Key:	DDB50E15F060421186E8A315B5708CDF
+#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:OpenExecutablePicker [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:OpenExecutablePicker [Script Bytecode]
+msgctxt ",DDB50E15F060421186E8A315B5708CDF"
+msgid "Choose game .sh file"
+msgstr "Choose game .sh file"
+
+#. Key:	F65711154F128A1101BC6DA87AB515E4
+#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:OpenExecutablePicker [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:OpenExecutablePicker [Script Bytecode]
+msgctxt ",F65711154F128A1101BC6DA87AB515E4"
+msgid "Executable file"
+msgstr "Executable file"
 
 #. Key:	9981ADF748D9C9A51446659A387376E6
-#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.Button_0.ToolTipText
-#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.Button_0.ToolTipText
+#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.AcceptButton.ToolTipText
+#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.AcceptButton.ToolTipText
 msgctxt ",9981ADF748D9C9A51446659A387376E6"
 msgid "Add game to list"
 msgstr "Add game to list"
 
+#. Key:	158E63C543BFF3F6C95529A42BFD4661
+#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.BackgroundBox.HintText
+#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.BackgroundBox.HintText
+msgctxt ",158E63C543BFF3F6C95529A42BFD4661"
+msgid "Pick game background image (.jpg) -->>"
+msgstr "Pick game background image (.jpg) -->>"
+
 #. Key:	074736DA4B4119EDF3D42F84F2E1C99A
-#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.Button_6.ToolTipText
-#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.Button_6.ToolTipText
+#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.CancelButton.ToolTipText
+#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.CancelButton.ToolTipText
 msgctxt ",074736DA4B4119EDF3D42F84F2E1C99A"
 msgid "Exit this menu"
 msgstr "Exit this menu"
@@ -209,26 +230,33 @@ msgctxt ",206401D041D12FB45B6306843D99B162"
 msgid "eg. Dasho Games"
 msgstr "eg. Dasho Games"
 
-#. Key:	E775A2F34B79737699C570B413794B4B
-#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.ExecNameBox.HintText
-#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.ExecNameBox.HintText
-msgctxt ",E775A2F34B79737699C570B413794B4B"
-msgid "Pick game executable file (.exe) -->>"
-msgstr "Pick game executable file (.exe) -->>"
+#. Key:	1B6D321E7D8A489EB995B1024639C9DF
+#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.ExecArgsBox.HintText
+#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.ExecArgsBox.HintText
+msgctxt ",1B6D321E7D8A489EB995B1024639C9DF"
+msgid "eg. -dx12 -log"
+msgstr "eg. -dx12 -log"
 
-#. Key:	43E6204D4E539728ECDCCCA19BB819BB
+#. Key:	2683DB40A0464E7194BFA446E7D2EFEE
+#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.ExecPathBox.HintText
+#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.ExecPathBox.HintText
+msgctxt ",2683DB40A0464E7194BFA446E7D2EFEE"
+msgid "Path to executable"
+msgstr "Path to executable"
+
+#. Key:	C6517E4690354842809A094A41F6B7AD
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.GameDescriptionBox.HintText
 #: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.GameDescriptionBox.HintText
-msgctxt ",43E6204D4E539728ECDCCCA19BB819BB"
-msgid "Write some description here...\r\n\r\nSomething about game or creators..."
-msgstr "Write some description here...\r\n\r\nSomething about game or creators..."
+msgctxt ",C6517E4690354842809A094A41F6B7AD"
+msgid "eg. Immerse yourself in the rhythm of stunning music during an endless run to glory! Compete with friends for the top spot and collect all achievements."
+msgstr "eg. Immerse yourself in the rhythm of stunning music during an endless run to glory! Compete with friends for the top spot and collect all achievements."
 
-#. Key:	C508F18E41466AA0D69D41AA3080CB34
+#. Key:	470CA7F338524A07B3C72B9EA082276C
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.GameNameTextBox.HintText
 #: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.GameNameTextBox.HintText
-msgctxt ",C508F18E41466AA0D69D41AA3080CB34"
-msgid "Game name without spaces or special characters"
-msgstr "Game name without spaces or special characters"
+msgctxt ",470CA7F338524A07B3C72B9EA082276C"
+msgid "eg. Pixel Runner: Dash For Glory"
+msgstr "eg. Pixel Runner: Dash For Glory"
 
 #. Key:	CFFBFFC94BA9B3D5FC33519E91880A15
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.IconBox.HintText
@@ -237,40 +265,54 @@ msgctxt ",CFFBFFC94BA9B3D5FC33519E91880A15"
 msgid "Pick game icon image (.jpg) -->>"
 msgstr "Pick game icon image (.jpg) -->>"
 
-#. Key:	158E63C543BFF3F6C95529A42BFD4661
-#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.IconBox_1.HintText
-#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.IconBox_1.HintText
-msgctxt ",158E63C543BFF3F6C95529A42BFD4661"
-msgid "Pick game background image (.jpg) -->>"
-msgstr "Pick game background image (.jpg) -->>"
-
-#. Key:	E295BD9942EDEA7938268DAE64D38A76
-#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.IconBox_2.HintText
-#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.IconBox_2.HintText
-msgctxt ",E295BD9942EDEA7938268DAE64D38A76"
-msgid "Pick game button sound effect (.wav) ->"
-msgstr "Pick game button sound effect (.wav) ->"
-
-#. Key:	E91875644E65C8C43E7BFE9645404594
-#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.IconBox_2.ToolTipText
-#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.IconBox_2.ToolTipText
-msgctxt ",E91875644E65C8C43E7BFE9645404594"
-msgid "*optional"
-msgstr "*optional"
+#. Key:	6F9F04B74AE2FDED092BB29AA24A2350
+#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.IconPickerButton.ToolTipText
+#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.IconPickerButton.ToolTipText
+msgctxt ",6F9F04B74AE2FDED092BB29AA24A2350"
+msgid "Type game name to unlock picking game icon!"
+msgstr "Type game name to unlock picking game icon!"
 
 #. Key:	3055EA3A4CE845A2A2732BAC986AC729
-#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.IconBox_3.HintText
-#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.IconBox_3.HintText
+#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.MusicBox.HintText
+#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.MusicBox.HintText
 msgctxt ",3055EA3A4CE845A2A2732BAC986AC729"
 msgid "Pick game background theme (.wav) ->"
 msgstr "Pick game background theme (.wav) ->"
 
 #. Key:	03754DF64191AB88D9A2608703C41AD6
-#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.IconBox_3.ToolTipText
-#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.IconBox_3.ToolTipText
+#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.MusicBox.ToolTipText
+#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.MusicBox.ToolTipText
 msgctxt ",03754DF64191AB88D9A2608703C41AD6"
 msgid "*optional"
 msgstr "*optional"
+
+#. Key:	E295BD9942EDEA7938268DAE64D38A76
+#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.SfxBox.HintText
+#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.SfxBox.HintText
+msgctxt ",E295BD9942EDEA7938268DAE64D38A76"
+msgid "Pick game button sound effect (.wav) ->"
+msgstr "Pick game button sound effect (.wav) ->"
+
+#. Key:	E91875644E65C8C43E7BFE9645404594
+#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.SfxBox.ToolTipText
+#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.SfxBox.ToolTipText
+msgctxt ",E91875644E65C8C43E7BFE9645404594"
+msgid "*optional"
+msgstr "*optional"
+
+#. Key:	29880B87AD5940739CD50DAF1FC79FE9
+#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock.Text
+#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock.Text
+msgctxt ",29880B87AD5940739CD50DAF1FC79FE9"
+msgid "Fields marked with * are mandatory!"
+msgstr "Fields marked with * are mandatory!"
+
+#. Key:	1082CDF357134C6A8E8F5EE220BE31EA
+#. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_1.Text
+#: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_1.Text
+msgctxt ",1082CDF357134C6A8E8F5EE220BE31EA"
+msgid "Executable Args "
+msgstr "Executable Args "
 
 #. Key:	AC09574D47E6F22C691165B027C68873
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_132.Text
@@ -293,19 +335,19 @@ msgctxt ",4E8940794447FF0779F756AD9800C0D5"
 msgid "Executable Path* "
 msgstr "Executable Path* "
 
-#. Key:	CD8FDFA6488BF9439843B4A37BE65419
+#. Key:	1A6A669C3A904509B6A8596FBDFF93FF
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_21.Text
 #: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_21.Text
-msgctxt ",CD8FDFA6488BF9439843B4A37BE65419"
-msgid "Created by*  "
-msgstr "Created by*  "
+msgctxt ",1A6A669C3A904509B6A8596FBDFF93FF"
+msgid "Created by  "
+msgstr "Created by  "
 
-#. Key:	E9AB72CF41344EC2448DFA8EE09426D4
+#. Key:	0FFA0E9E04C6423C80F5EEA97FC3ECE3
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_23.Text
 #: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_23.Text
-msgctxt ",E9AB72CF41344EC2448DFA8EE09426D4"
-msgid "Icon (.jpg)*  "
-msgstr "Icon (.jpg)*  "
+msgctxt ",0FFA0E9E04C6423C80F5EEA97FC3ECE3"
+msgid "Icon (.jpg)  "
+msgstr "Icon (.jpg)  "
 
 #. Key:	4AA282104A2F5B164526D4BE58E787B4
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_24.Text
@@ -321,12 +363,12 @@ msgctxt ",F2A847AB481BDF7648188F891BA1B645"
 msgid "Pick (.exe) executable"
 msgstr "Pick (.exe) executable"
 
-#. Key:	A3AF27824787117D8B74F68A378C0EC7
+#. Key:	4AA99BD3E7D64608B6348F86E95BAC5A
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_26.Text
 #: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_26.Text
-msgctxt ",A3AF27824787117D8B74F68A378C0EC7"
-msgid "Background (.jpg)* "
-msgstr "Background (.jpg)* "
+msgctxt ",4AA99BD3E7D64608B6348F86E95BAC5A"
+msgid "Background (.jpg) "
+msgstr "Background (.jpg) "
 
 #. Key:	7C7C584541110AE42AF5058178A916D2
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_28.Text
@@ -349,19 +391,19 @@ msgctxt ",CA4DFA654AFCD7B7547B309E3C134B61"
 msgid "Pick short (2 sec.) audio file"
 msgstr "Pick short (2 sec.) audio file"
 
-#. Key:	D61FC8964084D2D5B50A599ABAFF7048
+#. Key:	92BD8259D9C3496E8ECFF46EA9591E16
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_31.Text
 #: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_31.Text
-msgctxt ",D61FC8964084D2D5B50A599ABAFF7048"
-msgid "Required: "
-msgstr "Required: "
+msgctxt ",92BD8259D9C3496E8ECFF46EA9591E16"
+msgid "Add non-pioza game"
+msgstr "Add non-pioza game"
 
-#. Key:	CC0B35AA4C79284FFACE55AF5D07800F
+#. Key:	50DBDF49B1FA48969C5C7D60CDBDE9D7
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_32.Text
 #: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_32.Text
-msgctxt ",CC0B35AA4C79284FFACE55AF5D07800F"
-msgid "Optional: "
-msgstr "Optional: "
+msgctxt ",50DBDF49B1FA48969C5C7D60CDBDE9D7"
+msgid "SFX: "
+msgstr "SFX: "
 
 #. Key:	081750894B385787E96A1481646A4EC4
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_33.Text
@@ -377,12 +419,12 @@ msgctxt ",9A3B8433411AF81C14DBD99BAFE93507"
 msgid "Pick long (music) audio file"
 msgstr "Pick long (music) audio file"
 
-#. Key:	8414EC49486A1DE6DC2A02976FBF141D
+#. Key:	DE2566F401974F71840B45CFFF82C9DD
 #. SourceLocation:	/Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_35.Text
 #: /Game/Blueprints/Widgets/W_AddGameWizard.W_AddGameWizard_C:WidgetTree.TextBlock_35.Text
-msgctxt ",8414EC49486A1DE6DC2A02976FBF141D"
-msgid "Description*  "
-msgstr "Description*  "
+msgctxt ",DE2566F401974F71840B45CFFF82C9DD"
+msgid "Description  "
+msgstr "Description  "
 
 #. Key:	9507162A031A42308AB5B91E1DC080ED
 #. SourceLocation:	/Game/Blueprints/Widgets/W_FolderPicker.W_FolderPicker_C:ExecuteUbergraph_W_FolderPicker [Script Bytecode]
@@ -397,6 +439,20 @@ msgstr "Restore game"
 msgctxt ",DC679DE359FE43E4BFB0B89088434106"
 msgid "Download and install"
 msgstr "Download and install"
+
+#. Key:	E8AAA1244747972DD21FE6BD623965DF
+#. SourceLocation:	/Game/Blueprints/Widgets/W_FolderPicker.W_FolderPicker_C:ExecuteUbergraph_W_FolderPicker [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_FolderPicker.W_FolderPicker_C:ExecuteUbergraph_W_FolderPicker [Script Bytecode]
+msgctxt ",E8AAA1244747972DD21FE6BD623965DF"
+msgid "Refreshing Folder Picker TextBox!\nCurrentDir: {CD}\nGameName: {GN}"
+msgstr "Refreshing Folder Picker TextBox!\nCurrentDir: {CD}\nGameName: {GN}"
+
+#. Key:	F31F1AD9F0474E63AD23FD0BFC14B4EC
+#. SourceLocation:	/Game/Blueprints/Widgets/W_FolderPicker.W_FolderPicker_C:ExecuteUbergraph_W_FolderPicker [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_FolderPicker.W_FolderPicker_C:ExecuteUbergraph_W_FolderPicker [Script Bytecode]
+msgctxt ",F31F1AD9F0474E63AD23FD0BFC14B4EC"
+msgid "No enough disk space in selected install path!"
+msgstr "No enough disk space in selected install path!"
 
 #. Key:	990A14CA93D54B9DB058F28FD0D23CC1
 #. SourceLocation:	/Game/Blueprints/Widgets/W_FolderPicker.W_FolderPicker_C:GameFolderPicker [Script Bytecode]
@@ -468,6 +524,13 @@ msgctxt ",8CBE8EFA44389E17839304A844437003"
 msgid "Install-time Size (with Cache): "
 msgstr "Install-time Size (with Cache): "
 
+#. Key:	13CEDDC4429F4B6FB4B511A452AFD37E
+#. SourceLocation:	/Game/Blueprints/Widgets/W_GameList.W_GameList_C:ExecuteUbergraph_W_GameList [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_GameList.W_GameList_C:ExecuteUbergraph_W_GameList [Script Bytecode]
+msgctxt ",13CEDDC4429F4B6FB4B511A452AFD37E"
+msgid "Adding custom game to list!!!\nGameID: {name}"
+msgstr "Adding custom game to list!!!\nGameID: {name}"
+
 #. Key:	41B12B848D1D4EB5A89397D90540C6C5
 #. SourceLocation:	/Game/Blueprints/Widgets/W_InfoBox.W_InfoBox_C:WidgetTree.InfoText.Text
 #: /Game/Blueprints/Widgets/W_InfoBox.W_InfoBox_C:WidgetTree.InfoText.Text
@@ -502,6 +565,20 @@ msgstr "eg. /usr/bin/wine"
 msgctxt ",E4A05E35048E4FB0BB049D9C37A533EB"
 msgid "Only change this if you know what you're doing."
 msgstr "Only change this if you know what you're doing."
+
+#. Key:	3248AD12F3FB4448AC27DA9945E001ED
+#. SourceLocation:	/Game/Blueprints/Widgets/W_LauncherOptions.W_LauncherOptions_C:WidgetTree.TextBlock.Text
+#: /Game/Blueprints/Widgets/W_LauncherOptions.W_LauncherOptions_C:WidgetTree.TextBlock.Text
+msgctxt ",3248AD12F3FB4448AC27DA9945E001ED"
+msgid "Language: "
+msgstr "Language: "
+
+#. Key:	6AF25575E40F454F943B0AE215AA9566
+#. SourceLocation:	/Game/Blueprints/Widgets/W_LauncherOptions.W_LauncherOptions_C:WidgetTree.TextBlock_1.Text
+#: /Game/Blueprints/Widgets/W_LauncherOptions.W_LauncherOptions_C:WidgetTree.TextBlock_1.Text
+msgctxt ",6AF25575E40F454F943B0AE215AA9566"
+msgid "Show update notifications?"
+msgstr "Show update notifications?"
 
 #. Key:	3852E725D94E4FB7976268AC0F28FBF0
 #. SourceLocation:	/Game/Blueprints/Widgets/W_LauncherOptions.W_LauncherOptions_C:WidgetTree.TextBlock_13.Text
@@ -538,12 +615,47 @@ msgctxt ",0B4517CDF5664DDDA6B1386B9E61D923"
 msgid "Minimize On Play"
 msgstr "Minimize On Play"
 
+#. Key:	1B70A8290B7C47D48D4604B99923B76E
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:AddInstalledToTray [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:AddInstalledToTray [Script Bytecode]
+msgctxt ",1B70A8290B7C47D48D4604B99923B76E"
+msgid "Launch"
+msgstr "Launch"
+
+#. Key:	E18273CF09C4439BB13429AD33C4B821
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:AddInstalledToTray [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:AddInstalledToTray [Script Bytecode]
+msgctxt ",E18273CF09C4439BB13429AD33C4B821"
+msgid "Launch {GameName}"
+msgstr "Launch {GameName}"
+
 #. Key:	ADDA9368994C47D28AE9090857A1C659
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:CancelGameDownload [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:CancelGameDownload [Script Bytecode]
 msgctxt ",ADDA9368994C47D28AE9090857A1C659"
 msgid "Canceled by user..."
 msgstr "Canceled by user..."
+
+#. Key:	D4C34342FC1B46D794457C1852C2CE26
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:CheckLauncherVersion [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:CheckLauncherVersion [Script Bytecode]
+msgctxt ",D4C34342FC1B46D794457C1852C2CE26"
+msgid "LOCAL VERSION: {LOCAL}\nREMOTE VERSION: {REMOTE}"
+msgstr "LOCAL VERSION: {LOCAL}\nREMOTE VERSION: {REMOTE}"
+
+#. Key:	8D6F399D18F64853BE0BD28A3A555254
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:DownloadAndInstall [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:DownloadAndInstall [Script Bytecode]
+msgctxt ",8D6F399D18F64853BE0BD28A3A555254"
+msgid "Starting download..."
+msgstr "Starting download..."
+
+#. Key:	C7D11DCF2B3B43859D6D2FC5A09505FF
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:DownloadAndInstall [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:DownloadAndInstall [Script Bytecode]
+msgctxt ",C7D11DCF2B3B43859D6D2FC5A09505FF"
+msgid "Cancel"
+msgstr "Cancel"
 
 #. Key:	0361FDAA17244787A70C6B3C16C42A86
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
@@ -559,6 +671,13 @@ msgctxt ",0881FF51163A453291B9898EB4FD320A"
 msgid "There was an error while reading manifest file from your disk!\nCheck free disk space and permissions in launcher savedata directory!"
 msgstr "There was an error while reading manifest file from your disk!\nCheck free disk space and permissions in launcher savedata directory!"
 
+#. Key:	08F872C1E1EF427DBFC0F1D6E378DC0C
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
+msgctxt ",08F872C1E1EF427DBFC0F1D6E378DC0C"
+msgid "Offline Mode"
+msgstr "Offline Mode"
+
 #. Key:	0980FE98413E448EA6B0874441C6C903
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
@@ -572,6 +691,13 @@ msgstr "Installing android apk file..."
 msgctxt ",0CF82D0BC05349EDADECE9F97E9ABA18"
 msgid "Showing Uninstall Dialog!"
 msgstr "Showing Uninstall Dialog!"
+
+#. Key:	101BF76F78D9416C82593CE9B02FFBC0
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
+msgctxt ",101BF76F78D9416C82593CE9B02FFBC0"
+msgid "Your existing version of Pioza Game Launcher is older than the oldest supported version by the server.\nUpdate the launcher using the button below...."
+msgstr "Your existing version of Pioza Game Launcher is older than the oldest supported version by the server.\nUpdate the launcher using the button below...."
 
 #. Key:	11B22F76430A426289DBA345382C1AEA
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
@@ -762,12 +888,19 @@ msgctxt ",466BFED04FD632522A38549515C70ACF"
 msgid "Archiving {game}! Please Wait..."
 msgstr "Archiving {game}! Please Wait..."
 
+#. Key:	47C9625B1B6847A0A1F7CB59813879EC
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
+msgctxt ",47C9625B1B6847A0A1F7CB59813879EC"
+msgid "Check Update"
+msgstr "Check Update"
+
 #. Key:	49649B69835A4B968CD47C8A2E7D799F
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
 msgctxt ",49649B69835A4B968CD47C8A2E7D799F"
-msgid "{1}/{2} File: {file} | IsCorrect?: {bool}"
-msgstr "{1}/{2} File: {file} | IsCorrect?: {bool}"
+msgid "{1}/{2} File: {file}"
+msgstr "{1}/{2} File: {file}"
 
 #. Key:	496A65043481442EBD8D483BB5FEF466
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
@@ -797,13 +930,6 @@ msgctxt ",5C49FD6A18DE4826B245A693597AD7F6"
 msgid "Download"
 msgstr "Download"
 
-#. Key:	60024F9649674B2374174FA81552BA09
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-msgctxt ",60024F9649674B2374174FA81552BA09"
-msgid "Refreshing metadata ({current}/{length})"
-msgstr "Refreshing metadata ({current}/{length})"
-
 #. Key:	60C76F07DD8C40168E197C56D58F3B76
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
@@ -818,34 +944,6 @@ msgctxt ",6155B81647C7DDF382B280A0114B2DE3"
 msgid "Adding shortcut to {type}..."
 msgstr "Adding shortcut to {type}..."
 
-#. Key:	61C7FFD64C3CC81124EC7FBEDF0A9DC0
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-msgctxt ",61C7FFD64C3CC81124EC7FBEDF0A9DC0"
-msgid "Downloading {filename} for {GameName}..."
-msgstr "Downloading {filename} for {GameName}..."
-
-#. Key:	648CEC164DA4B7121AE2D3BC6D73F6C6
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-msgctxt ",648CEC164DA4B7121AE2D3BC6D73F6C6"
-msgid "Your existing version of Pioza Game Launcher is older than the oldest supported version by the server.\r\nUpdate the launcher using the button below...."
-msgstr "Your existing version of Pioza Game Launcher is older than the oldest supported version by the server.\r\nUpdate the launcher using the button below...."
-
-#. Key:	6861D2289C7F4C189D169142ACD2FCF4
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-msgctxt ",6861D2289C7F4C189D169142ACD2FCF4"
-msgid "Preparing to unpack..."
-msgstr "Preparing to unpack..."
-
-#. Key:	6889DE494BFF919F986C54B6350B3DC5
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-msgctxt ",6889DE494BFF919F986C54B6350B3DC5"
-msgid "ERROR: GAME EXECUTABLE NOT FOUND IN FILESYSTEM!!!"
-msgstr "ERROR: GAME EXECUTABLE NOT FOUND IN FILESYSTEM!!!"
-
 #. Key:	69BEF4024FED07D0A03B7E8906AF119A
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
@@ -853,19 +951,19 @@ msgctxt ",69BEF4024FED07D0A03B7E8906AF119A"
 msgid "Select move destination folder!"
 msgstr "Select move destination folder!"
 
+#. Key:	69E9DB39D34F440990CC411142A089B2
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
+msgctxt ",69E9DB39D34F440990CC411142A089B2"
+msgid "Check Again"
+msgstr "Check Again"
+
 #. Key:	6F13C8294D5A428F81296F5C28178D77
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
 msgctxt ",6F13C8294D5A428F81296F5C28178D77"
 msgid "(ANDROID-UPDATER): Found available update! Local version {local} is less than server version {server}"
 msgstr "(ANDROID-UPDATER): Found available update! Local version {local} is less than server version {server}"
-
-#. Key:	6F8A5F2361164D83B4B53FC2B3CDB177
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-msgctxt ",6F8A5F2361164D83B4B53FC2B3CDB177"
-msgid "Installing..."
-msgstr "Installing..."
 
 #. Key:	71285EF08EE4481695C96DB6E510E9F2
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
@@ -916,12 +1014,26 @@ msgctxt ",81F8B1BE58C54A76925FDABEBF9BCBB6"
 msgid "Success! No corrupted files found..."
 msgstr "Success! No corrupted files found..."
 
+#. Key:	846E1A2440E4B1878BF381AA89C40F17
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
+msgctxt ",846E1A2440E4B1878BF381AA89C40F17"
+msgid "RESTORE ERROR! FAILED TO VERIFY PACKAGE VERSION!\r\nBackup FIle Path: {bfp}"
+msgstr "RESTORE ERROR! FAILED TO VERIFY PACKAGE VERSION!\r\nBackup FIle Path: {bfp}"
+
 #. Key:	85EFE2F468C249B6AE6A7E4B80C6D00C
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
 msgctxt ",85EFE2F468C249B6AE6A7E4B80C6D00C"
 msgid "Your version of Pioza Launcher does not support current games manifest! Try downloading a new version of the launcher by clicking the button below!"
 msgstr "Your version of Pioza Launcher does not support current games manifest! Try downloading a new version of the launcher by clicking the button below!"
+
+#. Key:	86CCC74D82D54C68A5C8EABE4A6336C1
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
+msgctxt ",86CCC74D82D54C68A5C8EABE4A6336C1"
+msgid "Close And Update"
+msgstr "Close And Update"
 
 #. Key:	8A3006CA4149465F936FA7CA40084422
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
@@ -930,19 +1042,19 @@ msgctxt ",8A3006CA4149465F936FA7CA40084422"
 msgid "Verifying game files integrity..."
 msgstr "Verifying game files integrity..."
 
+#. Key:	8B8CDA7469E147BD98656119C5331BE6
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
+msgctxt ",8B8CDA7469E147BD98656119C5331BE6"
+msgid "Runtime Type: {1}\nCommand: {2}\nArgs: {3}\nExec Path: {4}"
+msgstr "Runtime Type: {1}\nCommand: {2}\nArgs: {3}\nExec Path: {4}"
+
 #. Key:	8C1C9F1E8B184AC6AF2D918877A1A283
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
 msgctxt ",8C1C9F1E8B184AC6AF2D918877A1A283"
 msgid "Play"
 msgstr "Play"
-
-#. Key:	8D6F399D18F64853BE0BD28A3A555254
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-msgctxt ",8D6F399D18F64853BE0BD28A3A555254"
-msgid "Starting download..."
-msgstr "Starting download..."
 
 #. Key:	90C2C8EBEF934AD88028287AE00EDC60
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
@@ -957,13 +1069,6 @@ msgstr "Download"
 msgctxt ",90CF609C4386461BA628C139690C6FE3"
 msgid "Backup complete!"
 msgstr "Backup complete!"
-
-#. Key:	91F8C1B547274FFC9637488B1E4B761F
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-msgctxt ",91F8C1B547274FFC9637488B1E4B761F"
-msgid "Downloading completed! Saving archive..."
-msgstr "Downloading completed! Saving archive..."
 
 #. Key:	990B83104EC7BDB32E347D874C851D42
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
@@ -1014,13 +1119,6 @@ msgctxt ",A0708851CA5D41AB9A8A6F1C36F51FEE"
 msgid "Removing files..."
 msgstr "Removing files..."
 
-#. Key:	A7872FFFBF4C4F28AD5D43FD16E719A6
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-msgctxt ",A7872FFFBF4C4F28AD5D43FD16E719A6"
-msgid "Failed to create folder tree for games metadata files!\nCheck free disk space or permissions or try reinstalling or updating launcher..."
-msgstr "Failed to create folder tree for games metadata files!\nCheck free disk space or permissions or try reinstalling or updating launcher..."
-
 #. Key:	AAA27FA7443F0AA35A3E96B2346F9E15
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
@@ -1056,26 +1154,12 @@ msgctxt ",BE55CA194A75DFFA234667B941E8817E"
 msgid "{GameName} is Ready to launch!"
 msgstr "{GameName} is Ready to launch!"
 
-#. Key:	C0BA41F1E3E54C9A9B0042222629575D
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-msgctxt ",C0BA41F1E3E54C9A9B0042222629575D"
-msgid "RESTORING FAILED BECAUSE OF SIGNATURE VERIFICATION MISMATCH.\nSelected Filename {filename} is not equal to selected game {filename2}"
-msgstr "RESTORING FAILED BECAUSE OF SIGNATURE VERIFICATION MISMATCH.\nSelected Filename {filename} is not equal to selected game {filename2}"
-
 #. Key:	C11479162413436A939F8A5DA76380AA
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
 msgctxt ",C11479162413436A939F8A5DA76380AA"
 msgid "Play!"
 msgstr "Play!"
-
-#. Key:	C7151CE74D8E0C0B647827AFC19C6D78
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-msgctxt ",C7151CE74D8E0C0B647827AFC19C6D78"
-msgid "Downloading {filename} for {GameName}..."
-msgstr "Downloading {filename} for {GameName}..."
 
 #. Key:	C7B92981957F4059A9240CDF399513DE
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
@@ -1084,19 +1168,19 @@ msgctxt ",C7B92981957F4059A9240CDF399513DE"
 msgid "Initializing Proton..."
 msgstr "Initializing Proton..."
 
-#. Key:	C7D11DCF2B3B43859D6D2FC5A09505FF
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-msgctxt ",C7D11DCF2B3B43859D6D2FC5A09505FF"
-msgid "Cancel"
-msgstr "Cancel"
-
 #. Key:	C7FC9252CAB54D16AF1A460FDBFBAD75
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
 msgctxt ",C7FC9252CAB54D16AF1A460FDBFBAD75"
 msgid "Please Wait..."
 msgstr "Please Wait..."
+
+#. Key:	D08B61124D9A35406EC5E4B9C3FB0F4D
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
+msgctxt ",D08B61124D9A35406EC5E4B9C3FB0F4D"
+msgid "Triggering game install with:\r\nPath: {1}\r\nDesktopShortcut?: {2}\r\nStartMenuShortcut?: {3}"
+msgstr "Triggering game install with:\r\nPath: {1}\r\nDesktopShortcut?: {2}\r\nStartMenuShortcut?: {3}"
 
 #. Key:	D803B4F048DA4E00873A3FFCF87ABF41
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
@@ -1161,13 +1245,6 @@ msgctxt ",EFDBB53F05644CCFA5C414C847ACA930"
 msgid "Download (Offline Mode)"
 msgstr "Download (Offline Mode)"
 
-#. Key:	EFE02AA9531D44419654E4EFFE0F31DF
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
-msgctxt ",EFE02AA9531D44419654E4EFFE0F31DF"
-msgid "Cancel download"
-msgstr "Cancel download"
-
 #. Key:	F93396D4B31E4FFE846535ED54F15744
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ExecuteUbergraph_W_MainLauncher1 [Script Bytecode]
@@ -1228,8 +1305,43 @@ msgstr "sec."
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:Get_VersionText_Text [Script Bytecode]
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:Get_VersionText_Text [Script Bytecode]
 msgctxt ",8F82A35C4B2BF040ABA122A6B693D9B1"
-msgid "{AppName} by {Author} ({version})"
-msgstr "{AppName} by {Author} ({version})"
+msgid "{AppName} by {Author} (v.{version})"
+msgstr "{AppName} by {Author} (v.{version})"
+
+#. Key:	6821652941D85031A500D0817873CB06
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:IsCacheOnDisk? [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:IsCacheOnDisk? [Script Bytecode]
+msgctxt ",6821652941D85031A500D0817873CB06"
+msgid "IsCacheOnDisk?: {value}\r\nCacheLocation: {loc}"
+msgstr "IsCacheOnDisk?: {value}\r\nCacheLocation: {loc}"
+
+#. Key:	6861D2289C7F4C189D169142ACD2FCF4
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:OnDownloadGameComplete [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:OnDownloadGameComplete [Script Bytecode]
+msgctxt ",6861D2289C7F4C189D169142ACD2FCF4"
+msgid "Preparing to unpack..."
+msgstr "Preparing to unpack..."
+
+#. Key:	6F8A5F2361164D83B4B53FC2B3CDB177
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:OnDownloadGameComplete [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:OnDownloadGameComplete [Script Bytecode]
+msgctxt ",6F8A5F2361164D83B4B53FC2B3CDB177"
+msgid "Installing..."
+msgstr "Installing..."
+
+#. Key:	91F8C1B547274FFC9637488B1E4B761F
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:OnDownloadGameComplete [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:OnDownloadGameComplete [Script Bytecode]
+msgctxt ",91F8C1B547274FFC9637488B1E4B761F"
+msgid "Downloading completed! Saving archive..."
+msgstr "Downloading completed! Saving archive..."
+
+#. Key:	EFE02AA9531D44419654E4EFFE0F31DF
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:OnDownloadGameProgress [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:OnDownloadGameProgress [Script Bytecode]
+msgctxt ",EFE02AA9531D44419654E4EFFE0F31DF"
+msgid "Cancel download"
+msgstr "Cancel download"
 
 #. Key:	2B22F7F69BC64DD6B36CDC00D08F7503
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:RemoveCache [Script Bytecode]
@@ -1280,6 +1392,41 @@ msgctxt ",7F883E23AFD6461A90114E0A1DDE6BE3"
 msgid "File not found on server..."
 msgstr "File not found on server..."
 
+#. Key:	0ADF6886BB94487B9C9CDDC5399695AB
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ShowGenericError [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ShowGenericError [Script Bytecode]
+msgctxt ",0ADF6886BB94487B9C9CDDC5399695AB"
+msgid "Try Again"
+msgstr "Try Again"
+
+#. Key:	0DFEB230D3874D14A2F052E2BCD9F42E
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ShowGenericError [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ShowGenericError [Script Bytecode]
+msgctxt ",0DFEB230D3874D14A2F052E2BCD9F42E"
+msgid "Close and Update"
+msgstr "Close and Update"
+
+#. Key:	822C29B3987B485095B7025520E81203
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ShowGenericError [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:ShowGenericError [Script Bytecode]
+msgctxt ",822C29B3987B485095B7025520E81203"
+msgid "Offline Mode"
+msgstr "Offline Mode"
+
+#. Key:	6EBE0529E9F14E4092E4E28ACAE3298C
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:TrayFirstTimeNotification [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:TrayFirstTimeNotification [Script Bytecode]
+msgctxt ",6EBE0529E9F14E4092E4E28ACAE3298C"
+msgid "{AppName} is stil running!"
+msgstr "{AppName} is stil running!"
+
+#. Key:	DB008F120A394261BD0F623053E60D19
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:TrayFirstTimeNotification [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:TrayFirstTimeNotification [Script Bytecode]
+msgctxt ",DB008F120A394261BD0F623053E60D19"
+msgid "{AppName} is still running in the background. Click the tray icon to open it again, or right-click for more options."
+msgstr "{AppName} is still running in the background. Click the tray icon to open it again, or right-click for more options."
+
 #. Key:	EE83D87C6DAC4223B4CD63214706D470
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.AboutB.ToolTipText
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.AboutB.ToolTipText
@@ -1301,12 +1448,103 @@ msgctxt ",59BA88B0D1564BA88A96B2746C0DF0DB"
 msgid "Browse game files."
 msgstr "Browse game files."
 
-#. Key:	1000556F46F5AA14B0A54797DC6391D8
+#. Key:	1D6A9CE3EBC840E1A1A030B44DFFE886
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.ButtonText.Text
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.ButtonText.Text
-msgctxt ",1000556F46F5AA14B0A54797DC6391D8"
+msgctxt ",1D6A9CE3EBC840E1A1A030B44DFFE886"
 msgid "Download"
 msgstr "Download"
+
+#. Key:	64EAD075DEEF41B6991842D5278EBE99
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_1.Text
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_1.Text
+msgctxt ",64EAD075DEEF41B6991842D5278EBE99"
+msgid "Backup"
+msgstr "Backup"
+
+#. Key:	A92B1D944A29444899F8022D48116E44
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_12.Text
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_12.Text
+msgctxt ",A92B1D944A29444899F8022D48116E44"
+msgid "..."
+msgstr "..."
+
+#. Key:	18B1DC16019F4F3DB08783735BEBF549
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_13.Text
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_13.Text
+msgctxt ",18B1DC16019F4F3DB08783735BEBF549"
+msgid "OPTIONS"
+msgstr "OPTIONS"
+
+#. Key:	58AF879AE0FB4D8ABA7749AC41F4EEC9
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_14.Text
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_14.Text
+msgctxt ",58AF879AE0FB4D8ABA7749AC41F4EEC9"
+msgid "SOURCE"
+msgstr "SOURCE"
+
+#. Key:	1958BF2838B84838A0C05251DE8F7138
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_15.Text
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_15.Text
+msgctxt ",1958BF2838B84838A0C05251DE8F7138"
+msgid "ABOUT"
+msgstr "ABOUT"
+
+#. Key:	D8A119D1539C41B0BE47FDCC01B1D265
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_16.Text
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_16.Text
+msgctxt ",D8A119D1539C41B0BE47FDCC01B1D265"
+msgid "EXIT"
+msgstr "EXIT"
+
+#. Key:	3002FF6822784217AECA0BA7D4A998E3
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_2.Text
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_2.Text
+msgctxt ",3002FF6822784217AECA0BA7D4A998E3"
+msgid "Restore"
+msgstr "Restore"
+
+#. Key:	355D27EBC1D243D9A44FC434326F0CA8
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_3.Text
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_3.Text
+msgctxt ",355D27EBC1D243D9A44FC434326F0CA8"
+msgid "Remove Cache"
+msgstr "Remove Cache"
+
+#. Key:	3C117AA61085429B89C43AB85A780E2E
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_4.Text
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_4.Text
+msgctxt ",3C117AA61085429B89C43AB85A780E2E"
+msgid "Move"
+msgstr "Move"
+
+#. Key:	748A27F5BE344CE290EF487230723009
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_5.Text
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_5.Text
+msgctxt ",748A27F5BE344CE290EF487230723009"
+msgid "Browse Files"
+msgstr "Browse Files"
+
+#. Key:	8D5B8C8A8F3748B0A90A2A78D5B37049
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_6.Text
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_6.Text
+msgctxt ",8D5B8C8A8F3748B0A90A2A78D5B37049"
+msgid "Verify And Repair"
+msgstr "Verify And Repair"
+
+#. Key:	D0FBBBBE997046FAB3F17CE2AF9ADBAE
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_7.Text
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_7.Text
+msgctxt ",D0FBBBBE997046FAB3F17CE2AF9ADBAE"
+msgid "Uninstall"
+msgstr "Uninstall"
+
+#. Key:	5AA15E727C8947B0BA3B4FB4ABC54B5C
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_8.Text
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.CommonTextBlock_8.Text
+msgctxt ",5AA15E727C8947B0BA3B4FB4ABC54B5C"
+msgid "Select RHI"
+msgstr "Select RHI"
 
 #. Key:	E7BE3A5FB63E43D4A43A1CB0F133F6BC
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.DownArrow.ToolTipText
@@ -1321,6 +1559,13 @@ msgstr "Scroll down to see game description and screenshots."
 msgctxt ",F71FF15E650B46B38F1FBB84782E174A"
 msgid "Exit launcher!"
 msgstr "Exit launcher!"
+
+#. Key:	152D3D8B428893727AF5DF96111AF12B
+#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.InstallStatusText.Text
+#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.InstallStatusText.Text
+msgctxt ",152D3D8B428893727AF5DF96111AF12B"
+msgid "Progress: 0%"
+msgstr "Progress: 0%"
 
 #. Key:	701F4324C15E48B7B1551C3A669EF754
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.MetadataDesc.Text
@@ -1342,13 +1587,6 @@ msgstr "Establishing connection..."
 msgctxt ",66790F4699774C26BD0DF38B4F1A8F0E"
 msgid "Move the game to another directory."
 msgstr "Move the game to another directory."
-
-#. Key:	1917DCB03CCE491DAB05A5AF9C111654
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.OfflineModeButton.ToolTipText
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.OfflineModeButton.ToolTipText
-msgctxt ",1917DCB03CCE491DAB05A5AF9C111654"
-msgid "Launch offline mode with limited functionality."
-msgstr "Launch offline mode with limited functionality."
 
 #. Key:	FFF54E36CE794D629E2F6E4CE70974BD
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.OptionsB.ToolTipText
@@ -1392,131 +1630,12 @@ msgctxt ",5A2F53BCFBD5463FAB3E78DA685C89CB"
 msgid "View launcher source on GitHub!"
 msgstr "View launcher source on GitHub!"
 
-#. Key:	565EF93B4757544903C1B2B7E1578092
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_0.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_0.Text
-msgctxt ",565EF93B4757544903C1B2B7E1578092"
-msgid "Uninstall"
-msgstr "Uninstall"
-
-#. Key:	B9609ECC40453C5EC3AEDEAE95C35A5F
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_1.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_1.Text
-msgctxt ",B9609ECC40453C5EC3AEDEAE95C35A5F"
-msgid "Remove Cache"
-msgstr "Remove Cache"
-
-#. Key:	B8547A5948EE59EA33B083A0136A3471
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_10.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_10.Text
-msgctxt ",B8547A5948EE59EA33B083A0136A3471"
-msgid "Launch Options:"
-msgstr "Launch Options:"
-
-#. Key:	C41CF47A4D203ABD92C208BF62348DDB
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_12.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_12.Text
-msgctxt ",C41CF47A4D203ABD92C208BF62348DDB"
-msgid "Play"
-msgstr "Play"
-
-#. Key:	7D67FC56E86341AFBD605294C642E06C
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_15.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_15.Text
-msgctxt ",7D67FC56E86341AFBD605294C642E06C"
-msgid "SOURCE"
-msgstr "SOURCE"
-
-#. Key:	584161BB4AF0B1DFEDB13A89EFE582DD
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_17.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_17.Text
-msgctxt ",584161BB4AF0B1DFEDB13A89EFE582DD"
-msgid "OPTIONS"
-msgstr "OPTIONS"
-
-#. Key:	FBF1201C6D6C48F5942FA1665F9AED1C
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_18.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_18.Text
-msgctxt ",FBF1201C6D6C48F5942FA1665F9AED1C"
-msgid "EXIT"
-msgstr "EXIT"
-
-#. Key:	E60CEDB062224BE6B9875FFB536BF85F
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_19.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_19.Text
-msgctxt ",E60CEDB062224BE6B9875FFB536BF85F"
-msgid "Close & Update"
-msgstr "Close & Update"
-
-#. Key:	ABAD973B43DCA7B83F3C68A48B12BC8B
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_2.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_2.Text
-msgctxt ",ABAD973B43DCA7B83F3C68A48B12BC8B"
-msgid "Browse files"
-msgstr "Browse files"
-
-#. Key:	B3EF93BA4AC4A1B573A8D3A8C298606A
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_20.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_20.Text
-msgctxt ",B3EF93BA4AC4A1B573A8D3A8C298606A"
-msgid "Check Again"
-msgstr "Check Again"
-
-#. Key:	7020CBA74D66074B48BA05AF2FCACA69
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_21.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_21.Text
-msgctxt ",7020CBA74D66074B48BA05AF2FCACA69"
-msgid "Move"
-msgstr "Move"
-
 #. Key:	31B2F8054B0A95380AC87C9010E8B3AA
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_22.Text
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_22.Text
 msgctxt ",31B2F8054B0A95380AC87C9010E8B3AA"
 msgid "+"
 msgstr "+"
-
-#. Key:	572E5C3F4162D22E1EA8358DD193974F
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_23.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_23.Text
-msgctxt ",572E5C3F4162D22E1EA8358DD193974F"
-msgid "Backup"
-msgstr "Backup"
-
-#. Key:	7B60566647274CEF7D5501910B739B56
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_24.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_24.Text
-msgctxt ",7B60566647274CEF7D5501910B739B56"
-msgid "Restore"
-msgstr "Restore"
-
-#. Key:	C5899DFF4A106BDD926CB38BFC5FCD3E
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_25.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_25.Text
-msgctxt ",C5899DFF4A106BDD926CB38BFC5FCD3E"
-msgid "Select RHI"
-msgstr "Select RHI"
-
-#. Key:	347F27CB69864D69A5768B28A7DD55F3
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_3.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_3.Text
-msgctxt ",347F27CB69864D69A5768B28A7DD55F3"
-msgid "Verify and Repair"
-msgstr "Verify and Repair"
-
-#. Key:	F58B71A31C5640A3A5525DEB21495693
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_31.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_31.Text
-msgctxt ",F58B71A31C5640A3A5525DEB21495693"
-msgid "Offline Mode"
-msgstr "Offline Mode"
-
-#. Key:	E77AD3E691B54CDE85A0D9D9D4F2A691
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_32.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.TextBlock_32.Text
-msgctxt ",E77AD3E691B54CDE85A0D9D9D4F2A691"
-msgid "ABOUT"
-msgstr "ABOUT"
 
 #. Key:	0D3DB3E4269242FB9B3B3BF93B8764FE
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.UninstallB.ToolTipText
@@ -1532,26 +1651,19 @@ msgctxt ",DA4216934D5C37771A13E1AC1BB3705F"
 msgid "Pioza Launcher (by Shieldziak) v.0.6.7"
 msgstr "Pioza Launcher (by Shieldziak) v.0.6.7"
 
-#. Key:	CC4FEFE4122D49C0AD9497A131E66B2C
-#. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.VersionText_1.Text
-#: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.VersionText_1.Text
-msgctxt ",CC4FEFE4122D49C0AD9497A131E66B2C"
-msgid "CRITICAL UPDATE TO VERSION {VERSION} IS AVAILABLE"
-msgstr "CRITICAL UPDATE TO VERSION {VERSION} IS AVAILABLE"
-
 #. Key:	745CAEF1363C46A1BE6F1EA107BA8762
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.W_Changelog.Title
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.W_Changelog.Title
 msgctxt ",745CAEF1363C46A1BE6F1EA107BA8762"
-msgid "Changelog:"
-msgstr "Changelog:"
+msgid "Changelog"
+msgstr "Changelog"
 
 #. Key:	60C311529E2F498FB1DF9145B3CC0AD8
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.W_MinReqs.Title
 #: /Game/Blueprints/Widgets/W_MainLauncher1.W_MainLauncher1_C:WidgetTree.W_MinReqs.Title
 msgctxt ",60C311529E2F498FB1DF9145B3CC0AD8"
-msgid "Minimum Requirements:"
-msgstr "Minimum Requirements:"
+msgid "Minimum Requirements"
+msgstr "Minimum Requirements"
 
 #. Key:	95373647ABF04C9599D3C8C52E5EA645
 #. SourceLocation:	/Game/Blueprints/Widgets/W_MediaPlayer.W_MediaPlayer_C:Get_VideoTimeText_Text [Script Bytecode]
@@ -1580,4 +1692,39 @@ msgstr ">"
 msgctxt ",9F87AA8518754C30BD7B12866F7A342A"
 msgid "00:00/00:00"
 msgstr "00:00/00:00"
+
+#. Key:	01BBF25EBCE5435E835871F5FEBD7F78
+#. SourceLocation:	/Game/Blueprints/Widgets/W_UpdateNotifBorder.W_UpdateNotifBorder_C:ExecuteUbergraph_W_UpdateNotifBorder [Script Bytecode]
+#: /Game/Blueprints/Widgets/W_UpdateNotifBorder.W_UpdateNotifBorder_C:ExecuteUbergraph_W_UpdateNotifBorder [Script Bytecode]
+msgctxt ",01BBF25EBCE5435E835871F5FEBD7F78"
+msgid "UPDATE TO VERSION {VERSION} IS AVAILABLE!"
+msgstr "UPDATE TO VERSION {VERSION} IS AVAILABLE!"
+
+#. Key:	14D20424E6344717B53CA9EC96ABD30C
+#. SourceLocation:	/Game/Blueprints/Widgets/W_UpdateNotifBorder.W_UpdateNotifBorder_C:WidgetTree.VersionText_1.Text
+#: /Game/Blueprints/Widgets/W_UpdateNotifBorder.W_UpdateNotifBorder_C:WidgetTree.VersionText_1.Text
+msgctxt ",14D20424E6344717B53CA9EC96ABD30C"
+msgid "UPDATE TO VERSION {VERSION} IS AVAILABLE"
+msgstr "UPDATE TO VERSION {VERSION} IS AVAILABLE"
+
+#. Key:	8D1B78F33BCD447391B2943476AFF4C0
+#. SourceLocation:	/Game/Blueprints/Widgets/WDesktopEntriesList.WDesktopEntriesList_C:WidgetTree.EditableTextBox_46.HintText
+#: /Game/Blueprints/Widgets/WDesktopEntriesList.WDesktopEntriesList_C:WidgetTree.EditableTextBox_46.HintText
+msgctxt ",8D1B78F33BCD447391B2943476AFF4C0"
+msgid "eg. MyCustomGame"
+msgstr "eg. MyCustomGame"
+
+#. Key:	2544AC1D3EF4447B9D118444950DEBC9
+#. SourceLocation:	/Game/Blueprints/Widgets/WDesktopEntriesList.WDesktopEntriesList_C:WidgetTree.TextBlock_69.Text
+#: /Game/Blueprints/Widgets/WDesktopEntriesList.WDesktopEntriesList_C:WidgetTree.TextBlock_69.Text
+msgctxt ",2544AC1D3EF4447B9D118444950DEBC9"
+msgid "Search: "
+msgstr "Search: "
+
+#. Key:	F15245EAA2FF4286B697A812CDEFD1FE
+#. SourceLocation:	/Game/Blueprints/Widgets/WDesktopEntriesList.WDesktopEntriesList_C:WidgetTree.TextBlock_71.Text
+#: /Game/Blueprints/Widgets/WDesktopEntriesList.WDesktopEntriesList_C:WidgetTree.TextBlock_71.Text
+msgctxt ",F15245EAA2FF4286B697A812CDEFD1FE"
+msgid "Loading installed apps...\nLauncher may hang for couple seconds!"
+msgstr "Loading installed apps...\nLauncher may hang for couple seconds!"
 
