@@ -1,7 +1,8 @@
+
 // Pioza Launcher
 // Copyright (c) 2025 DashoGames
 // Licensed under the MIT License - see LICENSE file for details
-
+ 
 #include "DesktopParser.h"
 #include "IconUtilsLibrary.h"
 #include "HAL/PlatformFileManager.h"
@@ -13,20 +14,20 @@
 #include "IImageWrapperModule.h"
 #include "Engine/Texture2D.h"
 #include "Modules/ModuleManager.h"
-
+ 
 #if PLATFORM_WINDOWS
 #include "Windows/AllowWindowsPlatformTypes.h"
 #include <shlobj.h>
 #include <shellapi.h>
 #include "Windows/HideWindowsPlatformTypes.h"
-
+ 
 typedef UINT(WINAPI* PFN_PrivateExtractIconsW)(LPCWSTR, int, int, int, HICON*, UINT*, UINT, UINT);
 #endif
-
+ 
 TArray<FString> UDesktopParser::GetDefaultSearchPaths()
 {
 	TArray<FString> Paths;
-
+ 
 #if PLATFORM_LINUX
 	FString Home = FPlatformMisc::GetEnvironmentVariable(TEXT("HOME"));
 	Paths.Add(Home + TEXT("/.local/share/applications"));
@@ -50,23 +51,23 @@ TArray<FString> UDesktopParser::GetDefaultSearchPaths()
 	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, AppData)))
 		Paths.Add(FString(AppData) + TEXT("\\Microsoft\\Windows\\Start Menu\\Programs"));
 #endif
-
+ 
 	return Paths;
 }
-
+ 
 TArray<FString> UDesktopParser::GetAllDesktopFiles(const TArray<FString>& SearchPaths)
 {
 	TArray<FString> FoundFiles;
 	IFileManager& FileManager = IFileManager::Get();
-
+ 
+#if PLATFORM_LINUX || PLATFORM_WINDOWS
+ 
 #if PLATFORM_LINUX
 	const FString Ext = TEXT("*.desktop");
-#elif PLATFORM_WINDOWS
-	const FString Ext = TEXT("*.lnk");
 #else
-	return FoundFiles;
+	const FString Ext = TEXT("*.lnk");
 #endif
-
+ 
 	for (const FString& Path : SearchPaths)
 	{
 		if (FileManager.DirectoryExists(*Path))
@@ -74,13 +75,16 @@ TArray<FString> UDesktopParser::GetAllDesktopFiles(const TArray<FString>& Search
 			FileManager.FindFilesRecursive(FoundFiles, *Path, *Ext, true, false, false);
 		}
 	}
+ 
+#endif
+ 
 	return FoundFiles;
 }
-
+ 
 FDesktopEntryInfo UDesktopParser::ParseDesktopFile(const FString& FilePath)
 {
 	if (!FPaths::FileExists(FilePath)) return FDesktopEntryInfo();
-
+ 
 #if PLATFORM_LINUX
 	return ParseLinuxDesktopFile(FilePath);
 #elif PLATFORM_WINDOWS
@@ -89,32 +93,32 @@ FDesktopEntryInfo UDesktopParser::ParseDesktopFile(const FString& FilePath)
 	return FDesktopEntryInfo();
 #endif
 }
-
+ 
 TArray<FDesktopEntryInfo> UDesktopParser::ParseMultipleDesktopFiles(const TArray<FString>& FilePaths)
 {
 	TArray<FDesktopEntryInfo> Entries;
 	Entries.SetNum(FilePaths.Num());
-
+ 
 #if PLATFORM_WINDOWS
 	for (int32 i = 0; i < FilePaths.Num(); ++i) Entries[i] = ParseDesktopFile(FilePaths[i]);
 #else
 	ParallelFor(FilePaths.Num(), [&](int32 i) { Entries[i] = ParseDesktopFile(FilePaths[i]); });
 #endif
-
+ 
 	return Entries.FilterByPredicate([](const FDesktopEntryInfo& E) { return E.bIsValid; });
 }
-
+ 
 FString UDesktopParser::GetExecutableNameFromPath(const FString& ExecutablePath)
 {
 	return FPaths::GetCleanFilename(ExecutablePath);
 }
-
-
+ 
+ 
 FString UDesktopParser::ResolveExecutablePath(const FString& ExecutableName)
 {
 	if (ExecutableName.IsEmpty() || FPaths::FileExists(ExecutableName)) return ExecutableName;
 	if (ExecutableName.Contains(TEXT("/")) || ExecutableName.Contains(TEXT("\\"))) return ExecutableName;
-
+ 
 	FString PathEnv = FPlatformMisc::GetEnvironmentVariable(TEXT("PATH"));
 	TArray<FString> Dirs;
 #if PLATFORM_LINUX
@@ -140,21 +144,21 @@ FString UDesktopParser::ResolveExecutablePath(const FString& ExecutableName)
 #endif
 	return ExecutableName;
 }
-
+ 
 FDesktopEntryInfo UDesktopParser::ParseLinuxDesktopFile(const FString& FilePath)
 {
 	FDesktopEntryInfo Entry;
 	Entry.FilePath = FilePath;
-
+ 
 	FString Content;
 	if (!FFileHelper::LoadFileToString(Content, *FilePath)) return Entry;
-
+ 
 	TArray<FString> Lines;
 	Content.ParseIntoArrayLines(Lines);
-
+ 
 	bool bIsApp = false;
 	FString ExecLine;
-
+ 
 	for (const FString& Line : Lines)
 	{
 		FString Trim = Line.TrimStartAndEnd();
@@ -166,13 +170,13 @@ FDesktopEntryInfo UDesktopParser::ParseLinuxDesktopFile(const FString& FilePath)
 		else if (Trim.StartsWith(TEXT("Comment="))) Entry.Comment = Trim.RightChop(8);
 		else if (Trim.StartsWith(TEXT("NoDisplay=true"))) return Entry;
 	}
-
+ 
 	if (!bIsApp || Entry.Name.IsEmpty() || ExecLine.IsEmpty()) return Entry;
-
+ 
 	static const TArray<FString> Codes = { TEXT("%F"), TEXT("%f"), TEXT("%U"), TEXT("%u"), TEXT("%c"), TEXT("%k") };
 	for (const FString& Code : Codes) ExecLine.ReplaceInline(*Code, TEXT(""));
 	ExecLine.TrimStartAndEndInline();
-
+ 
 	SplitCommandLine(ExecLine, Entry.ExecutablePath, Entry.Arguments);
 	
 	if (Entry.ExecutablePath.Equals(TEXT("env"), ESearchCase::IgnoreCase) && Entry.Arguments.Num() > 0)
@@ -184,20 +188,20 @@ FDesktopEntryInfo UDesktopParser::ParseLinuxDesktopFile(const FString& FilePath)
 			Entry.Arguments.RemoveAt(0, Idx + 1);
 		}
 	}
-
+ 
 	Entry.ExecutablePath = ResolveExecutablePath(Entry.ExecutablePath);
 	if (!Entry.IconPath.IsEmpty()) Entry.IconPath = UIconUtilsLibrary::ResolveIconPath(Entry.IconPath);
 	Entry.ExecutableName = GetExecutableNameFromPath(Entry.ExecutablePath);
 	Entry.bIsValid = !Entry.ExecutablePath.IsEmpty();
-
+ 
 	return Entry;
 }
-
+ 
 FDesktopEntryInfo UDesktopParser::ParseWindowsShortcut(const FString& FilePath)
 {
 	FDesktopEntryInfo Entry;
 	Entry.FilePath = FilePath;
-
+ 
 #if PLATFORM_WINDOWS
 	HRESULT hr = CoInitialize(NULL);
 	IShellLink* pLink = nullptr;
@@ -214,14 +218,14 @@ FDesktopEntryInfo UDesktopParser::ParseWindowsShortcut(const FString& FilePath)
 				if (SUCCEEDED(pLink->GetArguments(Buf, MAX_PATH))) Entry.Arguments = TokenizeCommandLine(Buf);
 				if (SUCCEEDED(pLink->GetWorkingDirectory(Buf, MAX_PATH))) Entry.WorkingDirectory = Buf;
 				if (SUCCEEDED(pLink->GetDescription(Buf, MAX_PATH))) Entry.Comment = Buf;
-
+ 
 				int IconIdx = 0;
 				if (SUCCEEDED(pLink->GetIconLocation(Buf, MAX_PATH, &IconIdx)))
 				{
 					Entry.IconPath = Buf;
 					Entry.IconIndex = IconIdx;
 				}
-
+ 
 				if (Entry.IconPath.IsEmpty()) Entry.IconPath = Entry.ExecutablePath;
 				Entry.IconPath = UIconUtilsLibrary::ResolveIconPath(Entry.IconPath);
 				Entry.Name = FPaths::GetBaseFilename(FilePath);
@@ -236,7 +240,7 @@ FDesktopEntryInfo UDesktopParser::ParseWindowsShortcut(const FString& FilePath)
 #endif
 	return Entry;
 }
-
+ 
 void UDesktopParser::SplitCommandLine(const FString& FullCommandLine, FString& OutExecutable, TArray<FString>& OutArguments)
 {
 	TArray<FString> Tokens = TokenizeCommandLine(FullCommandLine);
@@ -247,14 +251,14 @@ void UDesktopParser::SplitCommandLine(const FString& FullCommandLine, FString& O
 		OutArguments.RemoveAt(0);
 	}
 }
-
+ 
 TArray<FString> UDesktopParser::TokenizeCommandLine(const FString& CommandLine)
 {
 	TArray<FString> Tokens;
 	FString Token;
 	bool bQuote = false;
 	bool bEsc = false;
-
+ 
 	for (TCHAR C : CommandLine)
 	{
 		if (bEsc) { Token.AppendChar(C); bEsc = false; }
@@ -269,3 +273,4 @@ TArray<FString> UDesktopParser::TokenizeCommandLine(const FString& CommandLine)
 	if (!Token.IsEmpty()) Tokens.Add(Token);
 	return Tokens;
 }
+ 
