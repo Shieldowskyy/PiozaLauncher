@@ -35,6 +35,12 @@ uninstall() {
     rm -f "$DESKTOP_FILE"
     rm -f "$BIN_LINK"
     rm -rf "$APP_DIR"
+    
+    # Update desktop database to remove the protocol registration
+    if command -v update-desktop-database &>/dev/null; then
+        update-desktop-database "$HOME/.local/share/applications"
+    fi
+    
     echo -e "${GREEN}✓ Uninstallation complete.${NC}"
     exit 0
 }
