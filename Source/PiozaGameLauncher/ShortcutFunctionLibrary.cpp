@@ -70,9 +70,10 @@ bool CreateWindowsShortcut(const FString& Folder, const FString& ProgramPath, co
 
     if (ProgramPath.StartsWith(TEXT("pioza://")))
     {
-        // For protocol URIs, we use explorer.exe as the target
-        pShellLink->SetPath(L"C:\\Windows\\explorer.exe");
-        pShellLink->SetArguments(TCHAR_TO_WCHAR(*ProgramPath));
+        // For protocol URIs, we use cmd.exe /c start which is more robust for custom protocols
+        pShellLink->SetPath(L"C:\\Windows\\System32\\cmd.exe");
+        FString Arguments = FString::Printf(TEXT("/c start \"\" \"%s\""), *ProgramPath);
+        pShellLink->SetArguments(TCHAR_TO_WCHAR(*Arguments));
     }
     else
     {
