@@ -57,7 +57,7 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 Root: HKCR; Subkey: "pioza"; ValueType: string; ValueName: ""; ValueData: "URL: Pioza Custom Protocol"; Flags: uninsdeletekey
 Root: HKCR; Subkey: "pioza"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""; Flags: uninsdeletevalue
 Root: HKCR; Subkey: "pioza\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#MyAppExeName}"; Flags: uninsdeletekey
-Root: HKCR; Subkey: "pioza\shell\open\command"; ValueType: string; ValueName: ""; ValueData: "cmd.exe /c start """" /b ""{app}\Tools\bootstrapper\pioza_bootstrap.py"" ""%1"""; Flags: uninsdeletekey
+Root: HKCR; Subkey: "pioza\shell\open\command"; ValueType: string; ValueName: ""; ValueData: "cmd.exe /c start """" /b ""{app}\PiozaGameLauncher\Tools\bootstrapper\pioza_bootstrap.py"" ""%1"""; Flags: uninsdeletekey
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
