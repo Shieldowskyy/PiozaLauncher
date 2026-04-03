@@ -470,9 +470,20 @@ EOL
 # Register protocol handler
 # --------------------------
 echo -e "${BLUE}Registering pioza:// protocol...${NC}"
-if command -v xdg-mime &>/dev/null; then
-    xdg-mime default pioza-launcher.desktop x-scheme-handler/pioza
+if command -v update-desktop-database &>/dev/null; then
     update-desktop-database "$HOME/.local/share/applications"
+fi
+
+if command -v xdg-mime &>/dev/null; then
+    # Redirect stderr to avoid annoying qtpaths errors
+    xdg-mime default pioza-launcher.desktop x-scheme-handler/pioza 2>/dev/null || true
+fi
+
+# Fallback: try gio or xdg-settings if available
+if command -v gio &>/dev/null; then
+    gio mime x-scheme-handler/pioza pioza-launcher.desktop &>/dev/null || true
+elif command -v xdg-settings &>/dev/null; then
+    xdg-settings set default-url-scheme-handler pioza pioza-launcher.desktop &>/dev/null || true
 fi
 
 
