@@ -43,7 +43,7 @@ FString GetShortcutPath(const FString& Folder, const FString& ShortcutName)
     return Folder / (ShortcutName + TEXT(".lnk"));
 }
 
-bool CreateWindowsShortcut(const FString& Folder, const FString& ProgramPath, const FString& ShortcutName, const FString& LaunchArgs)
+bool CreateWindowsShortcut(const FString& Folder, const FString& ProgramPath, const FString& ShortcutName, const FString& LaunchArgs, const FString& IconPath)
 {
     if (!InitializeCOM())
         return false;
@@ -68,10 +68,24 @@ bool CreateWindowsShortcut(const FString& Folder, const FString& ProgramPath, co
         return false;
     }
 
-    pShellLink->SetPath(TCHAR_TO_WCHAR(*ProgramPath));
+    if (ProgramPath.StartsWith(TEXT("pioza://")))
+    {
+        // For protocol URIs, we use explorer.exe as the target
+        pShellLink->SetPath(L"C:\\Windows\\explorer.exe");
+        pShellLink->SetArguments(TCHAR_TO_WCHAR(*ProgramPath));
+    }
+    else
+    {
+        pShellLink->SetPath(TCHAR_TO_WCHAR(*ProgramPath));
 
-    if (!LaunchArgs.IsEmpty())
-        pShellLink->SetArguments(TCHAR_TO_WCHAR(*LaunchArgs));
+        if (!LaunchArgs.IsEmpty())
+            pShellLink->SetArguments(TCHAR_TO_WCHAR(*LaunchArgs));
+    }
+
+    if (!IconPath.IsEmpty())
+    {
+        pShellLink->SetIconLocation(TCHAR_TO_WCHAR(*IconPath), 0);
+    }
 
     IPersistFile* pPersistFile = nullptr;
     hr = pShellLink->QueryInterface(IID_IPersistFile, (void**)&pPersistFile);
@@ -177,13 +191,20 @@ bool RemoveLinuxShortcut(const FString& Folder, const FString& ShortcutName)
 bool UShortcutFunctionLibrary::CreateDesktopShortcut(const FString& ProgramPath, const FString& ShortcutName, const FString& LaunchArgs, const FString& IconPath)
 {
 #if PLATFORM_WINDOWS
-    return CreateWindowsShortcut(TEXT("Desktop"), ProgramPath, ShortcutName, LaunchArgs);
+    return CreateWindowsShortcut(TEXT("Desktop"), ProgramPath, ShortcutName, LaunchArgs, IconPath);
 
 #elif PLATFORM_LINUX
     FString DesktopPath = GetHomeDirectory() / TEXT("Desktop");
     FString FullCommand = ProgramPath;
-    if (!LaunchArgs.IsEmpty())
+    
+    if (ProgramPath.StartsWith(TEXT("pioza://")))
+    {
+        FullCommand = FString::Printf(TEXT("xdg-open %s"), *ProgramPath);
+    }
+    else if (!LaunchArgs.IsEmpty())
+    {
         FullCommand += TEXT(" ") + LaunchArgs;
+    }
 
     return CreateDesktopFile(DesktopPath / (ShortcutName + TEXT(".desktop")), FullCommand, ShortcutName, IconPath);
 #else
@@ -207,13 +228,20 @@ bool UShortcutFunctionLibrary::RemoveDesktopShortcut(const FString& ShortcutName
 bool UShortcutFunctionLibrary::CreateStartMenuShortcut(const FString& ProgramPath, const FString& ShortcutName, const FString& LaunchArgs, const FString& IconPath)
 {
 #if PLATFORM_WINDOWS
-    return CreateWindowsShortcut(TEXT("Programs"), ProgramPath, ShortcutName, LaunchArgs);
+    return CreateWindowsShortcut(TEXT("Programs"), ProgramPath, ShortcutName, LaunchArgs, IconPath);
 
 #elif PLATFORM_LINUX
     FString ApplicationsPath = GetHomeDirectory() / TEXT(".local/share/applications");
     FString FullCommand = ProgramPath;
-    if (!LaunchArgs.IsEmpty())
+    
+    if (ProgramPath.StartsWith(TEXT("pioza://")))
+    {
+        FullCommand = FString::Printf(TEXT("xdg-open %s"), *ProgramPath);
+    }
+    else if (!LaunchArgs.IsEmpty())
+    {
         FullCommand += TEXT(" ") + LaunchArgs;
+    }
 
     return CreateDesktopFile(ApplicationsPath / (ShortcutName + TEXT(".desktop")), FullCommand, ShortcutName, IconPath);
 #else

@@ -22,7 +22,9 @@ public class PiozaGameLauncher : ModuleRules
 			"ApplicationCore",
 			"Json",
 			"JsonUtilities",
-			"StructUtils"
+			"StructUtils",
+			"Sockets",
+			"Networking"
 		});
 		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore", "ImageWrapper", "RenderCore", "RHI" });
 		if (Target.Platform == UnrealTargetPlatform.Android)

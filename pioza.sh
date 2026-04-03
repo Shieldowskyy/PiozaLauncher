@@ -397,6 +397,17 @@ echo -e "${BLUE}Creating command-line shortcut...${NC}"
 ln -sf "$APP_DIR/$LATEST_FILE" "$BIN_LINK"
 
 # --------------------------
+# Install Bootstrapper
+# --------------------------
+echo -e "${BLUE}Setting up bootstrapper...${NC}"
+mkdir -p "$APP_DIR/Tools/bootstrapper"
+# If running from source, copy local scripts
+if [ -d "./Tools/bootstrapper" ]; then
+    cp ./Tools/bootstrapper/*.py "$APP_DIR/Tools/bootstrapper/"
+    chmod +x "$APP_DIR/Tools/bootstrapper/"*.py
+fi
+
+# --------------------------
 # Download icon and convert to PNG
 # --------------------------
 if [ ! -f "$ICON_FILE" ]; then
@@ -442,11 +453,22 @@ mkdir -p "$(dirname "$DESKTOP_FILE")"
 cat > "$DESKTOP_FILE" <<EOL
 [Desktop Entry]
 Name=$APP_NAME
-Exec=$APP_DIR/$LATEST_FILE
+Exec=python3 $APP_DIR/Tools/bootstrapper/pioza_bootstrap.py %u
 Icon=$ICON_FILE
 Type=Application
 Categories=Utility;
+MimeType=x-scheme-handler/pioza;
 EOL
+
+# --------------------------
+# Register protocol handler
+# --------------------------
+echo -e "${BLUE}Registering pioza:// protocol...${NC}"
+if command -v xdg-mime &>/dev/null; then
+    xdg-mime default pioza-launcher.desktop x-scheme-handler/pioza
+    update-desktop-database "$HOME/.local/share/applications"
+fi
+
 
 # --------------------------
 # Check if ~/.local/bin is in PATH
