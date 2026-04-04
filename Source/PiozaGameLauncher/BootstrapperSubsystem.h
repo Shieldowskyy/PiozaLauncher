@@ -29,6 +29,14 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Pioza|Bootstrapper")
 	FOnGameLaunchRequested OnGameLaunchRequested;
 
+	/** The last received game ID if no one was listening or for command line startup */
+	UPROPERTY(BlueprintReadOnly, Category = "Pioza|Bootstrapper")
+	FString PendingGameID;
+
+	/** Returns and clears the pending game ID. Use this on UI Startup (e.g. Main Menu BeginPlay) */
+	UFUNCTION(BlueprintCallable, Category = "Pioza|Bootstrapper")
+	FString ConsumePendingGameID();
+
 private:
 	/** The listener socket */
 	FSocket* ListenerSocket = nullptr;

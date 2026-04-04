@@ -30,6 +30,14 @@ void UBootstrapperSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	{
 		UE_LOG(LogTemp, Error, TEXT("BootstrapperSubsystem: Failed to create listener socket on port %d"), Port);
 	}
+
+	// Check command line for initial game ID
+	FString CommandLineGameID;
+	if (FParse::Value(FCommandLine::Get(), TEXT("start-game="), CommandLineGameID))
+	{
+		PendingGameID = CommandLineGameID;
+		UE_LOG(LogTemp, Log, TEXT("BootstrapperSubsystem: Found start-game ID in command line: %s"), *PendingGameID);
+	}
 }
 
 void UBootstrapperSubsystem::Deinitialize()
@@ -87,10 +95,18 @@ void UBootstrapperSubsystem::HandleConnection(FSocket* ClientSocket)
 			
 			UE_LOG(LogTemp, Log, TEXT("BootstrapperSubsystem: Received game launch request for: %s"), *GameID);
 			
+			PendingGameID = GameID;
 			OnGameLaunchRequested.Broadcast(GameID);
 		}
 	}
 
 	ClientSocket->Close();
 	ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(ClientSocket);
+}
+
+FString UBootstrapperSubsystem::ConsumePendingGameID()
+{
+	FString Result = PendingGameID;
+	PendingGameID = TEXT("");
+	return Result;
 }
