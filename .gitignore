@@ -100,3 +100,4 @@ Build/Windows/ChunkLayerInfo/pakchunklayers.txt
 /Plugins/Editor
 *.apk
 *.aab
+/Tools/bootstrapper/__pycache__
