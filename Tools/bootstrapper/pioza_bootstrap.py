@@ -14,25 +14,35 @@ def get_launcher_path():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     # Assuming packaged structure: Tools/bootstrapper/pioza_bootstrap.py
     # Launcher should be in the root or Binaries folder
-    # Root: ../../PiozaGameLauncher.exe (Windows) or ../../PiozaGameLauncher (Linux)
     
     root_dir = os.path.abspath(os.path.join(current_dir, "..", ".."))
     
     if sys.platform == "win32":
+        # 1. Check for binary in root
         exe_path = os.path.join(root_dir, f"{LAUNCHER_EXE_NAME}.exe")
-        if not os.path.exists(exe_path):
-            # Standard UE packaged location
-            exe_path = os.path.join(root_dir, LAUNCHER_EXE_NAME, "Binaries", "Win64", f"{LAUNCHER_EXE_NAME}-Win64-Shipping.exe")
+        if not os.path.isfile(exe_path):
+            # 2. Check in Binaries/Win64 (Direct)
+            exe_path = os.path.join(root_dir, "Binaries", "Win64", f"{LAUNCHER_EXE_NAME}.exe")
+            if not os.path.isfile(exe_path):
+                # 3. Check in Binaries/Win64 (Shipping)
+                exe_path = os.path.join(root_dir, "Binaries", "Win64", f"{LAUNCHER_EXE_NAME}-Win64-Shipping.exe")
+                if not os.path.isfile(exe_path):
+                    # 4. Fallback to standard UE packaged location
+                    exe_path = os.path.join(root_dir, LAUNCHER_EXE_NAME, "Binaries", "Win64", f"{LAUNCHER_EXE_NAME}-Win64-Shipping.exe")
     else:
+        # 1. Check for binary in root
         exe_path = os.path.join(root_dir, LAUNCHER_EXE_NAME)
-        if not os.path.exists(exe_path):
-            # Check for AppImage (used by pioza.sh)
+        if not os.path.isfile(exe_path):
+            # 2. Check for AppImage
             appimages = [f for f in os.listdir(root_dir) if f.endswith(".AppImage")]
             if appimages:
                 exe_path = os.path.join(root_dir, appimages[0])
             else:
-                # Standard UE packaged location
-                exe_path = os.path.join(root_dir, LAUNCHER_EXE_NAME, "Binaries", "Linux", f"{LAUNCHER_EXE_NAME}-Linux-Shipping")
+                # 3. Check for Linux binary in Binaries (without extra folder)
+                exe_path = os.path.join(root_dir, "Binaries", "Linux", f"{LAUNCHER_EXE_NAME}-Linux-Shipping")
+                if not os.path.isfile(exe_path):
+                    # 4. Fallback to standard UE packaged location
+                    exe_path = os.path.join(root_dir, LAUNCHER_EXE_NAME, "Binaries", "Linux", f"{LAUNCHER_EXE_NAME}-Linux-Shipping")
             
     return exe_path
 
@@ -81,11 +91,16 @@ def main():
         sys.exit(1)
 
     print(f"Starting launcher: {launcher_path}")
+    print(f"Executing: {launcher_path} -start-game={game_id}")
     # Start launcher in background
-    if sys.platform == "win32":
-        subprocess.Popen([launcher_path, f"-start-game={game_id}"], creationflags=subprocess.CREATE_NEW_CONSOLE)
-    else:
-        subprocess.Popen([launcher_path, f"-start-game={game_id}"], start_new_session=True)
+    try:
+        if sys.platform == "win32":
+            subprocess.Popen([launcher_path, f"-start-game={game_id}"], creationflags=subprocess.CREATE_NEW_CONSOLE)
+        else:
+            subprocess.Popen([launcher_path, f"-start-game={game_id}"], start_new_session=True)
+    except Exception as e:
+        print(f"CRITICAL ERROR: Failed to launch process: {e}")
+        sys.exit(1)
 
     # 3. Wait for launcher to initialize its TCP server
     print("Waiting for launcher to initialize...")
