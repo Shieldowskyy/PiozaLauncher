@@ -83,9 +83,9 @@ def main():
     print(f"Starting launcher: {launcher_path}")
     # Start launcher in background
     if sys.platform == "win32":
-        subprocess.Popen([launcher_path], creationflags=subprocess.CREATE_NEW_CONSOLE)
+        subprocess.Popen([launcher_path, f"-start-game={game_id}"], creationflags=subprocess.CREATE_NEW_CONSOLE)
     else:
-        subprocess.Popen([launcher_path], start_new_session=True)
+        subprocess.Popen([launcher_path, f"-start-game={game_id}"], start_new_session=True)
 
     # 3. Wait for launcher to initialize its TCP server
     print("Waiting for launcher to initialize...")
