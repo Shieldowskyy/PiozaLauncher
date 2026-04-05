@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 import sys
 import os
@@ -14,9 +15,9 @@ def get_launcher_path():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     # Assuming packaged structure: Tools/bootstrapper/pioza_bootstrap.py
     # Launcher should be in the root or Binaries folder
-    
+
     root_dir = os.path.abspath(os.path.join(current_dir, "..", ".."))
-    
+
     if sys.platform == "win32":
         # 1. Check for binary in root
         exe_path = os.path.join(root_dir, f"{LAUNCHER_EXE_NAME}.exe")
@@ -43,7 +44,7 @@ def get_launcher_path():
                 if not os.path.isfile(exe_path):
                     # 4. Fallback to standard UE packaged location
                     exe_path = os.path.join(root_dir, LAUNCHER_EXE_NAME, "Binaries", "Linux", f"{LAUNCHER_EXE_NAME}-Linux-Shipping")
-            
+
     return exe_path
 
 def parse_protocol(url):
@@ -68,19 +69,24 @@ def send_to_launcher(game_id):
         return False
 
 def main():
-    game_id = "default"
-    
+    game_id = None
+
     if len(sys.argv) > 1:
         protocol_url = sys.argv[1]
-        parsed_id = parse_protocol(protocol_url)
-        if parsed_id:
-            game_id = parsed_id
-        else:
-            # Maybe it's just the game ID passed directly
-            game_id = protocol_url
+        # Guard against .desktop placeholder not being substituted (no URL passed)
+        if protocol_url in ("%u", "%U", ""):
+            protocol_url = None
+
+        if protocol_url:
+            parsed_id = parse_protocol(protocol_url)
+            if parsed_id:
+                game_id = parsed_id
+            else:
+                # Maybe it's just the game ID passed directly
+                game_id = protocol_url
 
     # 1. Try to send to already running instance
-    if send_to_launcher(game_id):
+    if send_to_launcher(game_id or "default"):
         print(f"Sent launch command for '{game_id}' to running launcher.")
         sys.exit(0)
 
@@ -90,14 +96,21 @@ def main():
         print(f"Error: Launcher executable not found at {launcher_path}")
         sys.exit(1)
 
+    # Build args - only pass -start-game if we have an actual game ID
+    launch_args = [launcher_path]
+    if game_id:
+        launch_args.append(f"-start-game={game_id}")
+        print(f"Executing: {launcher_path} -start-game={game_id}")
+    else:
+        print(f"Executing: {launcher_path} (no game ID)")
+
     print(f"Starting launcher: {launcher_path}")
-    print(f"Executing: {launcher_path} -start-game={game_id}")
     # Start launcher in background
     try:
         if sys.platform == "win32":
-            subprocess.Popen([launcher_path, f"-start-game={game_id}"], creationflags=subprocess.CREATE_NEW_CONSOLE)
+            subprocess.Popen(launch_args, creationflags=subprocess.CREATE_NEW_CONSOLE)
         else:
-            subprocess.Popen([launcher_path, f"-start-game={game_id}"], start_new_session=True)
+            subprocess.Popen(launch_args, start_new_session=True)
     except Exception as e:
         print(f"CRITICAL ERROR: Failed to launch process: {e}")
         sys.exit(1)
@@ -107,10 +120,10 @@ def main():
     max_attempts = 30
     for i in range(max_attempts):
         time.sleep(0.5)
-        if send_to_launcher(game_id):
-            print(f"Launcher ready. Sent launch command for '{game_id}'.")
+        if send_to_launcher(game_id or "default"):
+            print(f"Launcher ready. Sent launch command for '{game_id or 'default'}'.")
             sys.exit(0)
-    
+
     print("Error: Timed out waiting for launcher to become ready.")
     sys.exit(1)
 
