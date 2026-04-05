@@ -10,7 +10,7 @@
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{1A744037-C332-47E6-AF81-6DE74F636069}
+AppId={{1A744037-C332-47E6-AF81-6DE74F636069}}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
@@ -18,18 +18,15 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
+; Mutex prevents multiple instances and helps with AppRunningCheck
+AppMutex=PiozaGameLauncherMutex
+AppRunningCheck=yes
 ; "ArchitecturesAllowed=x64compatible" specifies that Setup cannot run
 ; on anything but x64 and Windows 11 on Arm.
 ArchitecturesAllowed=x64compatible
-; "ArchitecturesInstallIn64BitMode=x64compatible" requests that the
-; install be done in "64-bit mode" on x64 or Windows 11 on Arm,
-; meaning it should use the native 64-bit Program Files directory and
-; the 64-bit view of the registry.
 ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
 LicenseFile={#SourcePath}\..\..\..\..\LICENSE
-; Uncomment the following line to run in non administrative install mode (install for current user only.)
-;PrivilegesRequired=lowest
 OutputDir=..\
 OutputBaseFilename=PiozaGL-{#MyAppVersion}
 Compression=lzma2
@@ -40,13 +37,21 @@ WizardStyle=modern
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checked
 Name: "openwebsite"; Description: "Visit project page on GitHub"; GroupDescription: "Additional Options"; Flags: unchecked
+Name: "addtopath"; Description: "Add Pioza Launcher to system PATH (CLI access)"; GroupDescription: "Additional Options"; Flags: checked
+; Dependencies tasks
+Name: "install_python"; Description: "Install Python 3.12 (Network Installer)"; GroupDescription: "Dependencies"; Check: not IsPythonInstalled
+Name: "install_ueprereq"; Description: "Install Unreal Engine Prerequisites"; GroupDescription: "Dependencies"; Check: not IsUEPrereqInstalled
 
 [Files]
 Source: "{#SourcePath}\..\Windows\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\..\Windows\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "Binaries\Win64\D3D12\D3D12Core.dll"
+; UE Prereq (using dontcopy so it stays in installer until needed)
 Source: "{#SourcePath}\..\Windows\Engine\Extras\Redist\en-us\UEPrereqSetup_x64.exe"; DestDir: "{tmp}"; Flags: ignoreversion dontcopy
+; Python Network Installer (optional but recommended to bundle or download)
+; Download from: https://www.python.org/ftp/python/3.12.2/python-3.12.2-amd64-webinstall.exe
+; Source: "{#SourcePath}\python-3.12.2-amd64-webinstall.exe"; DestDir: "{tmp}"; Flags: ignoreversion deleteafterinstall; Tasks: install_python
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
@@ -57,9 +62,154 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 Root: HKCR; Subkey: "pioza"; ValueType: string; ValueName: ""; ValueData: "URL: Pioza Custom Protocol"; Flags: uninsdeletekey
 Root: HKCR; Subkey: "pioza"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""; Flags: uninsdeletevalue
 Root: HKCR; Subkey: "pioza\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#MyAppExeName}"; Flags: uninsdeletekey
-Root: HKCR; Subkey: "pioza\shell\open\command"; ValueType: string; ValueName: ""; ValueData: "cmd.exe /c start """" /b ""{app}\PiozaGameLauncher\Tools\bootstrapper\pioza_bootstrap.py"" ""%1"""; Flags: uninsdeletekey
+Root: HKCR; Subkey: "pioza\shell\open\command"; ValueType: string; ValueName: ""; ValueData: "cmd.exe /c start """" /b ""{app}\Tools\bootstrapper\pioza_bootstrap.py"" ""%1"""; Flags: uninsdeletekey
+
+; Registry entry for PATH (handled by Pascal Script below for safety, but this is an alternative)
+; Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}"; Check: NeedsAddPath(ExpandConstant('{app}')); Flags: preservestringtype
 
 [Run]
+; Firewall Rule for Bootstrapper communication
+Filename: "{cmd}"; Parameters: "/c netsh advfirewall firewall add rule name=""Pioza Launcher Logic"" dir=in action=allow protocol=TCP localport=55562 profile=any"; StatusMsg: "Configuring Firewall..."; Flags: runhidden
+
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-Filename: "{app}\Engine\Extras\Redist\en-us\UEPrereqSetup_x64.exe"; Parameters: "/quiet /q /silent /norestart"; Flags: nowait skipifsilent
 Filename: "{cmd}"; Parameters: "/c start https://github.com/Shieldowskyy/PiozaGameLauncher"; Description: "Open project page on GitHub!"; Flags: postinstall skipifsilent unchecked
+
+[Code]
+// Check if Python Core is registered in HKLM or HKCU
+function IsPythonInstalled(): Boolean;
+begin
+  Result := RegKeyExists(HKLM64, 'SOFTWARE\Python\PythonCore') or 
+            RegKeyExists(HKLM32, 'SOFTWARE\Python\PythonCore') or
+            RegKeyExists(HKCU64, 'SOFTWARE\Python\PythonCore') or
+            RegKeyExists(HKCU32, 'SOFTWARE\Python\PythonCore');
+end;
+
+// Check for UE Prereq in Registry
+function IsUEPrereqInstalled(): Boolean;
+begin
+  // Standard UE Prereq GUID check or DisplayName presence
+  Result := RegKeyExists(HKLM64, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Unreal Engine 4 Prerequisites(x64)') or
+            RegValueExists(HKLM64, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{A181369B-3C6D-46EB-8F4C-3BB1797D7DBE}', 'DisplayName');
+end;
+
+// Safe Execution helper to catch errors without crashing the main setup
+procedure SafeExecute(FileName, Parameters, StatusMsg: String);
+var
+  ResultCode: Integer;
+begin
+  if (FileName <> '') then
+  begin
+    // Update the UI
+    WizardForm.StatusLabel.Caption := StatusMsg;
+    if not Exec(FileName, Parameters, '', SW_SHOW, ewWaitUntilTerminated, ResultCode) then
+    begin
+      Log('Installation failed for ' + FileName + '. Error code: ' + IntToStr(ResultCode));
+      // Optionally show a non-blocking message
+    end;
+  end;
+end;
+
+// Called when the installation step changes
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if (CurStep = ssPostInstall) then
+  begin
+    // 1. Install Python if selected
+    if IsTaskSelected('install_python') then
+    begin
+        SafeExecute(ExpandConstant('{tmp}\python-3.12.2-amd64-webinstall.exe'), '/quiet InstallAllUsers=1 PrependPath=1', 'Installing Python 3.12...');
+    end;
+
+    // 2. Install UE Prerequisites if selected or needed
+    if IsTaskSelected('install_ueprereq') then
+    begin
+        ExtractTemporaryFile('UEPrereqSetup_x64.exe');
+        SafeExecute(ExpandConstant('{tmp}\UEPrereqSetup_x64.exe'), '/quiet /p /q /silent /norestart', 'Installing Unreal Engine Prerequisites...');
+    end;
+  end;
+end;
+
+// Before installation starts, ensure the app is closed
+function InitializeSetup(): Boolean;
+var
+  ErrorCode: Integer;
+begin
+  Result := True;
+  // Try to close any running instances via taskkill (fails silently if not running)
+  ShellExecute(0, 'open', 'taskkill', '/F /IM PiozaGameLauncher.exe /T', '', SW_HIDE, ewWaitUntilTerminated, ErrorCode);
+  ShellExecute(0, 'open', 'taskkill', '/F /IM PiozaGameLauncher-Win64-Shipping.exe /T', '', SW_HIDE, ewWaitUntilTerminated, ErrorCode);
+end;
+
+// --- PATH Management ---
+
+procedure AddToPath(PathToAdd: string);
+var
+  OldPath: string;
+  NewPath: string;
+begin
+  if not RegQueryStringValue(HKEY_LOCAL_MACHINE, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 'Path', OldPath) then
+    OldPath := '';
+
+  if Pos(';' + Uppercase(PathToAdd) + ';', ';' + Uppercase(OldPath) + ';') = 0 then
+  begin
+    NewPath := OldPath;
+    if (NewPath <> '') and (NewPath[Length(NewPath)] <> ';') then
+      NewPath := NewPath + ';';
+    NewPath := NewPath + PathToAdd;
+    RegWriteExpandStringValue(HKEY_LOCAL_MACHINE, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 'Path', NewPath);
+  end;
+end;
+
+procedure RemoveFromPath(PathToRemove: string);
+var
+  OldPath: string;
+  NewPath: string;
+  P: Integer;
+begin
+  if RegQueryStringValue(HKEY_LOCAL_MACHINE, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 'Path', OldPath) then
+  begin
+    P := Pos(';' + Uppercase(PathToRemove) + ';', ';' + Uppercase(OldPath) + ';');
+    if P > 0 then
+    begin
+        // Simple removal logic (ideal for installers)
+        NewPath := OldPath;
+        StringChangeEx(NewPath, PathToRemove + ';', '', True);
+        StringChangeEx(NewPath, ';' + PathToRemove, '', True);
+        if NewPath = PathToRemove then NewPath := '';
+        RegWriteExpandStringValue(HKEY_LOCAL_MACHINE, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 'Path', NewPath);
+    end;
+  end;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if (CurStep = ssPostInstall) then
+  begin
+    // 1. Install Python if selected
+    if IsTaskSelected('install_python') then
+    begin
+        SafeExecute(ExpandConstant('{tmp}\python-3.12.2-amd64-webinstall.exe'), '/quiet InstallAllUsers=1 PrependPath=1', 'Installing Python 3.12...');
+    end;
+
+    // 2. Install UE Prerequisites if selected or needed
+    if IsTaskSelected('install_ueprereq') then
+    begin
+        ExtractTemporaryFile('UEPrereqSetup_x64.exe');
+        SafeExecute(ExpandConstant('{tmp}\UEPrereqSetup_x64.exe'), '/quiet /p /q /silent /norestart', 'Installing Unreal Engine Prerequisites...');
+    end;
+
+    // 3. Add to PATH if selected
+    if IsTaskSelected('addtopath') then
+    begin
+        AddToPath(ExpandConstant('{app}'));
+    end;
+  end;
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if CurUninstallStep = usUninstall then
+  begin
+    RemoveFromPath(ExpandConstant('{app}'));
+  end;
+end;
