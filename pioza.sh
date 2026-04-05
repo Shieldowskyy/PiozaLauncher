@@ -32,11 +32,21 @@ show_help() {
 
 uninstall() {
     echo -e "${YELLOW}Uninstalling $APP_NAME...${NC}"
+    
+    # 1. Close running instances
+    echo -e "${BLUE}Closing running processes...${NC}"
+    # Use pkill with -f to match the process name or command line
+    pkill -f "PiozaLauncher" 2>/dev/null || true
+    pkill -f "pioza_bootstrap.py" 2>/dev/null || true
+    # Wait a moment for processes to exit
+    sleep 1
+    
+    # 2. Remove icons and desktop files
     rm -f "$DESKTOP_FILE"
     rm -f "$BIN_LINK"
     rm -rf "$APP_DIR"
     
-    # Update desktop database to remove the protocol registration
+    # 3. Update desktop database to remove the protocol registration
     if command -v update-desktop-database &>/dev/null; then
         update-desktop-database "$HOME/.local/share/applications"
     fi
