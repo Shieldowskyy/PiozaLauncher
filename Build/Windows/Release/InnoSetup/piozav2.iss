@@ -129,15 +129,60 @@ begin
   end;
 end;
 
-// Before installation starts, ensure the app is closed
+// Check if the current GPU driver is the basic Microsoft fallback
+function IsBasicDisplayAdapter(): Boolean;
+var
+  i: Integer;
+  DriverDesc: String;
+  SubKey: String;
+begin
+  Result := False;
+  i := 0;
+  // Standard Windows GUID for Display Adapters
+  while RegGetKeyNames(HKLM, 'SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}', i > 0) do
+  begin
+    // Inno Setup's RegGetKeyNames doesn't easily iterate by index like this in a while loop
+    // But we can check 0000, 0001, 0002 up to a reasonable limit
+    for i := 0 to 10 do 
+    begin
+        SubKey := 'SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\' + Format('%.4d', [i]);
+        if RegQueryStringValue(HKLM, SubKey, 'DriverDesc', DriverDesc) then
+        begin
+            Log('Detected Video Adapter: ' + DriverDesc);
+            if Pos('MICROSOFT BASIC DISPLAY ADAPTER', Uppercase(DriverDesc)) > 0 then
+            begin
+                Result := True;
+                Exit;
+            end;
+        end;
+    end;
+    Break; // Exit while after for loop
+  end;
+end;
+
+// Before installation starts, ensure the app is closed and check for GPU drivers
 function InitializeSetup(): Boolean;
 var
   ErrorCode: Integer;
 begin
   Result := True;
-  // Try to close any running instances via taskkill (fails silently if not running)
+  
+  // 1. Check for running App
   ShellExecute(0, 'open', 'taskkill', '/F /IM PiozaGameLauncher.exe /T', '', SW_HIDE, ewWaitUntilTerminated, ErrorCode);
   ShellExecute(0, 'open', 'taskkill', '/F /IM PiozaGameLauncher-Win64-Shipping.exe /T', '', SW_HIDE, ewWaitUntilTerminated, ErrorCode);
+
+  // 2. Warn if using Basic Display Adapter (missing drivers)
+  if IsBasicDisplayAdapter() then
+  begin
+    if MsgBox('Warning: Your system is using "Microsoft Basic Display Adapter".' + #13#10 + #13#10 +
+              'This means your graphics card drivers are NOT installed. The launcher will use slow software rendering (CPU),' + #13#10 +
+              'which will make it extremely slow and potentially unusable.' + #13#10#13#10 +
+              'Do you want to continue?', mbCriticalError, MB_YESNO) = IDNO then
+    begin
+      Result := False;
+      Exit;
+    end;
+  end;
 end;
 
 // --- PATH Management ---

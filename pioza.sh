@@ -84,7 +84,7 @@ check_vulkan_support() {
     # Check if vulkaninfo is available
     if ! command -v vulkaninfo &>/dev/null; then
         echo -e "${YELLOW}⚠ Warning: vulkaninfo not found, cannot verify Vulkan support${NC}"
-        echo -e "${YELLOW}  The launcher may not work without Vulkan-capable GPU${NC}"
+        echo -e "${YELLOW}  The launcher will fall back to software rendering and will be VERY slow.${NC}"
         return 0
     fi
     
@@ -111,6 +111,7 @@ check_vulkan_support() {
         fi
         
         echo ""
+        echo -e "${MAGENTA}Note: The launcher will use software rendering (CPU) without Vulkan, which is very slow.${NC}"
         read -p "Continue installation anyway? (y/n) " -n 1 -r
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -223,6 +224,7 @@ install_dependencies() {
             case "$dep" in
                 vulkaninfo) fedora_packages+=("vulkan-tools") ;;
                 notify-send) fedora_packages+=("libnotify") ;;
+                fusermount) fedora_packages+=("fuse") ;;
                 *) fedora_packages+=("$dep") ;;
             esac
         done
@@ -242,6 +244,7 @@ install_dependencies() {
             case "$dep" in
                 vulkaninfo) apt_packages+=("vulkan-tools") ;;
                 notify-send) apt_packages+=("libnotify-bin") ;;
+                fusermount) apt_packages+=("libfuse2") ;;
                 *) apt_packages+=("$dep") ;;
             esac
         done
@@ -262,6 +265,7 @@ install_dependencies() {
             case "$dep" in
                 vulkaninfo) arch_packages+=("vulkan-tools") ;;
                 notify-send) arch_packages+=("libnotify") ;;
+                fusermount) arch_packages+=("fuse2") ;;
                 *) arch_packages+=("$dep") ;;
             esac
         done
@@ -281,6 +285,7 @@ install_dependencies() {
             case "$dep" in
                 vulkaninfo) suse_packages+=("vulkan-tools") ;;
                 notify-send) suse_packages+=("libnotify-tools") ;;
+                fusermount) suse_packages+=("fuse") ;;
                 *) suse_packages+=("$dep") ;;
             esac
         done
@@ -299,8 +304,42 @@ install_dependencies() {
 }
 
 # --------------------------
-# Argument handling
+# SELinux and Permission Handling
 # --------------------------
+handle_selinux() {
+    if command -v getenforce &>/dev/null; then
+        local selinux_status
+        selinux_status=$(getenforce)
+        echo -e "${BLUE}SELinux status: ${CYAN}$selinux_status${NC}"
+        
+        if [ "$selinux_status" == "Enforcing" ]; then
+            echo -e "${BLUE}Applying SELinux security context fix...${NC}"
+            if command -v restorecon &>/dev/null; then
+                # Best-effort restorecon
+                restorecon -R "$APP_DIR" 2>/dev/null || true
+                echo -e "${GREEN}✓ Security context applied to $APP_NAME directory${NC}"
+            else
+                echo -e "${YELLOW}⚠ Warning: SELinux is Enforcing but restorecon is missing${NC}"
+            fi
+        fi
+    fi
+}
+
+check_exec_perms() {
+    echo -e "${BLUE}Verifying execution permissions in $APP_DIR...${NC}"
+    local test_file="$APP_DIR/.exec_test"
+    echo "#!/bin/sh" > "$test_file"
+    chmod +x "$test_file"
+    
+    if ! "$test_file" 2>/dev/null; then
+        echo -e "${RED}✗ Error: Partition $APP_DIR is mounted with 'noexec'!${NC}"
+        echo -e "${RED}  The launcher cannot run from this directory.${NC}"
+        rm -f "$test_file"
+        exit 1
+    fi
+    rm -f "$test_file"
+    echo -e "${GREEN}✓ Execution permissions verified${NC}"
+}
 case "$1" in
     --help|-h)
         show_help
@@ -324,6 +363,8 @@ echo -e "${CYAN}=== Pre-flight checks ===${NC}"
 check_architecture
 echo ""
 check_vulkan_support
+mkdir -p "$APP_DIR"
+check_exec_perms
 
 echo ""
 echo -e "${CYAN}=== Checking latest release of $APP_NAME ===${NC}"
@@ -437,7 +478,7 @@ fi
 # --------------------------
 echo ""
 echo -e "${CYAN}=== Checking dependencies ===${NC}"
-deps=(vulkaninfo zenity notify-send python3 tar)
+deps=(vulkaninfo zenity notify-send python3 tar fusermount)
 missing=()
 
 for dep in "${deps[@]}"; do
@@ -485,6 +526,11 @@ if command -v gio &>/dev/null; then
 elif command -v xdg-settings &>/dev/null; then
     xdg-settings set default-url-scheme-handler pioza pioza-launcher.desktop &>/dev/null || true
 fi
+
+# --------------------------
+# Apply SELinux fixes post-install
+# --------------------------
+handle_selinux
 
 
 # --------------------------
