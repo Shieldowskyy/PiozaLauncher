@@ -458,10 +458,26 @@ ln -sf "$APP_DIR/$LATEST_FILE" "$BIN_LINK"
 # --------------------------
 echo -e "${BLUE}Setting up bootstrapper...${NC}"
 mkdir -p "$APP_DIR/Tools/bootstrapper"
-# If running from source, copy local scripts
+
+BOOTSTRAP_BASE="https://github.com/Shieldowskyy/PiozaLauncher/raw/main/Tools/bootstrapper"
+
 if [ -d "./Tools/bootstrapper" ]; then
+    # Running from source - copy local scripts
     cp ./Tools/bootstrapper/*.py "$APP_DIR/Tools/bootstrapper/"
     chmod +x "$APP_DIR/Tools/bootstrapper/"*.py
+    echo -e "${GREEN}✓ Bootstrapper copied from local source${NC}"
+else
+    # Running as standalone installer - download from GitHub
+    echo -e "${BLUE}Downloading bootstrapper scripts from GitHub...${NC}"
+    for script in pioza_bootstrap.py setup_protocol.py; do
+        if curl -sL --fail "$BOOTSTRAP_BASE/$script" -o "$APP_DIR/Tools/bootstrapper/$script"; then
+            chmod +x "$APP_DIR/Tools/bootstrapper/$script"
+            echo -e "${GREEN}✓ Downloaded: $script${NC}"
+        else
+            echo -e "${RED}✗ Error: Failed to download $script${NC}"
+            exit 1
+        fi
+    done
 fi
 
 # --------------------------
@@ -510,10 +526,11 @@ mkdir -p "$(dirname "$DESKTOP_FILE")"
 cat > "$DESKTOP_FILE" <<EOL
 [Desktop Entry]
 Name=$APP_NAME
-Exec=python3 $APP_DIR/Tools/bootstrapper/pioza_bootstrap.py %u
+Exec=python3 "$APP_DIR/Tools/bootstrapper/pioza_bootstrap.py" "%U"
 Icon=$ICON_FILE
 Type=Application
 Categories=Utility;
+NoDisplay=false
 MimeType=x-scheme-handler/pioza;
 EOL
 
