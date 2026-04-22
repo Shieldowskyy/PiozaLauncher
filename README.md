@@ -161,4 +161,4 @@ You can still use those versions under AGPL-3.0 terms if needed.
 
 See [LICENSE](LICENSE) file for full terms.
 
-Copyright © 2025 Shieldziak (DashoGames)
+Copyright © 2026 Shieldziak (DashoGames)
