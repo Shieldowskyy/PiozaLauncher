@@ -50,12 +50,6 @@ Run this command in ``cmd`` or ``powershell`` (this may require admin privileges
 ```bash
 winget install "Pioza Launcher"
 ```
-or if that doesn't work
-```bash
-curl -o pioza-launcher.yml https://raw.githubusercontent.com/Shieldowskyy/PiozaLauncher/main/pioza-launcher.yml
-winget settings --enable LocalManifestFiles
-winget install -m pioza-launcher.yml -h
-```
 ## Linux
 
 ### Support
