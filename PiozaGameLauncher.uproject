@@ -699,6 +699,30 @@
 		{
 			"Name": "WidgetEditorToolPalette",
 			"Enabled": true
+		},
+		{
+			"Name": "MetaHumanSDK",
+			"Enabled": false
+		},
+		{
+			"Name": "Cascade",
+			"Enabled": false
+		},
+		{
+			"Name": "ChaosInsights",
+			"Enabled": false
+		},
+		{
+			"Name": "RuntimeTelemetry",
+			"Enabled": false
+		},
+		{
+			"Name": "IoStoreInsights",
+			"Enabled": false
+		},
+		{
+			"Name": "MassInsights",
+			"Enabled": false
 		}
 	],
 	"TargetPlatforms": [
