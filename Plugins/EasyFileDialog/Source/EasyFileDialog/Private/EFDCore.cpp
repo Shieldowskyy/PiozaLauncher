@@ -4,7 +4,7 @@
 
 #if PLATFORM_WINDOWS
 #include "shlobj.h"
-#include <Runtime\Core\Public\Windows\COMPointer.h>
+#include "Microsoft/COMPointer.h"
 #endif
 
 #include <Runtime/Core/Public/HAL/FileManager.h>
@@ -37,12 +37,12 @@ bool EFDCore::FileDialogShared(bool bSave, const void* ParentHandle, const FStri
 {
     #if PLATFORM_WINDOWS
     WCHAR Filename[MAX_FILENAME_STR];
-    FCString::Strcpy(Filename, MAX_FILENAME_STR, *(File.Replace(TEXT("/"), TEXT("\\"))));
+    FCString::Strncpy(Filename, *(File.Replace(TEXT("/"), TEXT("\\"))), MAX_FILENAME_STR);
     WCHAR Pathname[MAX_FILENAME_STR];
-    FCString::Strcpy(Pathname, MAX_FILENAME_STR, *(FPaths::ConvertRelativePathToFull(Path).Replace(TEXT("/"), TEXT("\\"))));
+    FCString::Strncpy(Pathname, *(FPaths::ConvertRelativePathToFull(Path).Replace(TEXT("/"), TEXT("\\"))), MAX_FILENAME_STR);
 
     WCHAR FileTypeStr[4096];
-    FCString::Strcpy(FileTypeStr, 4096, *Types);
+    FCString::Strncpy(FileTypeStr, *Types, 4096);
     // Replace '|' with '\0' for Windows filter format
     for (int i = 0; FileTypeStr[i] != 0; i++) if (FileTypeStr[i] == '|') FileTypeStr[i] = 0;
 
