@@ -1,7 +1,9 @@
-﻿// Georgy Treshchev 2024.
+// Georgy Treshchev 2024.
 
 #pragma once
 
+#include "CoreMinimal.h"
+#include "Templates/EnableIf.h"
 #include <string>
 #include "Misc/CString.h"
 
@@ -10,6 +12,17 @@
  */
 namespace RuntimeArchiverTarOperations
 {
+	template <typename T, typename U>
+	struct TIsSame
+	{
+		enum { Value = false };
+	};
+
+	template <typename T>
+	struct TIsSame<T, T>
+	{
+		enum { Value = true };
+	};
 
 	/**
 	 * Round a number up by the specified increment

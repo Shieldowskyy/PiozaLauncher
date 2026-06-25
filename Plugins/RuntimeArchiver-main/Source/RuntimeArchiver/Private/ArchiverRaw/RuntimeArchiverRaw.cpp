@@ -1,4 +1,4 @@
-﻿// Georgy Treshchev 2024.
+// Georgy Treshchev 2024.
 
 #include "ArchiverRaw/RuntimeArchiverRaw.h"
 #include "RuntimeArchiverDefines.h"
@@ -197,7 +197,7 @@ bool URuntimeArchiverRaw::CompressRawData(ERuntimeArchiverRawFormat RawFormat, E
 		return false;
 	}
 
-	TempCompressedData.SetNum(CompressedSize, true);
+	TempCompressedData.SetNum(CompressedSize, EAllowShrinking::Yes);
 	CompressedData = MoveTemp(TempCompressedData);
 	return true;
 }
@@ -281,7 +281,14 @@ int64 URuntimeArchiverRaw::GuessCompressedSize(ERuntimeArchiverRawFormat RawForm
 		UE_LOG(LogRuntimeArchiver, Error, TEXT("The specified format '%s' is not valid"), *FormatName.ToString());
 		return false;
 	}
-#if UE_VERSION_NEWER_THAN(5, 0, 0)
+#if UE_VERSION_NEWER_THAN(5, 5, 0)
+	int64 OutMaxCompressedSize = 0;
+	if (FCompression::GetMaximumCompressedSize(FormatName, OutMaxCompressedSize, UncompressedData.Num()))
+	{
+		return OutMaxCompressedSize;
+	}
+	return 0;
+#elif UE_VERSION_NEWER_THAN(5, 0, 0)
 	return FCompression::GetMaximumCompressedSize(FormatName, UncompressedData.Num());
 #else
 	return FCompression::CompressMemoryBound(FormatName, UncompressedData.Num());
