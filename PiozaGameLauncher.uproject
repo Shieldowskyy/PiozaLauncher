@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "5.5",
+	"EngineAssociation": "5.6",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -699,6 +699,30 @@
 		{
 			"Name": "WidgetEditorToolPalette",
 			"Enabled": true
+		},
+		{
+			"Name": "MetaHumanSDK",
+			"Enabled": false
+		},
+		{
+			"Name": "Cascade",
+			"Enabled": false
+		},
+		{
+			"Name": "ChaosInsights",
+			"Enabled": false
+		},
+		{
+			"Name": "RuntimeTelemetry",
+			"Enabled": false
+		},
+		{
+			"Name": "IoStoreInsights",
+			"Enabled": false
+		},
+		{
+			"Name": "MassInsights",
+			"Enabled": false
 		}
 	],
 	"TargetPlatforms": [
