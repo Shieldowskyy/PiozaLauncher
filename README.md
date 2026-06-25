@@ -90,7 +90,7 @@ Pioza Launcher is built with Unreal Engine. I found it easier to prototype some 
 
 ## Engine
 
-To run this project, you must install Unreal Engine 5.5 on your machine. You might also need Visual Studio with the Unreal Engine components installed to compile all plugins and C++ code.
+To run this project, you must install Unreal Engine 5.6 on your machine. You might also need Visual Studio with the Unreal Engine components installed to compile all plugins and C++ code.
 
 ## Plugins
 
