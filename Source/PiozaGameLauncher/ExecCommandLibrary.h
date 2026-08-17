@@ -42,6 +42,7 @@ public:
      * @param bHidden - If true, process window will be hidden.
      * @param Priority - Process priority class or nice value.
      * @param OptionalWorkingDirectory - Optional working directory for the process.
+     * @param EnvironmentVariables - Optional additional environment variables (Name -> Value) to set for the child process, on top of the inherited parent environment.
      * @param bSuccess - Output, true if process started successfully.
      * @param ProcessID - Output, the process ID of the started process.
      * @return Standard output from the executed process.
@@ -54,6 +55,7 @@ public:
         bool bHidden,
         int32 Priority,
         const FString& OptionalWorkingDirectory,
+        const TMap<FString, FString>& EnvironmentVariables,
         bool& bSuccess,
         int32& ProcessID
     );
@@ -65,6 +67,7 @@ public:
      * @param bHidden - If true, process window will be hidden.
      * @param Priority - Process priority.
      * @param OptionalWorkingDirectory - Optional working directory.
+     * @param EnvironmentVariables - Optional additional environment variables (Name -> Value) to set for the child process, on top of the inherited parent environment.
      * @param bSuccess - Output, true if process started successfully.
      * @param ProcessID - Output, ID of the started process.
      * @return Standard output from the executed shell command.
@@ -76,17 +79,26 @@ public:
         bool bHidden,
         int32 Priority,
         const FString& OptionalWorkingDirectory,
+        const TMap<FString, FString>& EnvironmentVariables,
         bool& bSuccess,
         int32& ProcessID
     );
 
 
     /**
-     * Terminates the process with given ProcessID.
-     * @param ProcessID - ID of the process to terminate.
-     * @return true if the process was terminated successfully.
+     * Terminates the process with given ProcessID, along with its entire tracked child tree
+     * (e.g. all processes spawned by a launcher script like umu-run: python3, wineserver,
+     * winetricks, pressure-vessel, pv-adverb, etc).
+     *
+     * Sends a graceful termination signal (SIGTERM on Linux/Mac, TerminateProc on Windows) to
+     * every process in the tree first. If GracefulTimeoutSeconds elapses and some processes in
+     * the tree are still alive, those remaining processes are force-killed (SIGKILL on Linux/Mac).
+     *
+     * @param ProcessID - Root PID of the process tree to terminate.
+     * @param GracefulTimeoutSeconds - How long to wait after the graceful signal before force-killing survivors. Use 0 to force-kill immediately without waiting.
+     * @return true if the process tree was found and a termination attempt was made.
      */
     UFUNCTION(BlueprintCallable, Category = "System")
-    static bool TerminateProcess(int32 ProcessID);
+    static bool TerminateProcess(int32 ProcessID, float GracefulTimeoutSeconds = 3.0f);
 
 };

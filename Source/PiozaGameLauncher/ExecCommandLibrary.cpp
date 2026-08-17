@@ -5,6 +5,8 @@
 #include "ExecCommandLibrary.h"
 #include "ProcessTrackerLibrary.h"
 #include "HAL/PlatformProcess.h"
+#include "HAL/PlatformMisc.h"
+#include "HAL/PlatformTime.h"
 #include "Misc/Paths.h"
 #include <signal.h>
 
@@ -59,6 +61,40 @@ static FString BuildArgumentString(const TArray<FString>& Args)
 }
 
 
+// FPlatformProcess::CreateProc has no direct parameter for passing environment
+// variables to the child process; the child inherits the parent's environment.
+// To support per-call EnvironmentVariables, we temporarily set them on this
+// (launcher) process before CreateProc and restore the previous values
+// immediately afterward, so we don't permanently mutate our own environment.
+class FScopedEnvironmentVariables
+{
+public:
+    explicit FScopedEnvironmentVariables(const TMap<FString, FString>& VarsToSet)
+    {
+        PreviousValues.Reserve(VarsToSet.Num());
+        for (const TPair<FString, FString>& Pair : VarsToSet)
+        {
+            FString PreviousValue = FPlatformMisc::GetEnvironmentVariable(*Pair.Key);
+            PreviousValues.Add(Pair.Key, PreviousValue);
+            FPlatformMisc::SetEnvironmentVar(*Pair.Key, *Pair.Value);
+        }
+    }
+
+    ~FScopedEnvironmentVariables()
+    {
+        for (const TPair<FString, FString>& Pair : PreviousValues)
+        {
+            // Note: if the variable was previously unset, GetEnvironmentVariable
+            // returns an empty string, so this restores it to unset/empty rather
+            // than distinguishing "unset" from "set to empty".
+            FPlatformMisc::SetEnvironmentVar(*Pair.Key, *Pair.Value);
+        }
+    }
+
+private:
+    TMap<FString, FString> PreviousValues;
+};
+
 FString UExecCommandLibrary::ExecuteSystemCommand(
     const FString& Command,
     const TArray<FString>& Arguments,
@@ -66,6 +102,7 @@ FString UExecCommandLibrary::ExecuteSystemCommand(
     bool bHidden,
     int32 Priority,
     const FString& OptionalWorkingDirectory,
+    const TMap<FString, FString>& EnvironmentVariables,
     bool& bSuccess,
     int32& ProcessID)
 {
@@ -97,18 +134,25 @@ FString UExecCommandLibrary::ExecuteSystemCommand(
     UE_LOG(LogTemp, Log, TEXT("Executing: %s %s"), *Command, *ArgsString);
 
     // Start the process
-    FProcHandle ProcessHandle = FPlatformProcess::CreateProc(
-        *Command,
-        *ArgsString,
-        bDetached,
-        bHidden,
-        false,
-        &RealProcessID,
-        Priority,
-        WorkingDir,
-        WritePipe,
-        nullptr
-    );
+    FProcHandle ProcessHandle;
+    {
+        // Scoped so the parent's environment is only temporarily modified
+        // for the duration of the CreateProc call.
+        FScopedEnvironmentVariables ScopedEnv(EnvironmentVariables);
+
+        ProcessHandle = FPlatformProcess::CreateProc(
+            *Command,
+            *ArgsString,
+            bDetached,
+            bHidden,
+            false,
+            &RealProcessID,
+            Priority,
+            WorkingDir,
+            WritePipe,
+            nullptr
+        );
+    }
 
     if (!ProcessHandle.IsValid())
     {
@@ -151,7 +195,7 @@ FString UExecCommandLibrary::ExecuteSystemCommand(
         FPlatformProcess::CloseProc(ProcessHandle);
         UE_LOG(LogTemp, Log, TEXT("Process finished. PID: %d"), ProcessID);
     }
-    
+
     if (ReadPipe || WritePipe)
     {
         FPlatformProcess::ClosePipe(ReadPipe, WritePipe);
@@ -165,6 +209,7 @@ FString UExecCommandLibrary::ExecuteShellCommand(
     bool bHidden,
     int32 Priority,
     const FString& OptionalWorkingDirectory,
+    const TMap<FString, FString>& EnvironmentVariables,
     bool& bSuccess,
     int32& ProcessID)
 {
@@ -195,28 +240,101 @@ FString UExecCommandLibrary::ExecuteShellCommand(
     }
     #endif
 
-    return ExecuteSystemCommand(ShellBinary, { ShellArg }, bDetached, bHidden, Priority, OptionalWorkingDirectory, bSuccess, ProcessID);
+    return ExecuteSystemCommand(ShellBinary, { ShellArg }, bDetached, bHidden, Priority, OptionalWorkingDirectory, EnvironmentVariables, bSuccess, ProcessID);
 }
 
 
-bool UExecCommandLibrary::TerminateProcess(int32 ProcessID)
+bool UExecCommandLibrary::TerminateProcess(int32 ProcessID, float GracefulTimeoutSeconds)
 {
+    // Snapshot the tree once, up front. If we re-queried it after sending the
+    // graceful signal, processes already killed would have already re-parented
+    // or vanished from the live parent->children scan, and we could lose track
+    // of stragglers still shutting down. We terminate everyone in this fixed
+    // snapshot instead.
     TSet<uint32> Tree;
-    if (UProcessTrackerLibrary::GetTrackedTree(ProcessID, Tree))
+    if (!UProcessTrackerLibrary::GetTrackedTree(ProcessID, Tree))
     {
-        for (uint32 PID : Tree)
-        {
-            FProcHandle Handle = FPlatformProcess::OpenProcess(PID);
-            if (Handle.IsValid())
-            {
-                FPlatformProcess::TerminateProc(Handle);
-                FPlatformProcess::CloseProc(Handle);
-            }
-        }
-        UProcessTrackerLibrary::ClearTracking(ProcessID);
-        return true;
+        return false;
     }
-    return false;
+
+    UE_LOG(LogTemp, Warning, TEXT("TerminateProcess: sending graceful terminate to %d process(es) in tree rooted at PID %d"), Tree.Num(), ProcessID);
+
+    // --- Phase 1: graceful terminate ---
+    for (uint32 PID : Tree)
+    {
+        FProcHandle Handle = FPlatformProcess::OpenProcess(PID);
+        if (Handle.IsValid())
+        {
+            FPlatformProcess::TerminateProc(Handle);
+            FPlatformProcess::CloseProc(Handle);
+        }
+    }
+
+    // --- Phase 2: wait (with short polling) for the tree to exit gracefully ---
+    if (GracefulTimeoutSeconds > 0.0f)
+    {
+        const double DeadlineSeconds = FPlatformTime::Seconds() + GracefulTimeoutSeconds;
+        const float PollIntervalSeconds = 0.1f;
+
+        for (;;)
+        {
+            bool bAnyStillAlive = false;
+            for (uint32 PID : Tree)
+            {
+                FProcHandle Handle = FPlatformProcess::OpenProcess(PID);
+                if (Handle.IsValid())
+                {
+                    if (FPlatformProcess::IsProcRunning(Handle))
+                    {
+                        bAnyStillAlive = true;
+                    }
+                    FPlatformProcess::CloseProc(Handle);
+                }
+                if (bAnyStillAlive)
+                {
+                    break;
+                }
+            }
+
+            if (!bAnyStillAlive || FPlatformTime::Seconds() >= DeadlineSeconds)
+            {
+                break;
+            }
+
+            FPlatformProcess::Sleep(PollIntervalSeconds);
+        }
+    }
+
+    // --- Phase 3: force-kill anything still alive in the snapshot ---
+    int32 ForceKilledCount = 0;
+    for (uint32 PID : Tree)
+    {
+        FProcHandle Handle = FPlatformProcess::OpenProcess(PID);
+        if (Handle.IsValid())
+        {
+            if (FPlatformProcess::IsProcRunning(Handle))
+            {
+                ++ForceKilledCount;
+                #if PLATFORM_LINUX || PLATFORM_MAC
+                kill((pid_t)PID, SIGKILL);
+                #else
+                // TerminateProc on Windows is already an unconditional
+                // TerminateProcess() call, so calling it again is our
+                // best available "force kill".
+                FPlatformProcess::TerminateProc(Handle);
+                #endif
+            }
+            FPlatformProcess::CloseProc(Handle);
+        }
+    }
+
+    if (ForceKilledCount > 0)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("TerminateProcess: force-killed %d process(es) that did not exit gracefully (tree rooted at PID %d)"), ForceKilledCount, ProcessID);
+    }
+
+    UProcessTrackerLibrary::ClearTracking(ProcessID);
+    return true;
 }
 
 bool UExecCommandLibrary::TerminateProcessByName(const FString& NameFragment)
