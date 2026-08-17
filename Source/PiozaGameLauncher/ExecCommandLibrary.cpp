@@ -9,6 +9,7 @@
 #include "HAL/PlatformTime.h"
 #include "Misc/Paths.h"
 #include <signal.h>
+#include <stdio.h>
 
 #if PLATFORM_WINDOWS
 #include "Windows/AllowWindowsPlatformTypes.h"
@@ -60,12 +61,127 @@ static FString BuildArgumentString(const TArray<FString>& Args)
     return FString::Join(EscapedArgs, TEXT(" "));
 }
 
+// Safeguard function to prevent accidentally killing critical system or GUI processes
+static bool IsSafeToTerminate(int32 PID, const FString& ProcessNameOrPath)
+{
+    // 1. Protect the Launcher itself from committing suicide
+    if (static_cast<uint32>(PID) == FPlatformProcess::GetCurrentProcessId())
+    {
+        return false;
+    }
 
-// FPlatformProcess::CreateProc has no direct parameter for passing environment
-// variables to the child process; the child inherits the parent's environment.
-// To support per-call EnvironmentVariables, we temporarily set them on this
-// (launcher) process before CreateProc and restore the previous values
-// immediately afterward, so we don't permanently mutate our own environment.
+    // 2. Protect critical low-PID system processes (e.g., init, systemd, kernel threads)
+    if (PID <= 10)
+    {
+        return false;
+    }
+
+    // 3. Extended Blacklist of critical processes (Linux GUI, daemons, Windows Core)
+    static const TArray<FString> ProtectedFragments = {
+        TEXT("xorg"), TEXT("wayland"), TEXT("gnome-shell"), TEXT("plasmashell"),
+        TEXT("kwin"), TEXT("mutter"), TEXT("xfwm4"), TEXT("lxqt"),
+        TEXT("cinnamon"), TEXT("mate-panel"), TEXT("cosmic"), TEXT("sway"),
+        TEXT("hyprland"), TEXT("budgie"), TEXT("pantheon"), TEXT("xfce"),
+        TEXT("lxde"), TEXT("enlightenment"), TEXT("i3"), TEXT("bspwm"),
+        TEXT("awesome"), TEXT("openbox"), TEXT("fluxbox"), TEXT("labwc"),
+        TEXT("wlroots"), TEXT("weston"), TEXT("picom"), TEXT("compton"),
+        TEXT("sddm"), TEXT("gdm"), TEXT("gdm3"), TEXT("lightdm"), TEXT("kdeinit"), TEXT("ly"), TEXT("greetd"),
+        TEXT("systemd"), TEXT("init"), TEXT("dbus"), TEXT("pulseaudio"),
+        TEXT("pipewire"), TEXT("wireplumber"), TEXT("sshd"), TEXT("bash"),
+        TEXT("zsh"), TEXT("login"), TEXT("polkit"), TEXT("rtkit"),
+        TEXT("explorer.exe"), TEXT("svchost.exe"), TEXT("csrss.exe"),
+        TEXT("wininit.exe"), TEXT("smss.exe"), TEXT("lsass.exe"),
+        TEXT("services.exe"), TEXT("winlogon.exe"), TEXT("dwm.exe")
+    };
+
+    FString LowerName = ProcessNameOrPath.ToLower();
+    for (const FString& Protected : ProtectedFragments)
+    {
+        if (LowerName.Contains(Protected))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// Builds a map of ProcessID -> ParentProcessID for the entire system
+static TMap<uint32, uint32> BuildParentProcessMap()
+{
+    TMap<uint32, uint32> ParentMap;
+
+    #if PLATFORM_WINDOWS
+    HANDLE Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (Snapshot != INVALID_HANDLE_VALUE)
+    {
+        PROCESSENTRY32 Entry;
+        Entry.dwSize = sizeof(PROCESSENTRY32);
+        if (Process32First(Snapshot, &Entry))
+        {
+            do {
+                ParentMap.Add(Entry.th32ProcessID, Entry.th32ParentProcessID);
+            } while (Process32Next(Snapshot, &Entry));
+        }
+        CloseHandle(Snapshot);
+    }
+    #elif PLATFORM_LINUX || PLATFORM_MAC
+    // Use ps to get pid and parent pid (ppid)
+    FILE* Pipe = popen("ps -eo pid,ppid", "r");
+    if (Pipe)
+    {
+        char Buffer[256];
+        // Skip header line
+        if (fgets(Buffer, sizeof(Buffer), Pipe)) {}
+
+        while (fgets(Buffer, sizeof(Buffer), Pipe))
+        {
+            FString Line(Buffer);
+            Line = Line.TrimStartAndEnd();
+            TArray<FString> Parts;
+            Line.ParseIntoArrayWS(Parts);
+
+            if (Parts.Num() >= 2)
+            {
+                uint32 PID = static_cast<uint32>(FCString::Atoi(*Parts[0]));
+                uint32 PPID = static_cast<uint32>(FCString::Atoi(*Parts[1]));
+                ParentMap.Add(PID, PPID);
+            }
+        }
+        pclose(Pipe);
+    }
+    #endif
+
+    return ParentMap;
+}
+
+// Checks if TargetPID is a descendant of RootPID by climbing up the parent chain
+static bool IsDescendantOf(uint32 TargetPID, uint32 RootPID, const TMap<uint32, uint32>& ParentMap)
+{
+    uint32 CurrentPID = TargetPID;
+
+    while (CurrentPID > 0)
+    {
+        if (CurrentPID == RootPID)
+        {
+            return true;
+        }
+
+        const uint32* ParentPID = ParentMap.Find(CurrentPID);
+        // Prevent infinite loops in case of malformed OS data (PID == PPID)
+        if (ParentPID && *ParentPID != CurrentPID && *ParentPID != 0)
+        {
+            CurrentPID = *ParentPID;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    return false;
+}
+
 class FScopedEnvironmentVariables
 {
 public:
@@ -84,9 +200,6 @@ public:
     {
         for (const TPair<FString, FString>& Pair : PreviousValues)
         {
-            // Note: if the variable was previously unset, GetEnvironmentVariable
-            // returns an empty string, so this restores it to unset/empty rather
-            // than distinguishing "unset" from "set to empty".
             FPlatformMisc::SetEnvironmentVar(*Pair.Key, *Pair.Value);
         }
     }
@@ -110,7 +223,6 @@ FString UExecCommandLibrary::ExecuteSystemCommand(
     ProcessID = -1;
     uint32 RealProcessID = 0;
 
-    // Create pipes for output capture only if not detached
     void* ReadPipe = nullptr;
     void* WritePipe = nullptr;
     if (!bDetached)
@@ -122,7 +234,6 @@ FString UExecCommandLibrary::ExecuteSystemCommand(
         }
     }
 
-    // Prepare working directory
     FString WorkingDirStr = OptionalWorkingDirectory;
     if (!WorkingDirStr.IsEmpty())
     {
@@ -133,11 +244,8 @@ FString UExecCommandLibrary::ExecuteSystemCommand(
     FString ArgsString = BuildArgumentString(Arguments);
     UE_LOG(LogTemp, Log, TEXT("Executing: %s %s"), *Command, *ArgsString);
 
-    // Start the process
     FProcHandle ProcessHandle;
     {
-        // Scoped so the parent's environment is only temporarily modified
-        // for the duration of the CreateProc call.
         FScopedEnvironmentVariables ScopedEnv(EnvironmentVariables);
 
         ProcessHandle = FPlatformProcess::CreateProc(
@@ -174,7 +282,6 @@ FString UExecCommandLibrary::ExecuteSystemCommand(
     {
         UE_LOG(LogTemp, Log, TEXT("Process started. PID: %d. Capturing output..."), ProcessID);
 
-        // Capture output while process runs
         while (FPlatformProcess::IsProcRunning(ProcessHandle))
         {
             FString Chunk = FPlatformProcess::ReadPipe(ReadPipe);
@@ -185,7 +292,6 @@ FString UExecCommandLibrary::ExecuteSystemCommand(
             FPlatformProcess::Sleep(0.01f);
         }
 
-        // Get any remaining output
         FString FinalChunk = FPlatformProcess::ReadPipe(ReadPipe);
         if (!FinalChunk.IsEmpty())
         {
@@ -243,14 +349,8 @@ FString UExecCommandLibrary::ExecuteShellCommand(
     return ExecuteSystemCommand(ShellBinary, { ShellArg }, bDetached, bHidden, Priority, OptionalWorkingDirectory, EnvironmentVariables, bSuccess, ProcessID);
 }
 
-
 bool UExecCommandLibrary::TerminateProcess(int32 ProcessID, float GracefulTimeoutSeconds)
 {
-    // Snapshot the tree once, up front. If we re-queried it after sending the
-    // graceful signal, processes already killed would have already re-parented
-    // or vanished from the live parent->children scan, and we could lose track
-    // of stragglers still shutting down. We terminate everyone in this fixed
-    // snapshot instead.
     TSet<uint32> Tree;
     if (!UProcessTrackerLibrary::GetTrackedTree(ProcessID, Tree))
     {
@@ -262,6 +362,15 @@ bool UExecCommandLibrary::TerminateProcess(int32 ProcessID, float GracefulTimeou
     // --- Phase 1: graceful terminate ---
     for (uint32 PID : Tree)
     {
+        FString ProcPath;
+        UProcessTrackerLibrary::GetProcessExecutablePath(PID, ProcPath);
+
+        if (!ProcPath.IsEmpty() && !IsSafeToTerminate(PID, ProcPath))
+        {
+            UE_LOG(LogTemp, Warning, TEXT("TerminateProcess: Blocked attempt to gracefully terminate protected process PID %d (%s)"), PID, *ProcPath);
+            continue;
+        }
+
         FProcHandle Handle = FPlatformProcess::OpenProcess(PID);
         if (Handle.IsValid())
         {
@@ -270,7 +379,7 @@ bool UExecCommandLibrary::TerminateProcess(int32 ProcessID, float GracefulTimeou
         }
     }
 
-    // --- Phase 2: wait (with short polling) for the tree to exit gracefully ---
+    // --- Phase 2: wait ---
     if (GracefulTimeoutSeconds > 0.0f)
     {
         const double DeadlineSeconds = FPlatformTime::Seconds() + GracefulTimeoutSeconds;
@@ -305,7 +414,7 @@ bool UExecCommandLibrary::TerminateProcess(int32 ProcessID, float GracefulTimeou
         }
     }
 
-    // --- Phase 3: force-kill anything still alive in the snapshot ---
+    // --- Phase 3: force-kill ---
     int32 ForceKilledCount = 0;
     for (uint32 PID : Tree)
     {
@@ -314,13 +423,20 @@ bool UExecCommandLibrary::TerminateProcess(int32 ProcessID, float GracefulTimeou
         {
             if (FPlatformProcess::IsProcRunning(Handle))
             {
+                FString ProcPath;
+                UProcessTrackerLibrary::GetProcessExecutablePath(PID, ProcPath);
+
+                if (!ProcPath.IsEmpty() && !IsSafeToTerminate(PID, ProcPath))
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("TerminateProcess: Blocked attempt to force-kill protected process PID %d (%s)"), PID, *ProcPath);
+                    FPlatformProcess::CloseProc(Handle);
+                    continue;
+                }
+
                 ++ForceKilledCount;
                 #if PLATFORM_LINUX || PLATFORM_MAC
                 kill((pid_t)PID, SIGKILL);
                 #else
-                // TerminateProc on Windows is already an unconditional
-                // TerminateProcess() call, so calling it again is our
-                // best available "force kill".
                 FPlatformProcess::TerminateProc(Handle);
                 #endif
             }
@@ -337,9 +453,16 @@ bool UExecCommandLibrary::TerminateProcess(int32 ProcessID, float GracefulTimeou
     return true;
 }
 
-bool UExecCommandLibrary::TerminateProcessByName(const FString& NameFragment)
+bool UExecCommandLibrary::TerminateProcessByName(const FString& NameFragment, bool bOnlyChildrenOfLauncher)
 {
     bool bAnyTerminated = false;
+    uint32 LauncherPID = FPlatformProcess::GetCurrentProcessId();
+    TMap<uint32, uint32> ParentMap;
+
+    if (bOnlyChildrenOfLauncher)
+    {
+        ParentMap = BuildParentProcessMap();
+    }
 
     #if PLATFORM_WINDOWS
     HANDLE Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -356,6 +479,20 @@ bool UExecCommandLibrary::TerminateProcessByName(const FString& NameFragment)
             FString ProcessName = Entry.szExeFile;
             if (ProcessName.Contains(NameFragment))
             {
+                // LINEAGE CHECK
+                if (bOnlyChildrenOfLauncher && !IsDescendantOf(Entry.th32ProcessID, LauncherPID, ParentMap))
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("Blocked attempt to terminate process '%s' (PID: %d) - it was NOT spawned by the launcher!"), *ProcessName, Entry.th32ProcessID);
+                    continue;
+                }
+
+                // BLACKLIST CHECK
+                if (!IsSafeToTerminate(Entry.th32ProcessID, ProcessName))
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("Blocked attempt to terminate protected process: %s (PID: %d)"), *ProcessName, Entry.th32ProcessID);
+                    continue;
+                }
+
                 HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, false, Entry.th32ProcessID);
                 if (hProcess)
                 {
@@ -386,11 +523,25 @@ bool UExecCommandLibrary::TerminateProcessByName(const FString& NameFragment)
 
         if (Parts.Num() >= 2)
         {
-            int32 PID = FCString::Atoi(*Parts[0]);
+            uint32 PID = static_cast<uint32>(FCString::Atoi(*Parts[0]));
             FString ProcName = Parts[1];
 
             if (ProcName.Contains(NameFragment))
             {
+                // LINEAGE CHECK
+                if (bOnlyChildrenOfLauncher && !IsDescendantOf(PID, LauncherPID, ParentMap))
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("Blocked attempt to terminate process '%s' (PID: %d) - it was NOT spawned by the launcher!"), *ProcName, PID);
+                    continue;
+                }
+
+                // BLACKLIST CHECK
+                if (!IsSafeToTerminate(PID, ProcName))
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("Blocked attempt to terminate protected process: %s (PID: %d)"), *ProcName, PID);
+                    continue;
+                }
+
                 if (kill(PID, SIGTERM) == 0)
                 {
                     UE_LOG(LogTemp, Warning, TEXT("Terminated process: %s (PID: %d)"), *ProcName, PID);
@@ -406,9 +557,16 @@ bool UExecCommandLibrary::TerminateProcessByName(const FString& NameFragment)
     return bAnyTerminated;
 }
 
-bool UExecCommandLibrary::TerminateProcessesByPathFragment(const FString& PathFragment)
+bool UExecCommandLibrary::TerminateProcessesByPathFragment(const FString& PathFragment, bool bOnlyChildrenOfLauncher)
 {
     bool bAnyTerminated = false;
+    uint32 LauncherPID = FPlatformProcess::GetCurrentProcessId();
+    TMap<uint32, uint32> ParentMap;
+
+    if (bOnlyChildrenOfLauncher)
+    {
+        ParentMap = BuildParentProcessMap();
+    }
 
     #if PLATFORM_WINDOWS
     HANDLE Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -427,6 +585,20 @@ bool UExecCommandLibrary::TerminateProcessesByPathFragment(const FString& PathFr
             {
                 if (ProcPath.Contains(PathFragment))
                 {
+                    // LINEAGE CHECK
+                    if (bOnlyChildrenOfLauncher && !IsDescendantOf(Entry.th32ProcessID, LauncherPID, ParentMap))
+                    {
+                        UE_LOG(LogTemp, Warning, TEXT("Blocked attempt to terminate process by path '%s' (PID: %d) - it was NOT spawned by the launcher!"), *ProcPath, Entry.th32ProcessID);
+                        continue;
+                    }
+
+                    // BLACKLIST CHECK
+                    if (!IsSafeToTerminate(Entry.th32ProcessID, ProcPath))
+                    {
+                        UE_LOG(LogTemp, Warning, TEXT("Blocked attempt to terminate protected process (path): %s (PID: %d)"), *ProcPath, Entry.th32ProcessID);
+                        continue;
+                    }
+
                     HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, false, Entry.th32ProcessID);
                     if (hProcess)
                     {
@@ -466,12 +638,26 @@ bool UExecCommandLibrary::TerminateProcessesByPathFragment(const FString& PathFr
         if (!IsNumeric(DirEntry->d_name))
             continue;
 
-        int PID = atoi(DirEntry->d_name);
+        uint32 PID = static_cast<uint32>(atoi(DirEntry->d_name));
         FString ProcPath;
         if (UProcessTrackerLibrary::GetProcessExecutablePath(PID, ProcPath))
         {
             if (ProcPath.Contains(PathFragment))
             {
+                // LINEAGE CHECK
+                if (bOnlyChildrenOfLauncher && !IsDescendantOf(PID, LauncherPID, ParentMap))
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("Blocked attempt to terminate process by path '%s' (PID: %d) - it was NOT spawned by the launcher!"), *ProcPath, PID);
+                    continue;
+                }
+
+                // BLACKLIST CHECK
+                if (!IsSafeToTerminate(PID, ProcPath))
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("Blocked attempt to terminate protected process (path): %s (PID: %d)"), *ProcPath, PID);
+                    continue;
+                }
+
                 if (kill(PID, SIGTERM) == 0)
                 {
                     UE_LOG(LogTemp, Warning, TEXT("Terminated process: %s (PID: %d)"), *ProcPath, PID);

@@ -21,18 +21,20 @@ public:
     /**
      * Terminates all processes containing the specified name fragment.
      * @param NameFragment - Part of the process name to match.
+     * @param bOnlyChildrenOfLauncher - If true, only processes spawned (directly or indirectly) by this launcher will be killed. Highly recommended for safety.
      * @return true if at least one process was terminated successfully.
      */
     UFUNCTION(BlueprintCallable, Category = "System")
-    static bool TerminateProcessByName(const FString& NameFragment);
+    static bool TerminateProcessByName(const FString& NameFragment, bool bOnlyChildrenOfLauncher = true);
 
     /**
      * Terminates all processes whose executable path contains the specified fragment.
      * @param PathFragment - Part of the executable path to match.
+     * @param bOnlyChildrenOfLauncher - If true, only processes spawned (directly or indirectly) by this launcher will be killed. Highly recommended for safety.
      * @return true if at least one process was terminated successfully.
      */
     UFUNCTION(BlueprintCallable, Category = "System")
-    static bool TerminateProcessesByPathFragment(const FString& PathFragment);
+    static bool TerminateProcessesByPathFragment(const FString& PathFragment, bool bOnlyChildrenOfLauncher = true);
 
     /**
      * Executes a system command with given arguments.
