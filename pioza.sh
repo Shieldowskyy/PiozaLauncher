@@ -182,6 +182,7 @@ check_disk_space() {
 # --------------------------
 verify_download() {
     local file_path=$1
+    local expected_digest=$2   # optional: "sha256:<hex>" from GitHub Release API, or empty
     
     if [ ! -f "$file_path" ]; then
         echo -e "${RED}✗ Error: Downloaded file does not exist${NC}"
@@ -204,6 +205,37 @@ verify_download() {
     # Check if file is executable
     if ! file "$file_path" | grep -q "executable"; then
         echo -e "${YELLOW}⚠ Warning: Downloaded file may not be a valid executable${NC}"
+    fi
+
+    # --------------------------
+    # SHA256 checksum verification (against GitHub Release API digest)
+    # --------------------------
+    if [ -n "$expected_digest" ] && [ "$expected_digest" != "null" ]; then
+        local expected_hash
+        expected_hash=$(echo "$expected_digest" | sed 's/^sha256://')
+
+        if ! command -v sha256sum &>/dev/null; then
+            echo -e "${YELLOW}⚠ Warning: sha256sum not found, skipping checksum verification${NC}"
+        else
+            echo -e "${BLUE}Verifying SHA256 checksum...${NC}"
+            local actual_hash
+            actual_hash=$(sha256sum "$file_path" | awk '{print $1}')
+
+            if [ "$actual_hash" == "$expected_hash" ]; then
+                echo -e "${GREEN}✓ Checksum verified (SHA256 matches GitHub release digest)${NC}"
+            else
+                echo -e "${RED}✗ Error: Checksum mismatch!${NC}"
+                echo -e "${RED}  Expected: ${expected_hash}${NC}"
+                echo -e "${RED}  Actual:   ${actual_hash}${NC}"
+                echo -e "${RED}  The downloaded file does not match what GitHub reports for this release.${NC}"
+                echo -e "${RED}  Refusing to install a file that failed integrity verification.${NC}"
+                rm -f "$file_path"
+                return 1
+            fi
+        fi
+    else
+        echo -e "${YELLOW}⚠ No digest available from GitHub API for this asset (older releases don't have one)${NC}"
+        echo -e "${YELLOW}  Skipping checksum verification — only basic file checks were performed.${NC}"
     fi
     
     echo -e "${GREEN}✓ Download verified successfully${NC}"
@@ -406,6 +438,40 @@ fi
 
 echo -e "${GREEN}Latest version: ${CYAN}$LATEST_FILE${NC}"
 
+# --------------------------
+# Extract expected SHA256 digest for this asset from the GitHub API response
+# GitHub exposes a "digest": "sha256:<hex>" field per-asset (assets published
+# after 2025-06-03). Older assets have "digest": null.
+# We rely only on the same JSON blob already fetched above (no extra request).
+# --------------------------
+EXPECTED_DIGEST=""
+if command -v python3 &>/dev/null; then
+    EXPECTED_DIGEST=$(echo "$RELEASE_DATA" | python3 -c '
+import json, sys
+try:
+    data = json.load(sys.stdin)
+except Exception:
+    sys.exit(0)
+target = "'"$LATEST_FILE"'"
+for asset in data.get("assets", []):
+    if asset.get("name") == target:
+        digest = asset.get("digest")
+        if digest:
+            print(digest)
+        break
+' 2>/dev/null)
+else
+    # Fallback without python3: best-effort grep/sed extraction (less robust
+    # with nested JSON, but avoids a hard dependency on python3).
+    EXPECTED_DIGEST=$(echo "$RELEASE_DATA" | tr ',' '\n' | grep -A2 "\"name\": *\"$LATEST_FILE\"" | grep '"digest"' | head -1 | sed -E 's/.*"digest": *"([^"]*)".*/\1/')
+fi
+
+if [ -n "$EXPECTED_DIGEST" ] && [ "$EXPECTED_DIGEST" != "null" ]; then
+    echo -e "${GREEN}✓ GitHub-reported SHA256 digest found for this asset${NC}"
+else
+    echo -e "${YELLOW}⚠ No SHA256 digest reported by GitHub for this asset (older release)${NC}"
+fi
+
 # Require 1GB free space for installation
 REQUIRED_SPACE_MB=1024
 echo -e "${BLUE}Checking disk space (requires ${REQUIRED_SPACE_MB}MB free)...${NC}"
@@ -429,7 +495,7 @@ else
     
     echo ""
     echo -e "${CYAN}=== Verifying download ===${NC}"
-    if ! verify_download "$APP_DIR/$LATEST_FILE"; then
+    if ! verify_download "$APP_DIR/$LATEST_FILE" "$EXPECTED_DIGEST"; then
         echo -e "${RED}✗ Installation failed: Download verification failed${NC}"
         exit 1
     fi
