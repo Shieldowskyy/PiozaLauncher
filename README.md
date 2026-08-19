@@ -1,9 +1,7 @@
 # Pioza Launcher (formerly PiozaGameLauncher)
 [![Unreal Engine](https://img.shields.io/badge/Unreal%20Engine-%23313131.svg?logo=unrealengine&logoColor=white)](#)
 [![Crowdin](https://badges.crowdin.net/piozagamelauncher/localized.svg)](https://crowdin.com/project/piozagamelauncher)
-<img width="2072" height="1165" alt="obraz" src="https://github.com/user-attachments/assets/c6521141-97f8-4540-bfd5-d605c5aacec7" />
-
-
+<img width="1920" height="1034" alt="obraz" src="https://github.com/user-attachments/assets/e8e97796-bea0-4ec3-b920-920751ddd323" />
 
 **Pioza Launcher** is an open-source launcher project created entirely in Unreal Engine 5 using blueprints. This makes it highly customizable for beginner programmers and indie game developers who want an easy and reliable way to distribute their games to players. It comes with several features, such as:
 
