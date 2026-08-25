@@ -47,13 +47,16 @@ public:
      */
     static void ClearTracking(int32 ProcessID);
 
-#if PLATFORM_WINDOWS
+    #if PLATFORM_WINDOWS
     /** Retrieves the executable path for a process by PID (Windows) */
     static bool GetProcessExecutablePath(uint32 PID, FString& OutPath);
-#elif PLATFORM_LINUX
+    #elif PLATFORM_LINUX
     /** Retrieves the executable path for a process by PID (Linux) */
     static bool GetProcessExecutablePath(int32 PID, FString& OutPath);
-#endif
+    #else
+    /** Not supported on this platform (e.g. Android, iOS) - always returns false */
+    static bool GetProcessExecutablePath(int32 PID, FString& OutPath);
+    #endif
 
 private:
     /** Map of active processes tracked by their ProcessID */
@@ -67,7 +70,7 @@ private:
 
     /** Cached parent-to-children relationship map for the entire system */
     static TMap<uint32, TArray<uint32>> CachedParentMap;
-    
+
     /** Timestamp of the last system-wide process scan */
     static double LastScanTime;
 

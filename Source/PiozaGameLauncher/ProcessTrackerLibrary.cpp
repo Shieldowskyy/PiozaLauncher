@@ -107,7 +107,7 @@ void UProcessTrackerLibrary::UpdateProcessTree(int32 RootPID)
                             std::istringstream Stream(Line.substr(LastParen + 1));
                             std::string StateChar;
                             uint32 PPID = 0;
-                            
+
                             if (Stream >> StateChar >> PPID)
                             {
                                 CachedParentMap.FindOrAdd(PPID).Add(PID);
@@ -124,7 +124,7 @@ void UProcessTrackerLibrary::UpdateProcessTree(int32 RootPID)
     // Now perform BFS to find all descendants starting from RootPID
     TArray<uint32> Queue;
     Queue.Add((uint32)RootPID);
-    
+
     int32 Head = 0;
     while (Head < Queue.Num())
     {
@@ -161,7 +161,7 @@ bool UProcessTrackerLibrary::IsProcessStillRunning(int32 ProcessID)
         if (Handle.IsValid())
         {
             bIsRunning = FPlatformProcess::IsProcRunning(Handle);
-            
+
             #if PLATFORM_LINUX
             if (bIsRunning)
             {
@@ -256,6 +256,15 @@ bool UProcessTrackerLibrary::GetProcessExecutablePath(int32 PID, FString& OutPat
         return true;
     }
 
+    return false;
+}
+#else
+bool UProcessTrackerLibrary::GetProcessExecutablePath(int32 PID, FString& OutPath)
+{
+    // Not supported on this platform (e.g. Android, iOS).
+    // Callers treat an empty OutPath / false return as "path unknown",
+    // which safely skips the blacklist-by-path check in ExecCommandLibrary.
+    OutPath.Empty();
     return false;
 }
 #endif
